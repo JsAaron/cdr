@@ -1,0 +1,11 @@
+C:\Users\Administrator\source\repos\app\app\bin\Debug\app.exe.config
+C:\Users\Administrator\source\repos\app\app\bin\Debug\app.exe
+C:\Users\Administrator\source\repos\app\app\bin\Debug\app.pdb
+C:\Users\Administrator\source\repos\app\app\bin\Debug\app.xml
+C:\Users\Administrator\source\repos\app\app\obj\Debug\app.Resources.resources
+C:\Users\Administrator\source\repos\app\app\obj\Debug\app.vbproj.GenerateResource.cache
+C:\Users\Administrator\source\repos\app\app\obj\Debug\app.vbproj.CoreCompileInputs.cache
+C:\Users\Administrator\source\repos\app\app\obj\Debug\app.exe
+C:\Users\Administrator\source\repos\app\app\obj\Debug\app.xml
+C:\Users\Administrator\source\repos\app\app\obj\Debug\app.pdb
+C:\Users\Administrator\source\repos\app\app\obj\Debug\app.vbprojAssemblyReference.cache

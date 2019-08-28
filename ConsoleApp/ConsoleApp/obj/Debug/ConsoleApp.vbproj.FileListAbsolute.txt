@@ -1,0 +1,11 @@
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbprojAssemblyReference.cache
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.Resources.resources
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.GenerateResource.cache
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.CoreCompileInputs.cache
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.exe.config
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.exe
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.pdb
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.xml
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.exe
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.xml
+C:\Users\Administrator\source\repos\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.pdb
