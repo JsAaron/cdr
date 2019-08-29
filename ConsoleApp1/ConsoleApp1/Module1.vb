@@ -42,16 +42,12 @@ Module Module1
     doc.Unit = 3
     Dim pageWidth = app.PageSizes(1).Width
     Dim pageHeight = app.PageSizes(1).Height
-
-    Console.WriteLine(app.ActivePage.Bleed)
-    Console.WriteLine(app.ActivePage.SizeWidth)
-    Console.WriteLine(app.ActivePage.SizeHeight)
     'doc.ActivePage.CreateLayer("MY A MU")
     ' Console.WriteLine(doc.ActiveLayer.Shapes.Count)
 
     Dim resultShape = getMaxSizeShapeInShapes(doc.ActiveLayer.Shapes)
     Console.WriteLine(resultShape.SizeWidth)
-    'Console.WriteLine(resultShape.SizeHeight)
+    Console.WriteLine(resultShape.SizeHeight)
     MsgBox(1)
 
   End Sub
