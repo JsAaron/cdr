@@ -13,10 +13,10 @@ D:\github\cdr\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.exe.config
 D:\github\cdr\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.exe
 D:\github\cdr\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.pdb
 D:\github\cdr\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.xml
-D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbprojAssemblyReference.cache
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.Resources.resources
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.GenerateResource.cache
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.CoreCompileInputs.cache
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.exe
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.xml
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.pdb
+D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbprojAssemblyReference.cache
