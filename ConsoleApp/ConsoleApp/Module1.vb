@@ -3,6 +3,9 @@
 
 Module Module1
 
+  Public Function log(name, value)
+    Console.Write("{""" & name & """:""" & value & """}")
+  End Function
 
   Sub createDocumnet()
     Dim pia_type As Type = Type.GetTypeFromProgID("CorelDRAW.Application")
@@ -18,7 +21,7 @@ Module Module1
 
     '如果没有文档
     If app.Documents.Count = 0 Then
-      Console.Write("error:0002")
+      log("error", "0002")
       Exit Sub
     End If
 
@@ -31,7 +34,7 @@ Module Module1
     Dim tW = """width"""
     Dim tH = """height"""
 
-    Console.Write("{" & tW & ":" & width & "," & tH & ":" & height & "}")
+    Console.Write("{" & tW & ":""" & width & """," & tH & ":""" & height & """}")
 
 
   End Sub
@@ -41,7 +44,7 @@ Module Module1
     Try
       createDocumnet()
     Catch ex As Exception
-      Console.Write("error:0001")
+      log("error", "0001")
     End Try
   End Sub
 
