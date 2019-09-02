@@ -11,6 +11,10 @@ Module Module1
     Dim pia_type As Type = Type.GetTypeFromProgID("CorelDRAW.Application")
     Dim app As Application = Activator.CreateInstance(pia_type)
 
+    app.Visible = True
+
+    Threading.Thread.Sleep(5000)
+
     '如果有命令路径参数，打开对应的cdr
     If Command() <> "" Then
       app.OpenDocument(Command)
