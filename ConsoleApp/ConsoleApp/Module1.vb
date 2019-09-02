@@ -28,8 +28,11 @@ Module Module1
 
     Dim width = app.ActivePage.SizeWidth
     Dim height = app.ActivePage.SizeHeight
+    Dim tW = """width"""
+    Dim tH = """height"""
 
-    Console.Write("{" & "width:" & width & "," & "height:" & height & "}")
+    Console.Write("{" & tW & ":" & width & "," & tH & ":" & height & "}")
+
 
   End Sub
 
