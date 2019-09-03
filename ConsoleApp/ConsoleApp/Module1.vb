@@ -5,6 +5,7 @@ Module Module1
 
   Public Function log(name, value)
     Console.Write("{""" & name & """:""" & value & """}")
+    Return False
   End Function
 
   Sub createDocumnet()
@@ -13,7 +14,8 @@ Module Module1
 
     app.Visible = True
 
-    Threading.Thread.Sleep(5000)
+    '启动休眠
+    Threading.Thread.Sleep(2000)
 
     '如果有命令路径参数，打开对应的cdr
     If Command() <> "" Then
