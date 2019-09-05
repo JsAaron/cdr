@@ -5,13 +5,9 @@ Imports System.Text
 Module Module1
 
   Public Function log(name, value)
-    Console.Write("{""" & name & """:""" & value & """}")
+    Console.WriteLine("{""" & name & """:""" & value & """}")
     Return False
   End Function
-
-
-
-
 
 
   '获取文档所有页面、所有图层、所有图形对象
