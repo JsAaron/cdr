@@ -70,7 +70,9 @@ Module Module1
     End If
     If b.Count = 2 Then
       path = b(0)
-      createJson = True
+      If b(1) = "fontJson:true" Then
+        createJson = True
+      End If
     End If
 
     '如果有命令路径参数，打开对应的cdr
