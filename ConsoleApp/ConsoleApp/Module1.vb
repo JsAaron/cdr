@@ -116,11 +116,13 @@ Module Module1
         Next
         If IsExist Then
           fontList.Add(names(i))
-          str = str + """font""" + ":""" + names(i) + ""","
+          str = str + """familyname""" + ":""" + names(i) + ""","
         End If
       Next
 
-      str = "{" + str + "}"
+      '去掉最后一个，
+      str = Left(str, Len(str) - 1)
+      str = "[{" + str + "}]"
       Dim fs As FileStream = File.Create(doc.FilePath + "font.json")
       Dim info As Byte() = New UTF8Encoding(True).GetBytes(str)
       fs.Write(info, 0, info.Length)
