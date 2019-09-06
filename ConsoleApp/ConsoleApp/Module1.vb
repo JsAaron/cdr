@@ -116,7 +116,8 @@ Module Module1
         Next
         If IsExist Then
           fontList.Add(names(i))
-          str = str + "{" + """fontname""" + ":""" + names(i) + """," + """familyname""" + ":""" + names(i) + """," + """postscriptname""" + ":""" + names(i) + """},"
+          Dim empty As String = ""
+          str = str + "{" + """fontname""" + ":""" + empty + """," + """familyname""" + ":""" + names(i) + """," + """postscriptname""" + ":""" + empty + """},"
         End If
       Next
 
