@@ -6,8 +6,8 @@ Module Module1
 
 
   Public Function log(name, value)
-    Console.WriteLine("{""" + name + """:""" + value + """}")
-    Return False
+        Console.Write("{""" + name + """:""" + value + """}|")
+        Return False
   End Function
 
 
