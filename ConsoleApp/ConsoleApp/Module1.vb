@@ -107,8 +107,6 @@ Module Module1
     End Sub
 
 
-    Dim lineCount = 3
-
     Sub checkLine()
 
         Dim path As String
@@ -132,44 +130,50 @@ Module Module1
             '如果有命令路径参数，打开对应的cdr
             If path <> "" Then
                 app.OpenDocument(path)
-                'log("log", "打开CRD文件")
             End If
 
             Dim doc As Document = app.ActiveDocument
 
             '如果没有文档
             If app.Documents.Count = 0 Then
-                log("error", "没有找到活动文档")
+                log("error", "CorelDRAW没有活动文档")
                 Exit Sub
             End If
-
-            'log("log", "打开活动文档")
-
-            outputResult(app, doc, createJson)
-
-            ' MsgBox(11)
 
         Catch ex As Exception
-            log("error", "CorelDRAW执行失败，休眠3秒后开始下一次执行")
-
-            If lineCount = 0 Then
-                log("error", "CorelDRAW执行失败")
-                Exit Sub
-            End If
-            lineCount = lineCount - 1
-            Threading.Thread.Sleep(3000)
-            checkLine()
-
+            log("error", "CorelDRAW打开文档失败")
+            Exit Sub
         End Try
+
+
+        Try
+            Dim doc As Document = app.ActiveDocument
+            outputResult(app, doc, createJson)
+        Catch ex As Exception
+            log("error", "CorelDRAW获取字体失败")
+            Exit Sub
+        End Try
+
 
     End Sub
 
-  Sub Main()
-    Try
-      checkLine()
-    Catch ex As Exception
-      log("error", "CorelDRAW异常,无法启动")
-    End Try
+
+    Dim lineCount = 2
+
+    Sub Main()
+        Try
+            checkLine()
+        Catch ex As Exception
+            If lineCount = 0 Then
+                log("error", "CorelDRAW软件链接失败")
+                Exit Sub
+            End If
+            'log("log", "CorelDRAW软件链接错误，休眠5秒继续链接")
+            lineCount = lineCount - 1
+            Threading.Thread.Sleep(5000)
+            checkLine()
+            Exit Sub
+        End Try
   End Sub
 
 End Module
