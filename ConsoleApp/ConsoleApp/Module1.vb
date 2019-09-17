@@ -64,8 +64,8 @@ Module Module1
     Dim tW = """width"""
     Dim tH = """height"""
         Dim data = "{" & tW & ":""" & width & """," & tH & ":""" & height & """}"
-
-        log("pagesize", data)
+        '单独输出结构
+        Console.Write("{""pagesize"":" + data + "}|")
 
         '创建当前文字的json
         If createJson = True Then
@@ -107,6 +107,8 @@ Module Module1
     End Sub
 
 
+    Dim lineCount = 1
+
     Sub checkLine()
 
         Dim path As String
@@ -136,12 +138,19 @@ Module Module1
 
             '如果没有文档
             If app.Documents.Count = 0 Then
-                log("error", "CorelDRAW没有活动文档")
+                log("error", "没有找到活动文档")
                 Exit Sub
             End If
 
         Catch ex As Exception
-            log("error", "CorelDRAW打开文档失败")
+            'log("log", "CorelDRAW打开文档失败，休眠3秒后重新链接")
+            If lineCount = 0 Then
+                log("error", "CorelDRAW打开文档错误")
+                Exit Sub
+            End If
+            lineCount = lineCount - 1
+            Threading.Thread.Sleep(5000)
+            checkLine()
             Exit Sub
         End Try
 
@@ -150,29 +159,18 @@ Module Module1
             Dim doc As Document = app.ActiveDocument
             outputResult(app, doc, createJson)
         Catch ex As Exception
-            log("error", "CorelDRAW获取字体失败")
+            log("error", "CorelDRAW执行功能错误")
             Exit Sub
         End Try
 
 
     End Sub
 
-
-    Dim lineCount = 2
-
-    Sub Main()
-        Try
-            checkLine()
-        Catch ex As Exception
-            If lineCount = 0 Then
-                log("error", "CorelDRAW软件链接失败")
-                Exit Sub
-            End If
-            'log("log", "CorelDRAW软件链接错误，休眠5秒继续链接")
-            lineCount = lineCount - 1
-            Threading.Thread.Sleep(5000)
-            checkLine()
-            Exit Sub
+  Sub Main()
+    Try
+      checkLine()
+    Catch ex As Exception
+            log("error", "CorelDRAW软件链接错误")
         End Try
   End Sub
 
