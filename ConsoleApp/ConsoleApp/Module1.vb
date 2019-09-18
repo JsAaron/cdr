@@ -88,7 +88,8 @@ Module Module1
                 If IsExist Then
                     fontList.Add(names(i))
                     Dim empty As String = ""
-                    str = str + "{" + """fontname""" + ":""" + empty + """," + """familyname""" + ":""" + names(i) + """," + """postscriptname""" + ":""" + empty + """},"
+
+                    str = str + "{" + """fontname""" + ":""" + empty + """," + """familyname""" + ":""" + Replace(names(i), Chr(10), "") + """," + """postscriptname""" + ":""" + empty + """},"
                 End If
             Next
 
@@ -107,7 +108,7 @@ Module Module1
     End Sub
 
 
-    Dim lineCount = 1
+    Dim lineCount = 2
 
     Sub checkLine()
 
@@ -124,9 +125,11 @@ Module Module1
             End If
         End If
 
+        log("log", "CorelDRAW开始链接")
         Dim pia_type As Type = Type.GetTypeFromProgID("CorelDRAW.Application")
         Dim app As Application = Activator.CreateInstance(pia_type)
         app.Visible = True
+        log("log", "CorelDRAW链接成功")
 
         Try
             '如果有命令路径参数，打开对应的cdr
@@ -148,8 +151,9 @@ Module Module1
                 log("error", "CorelDRAW打开文档错误")
                 Exit Sub
             End If
+            log("error", "CorelDRAW文档打开失败,开始下一次打开")
             lineCount = lineCount - 1
-            Threading.Thread.Sleep(5000)
+            Threading.Thread.Sleep(3000)
             checkLine()
             Exit Sub
         End Try
@@ -165,13 +169,25 @@ Module Module1
 
     End Sub
 
-  Sub Main()
-    Try
-      checkLine()
-    Catch ex As Exception
-            log("error", "CorelDRAW软件链接错误")
+
+    Dim mainCount = 2
+
+
+    Sub Main()
+        Try
+            checkLine()
+        Catch ex As Exception
+            If mainCount = 0 Then
+                log("error", "CorelDRAW软件无法链接")
+                Exit Sub
+            End If
+            log("log", "CorelDRAW链接失败,开始下一次链接")
+            mainCount = mainCount - 1
+            Threading.Thread.Sleep(3000)
+            checkLine()
+            Exit Sub
         End Try
-  End Sub
+    End Sub
 
 End Module
 
