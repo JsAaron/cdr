@@ -69,8 +69,7 @@ Module Module1
 
         '创建当前文字的json
         If createJson = True Then
-
-            'log("log", "开始搜索文档字体")
+            log("log", "开始搜索文档字体")
             '获取当前的应用的字体
             Dim names = getFontNames(doc)
             Dim i As Integer
@@ -88,14 +87,16 @@ Module Module1
                 If IsExist Then
                     fontList.Add(names(i))
                     Dim empty As String = ""
-
                     str = str + "{" + """fontname""" + ":""" + empty + """," + """familyname""" + ":""" + Replace(names(i), Chr(10), "") + """," + """postscriptname""" + ":""" + empty + """},"
                 End If
             Next
 
+            log("log", "开始处理字体")
+
             '去掉最后一个，
             str = Left(str, Len(str) - 1)
             str = "[" + str + "]"
+            log("log", str)
             Dim p() = Split(doc.FileName, ".")
             Dim fs As FileStream = File.Create(doc.FilePath + p(0) + ".json")
             Dim info As Byte() = New UTF8Encoding(True).GetBytes(str)
@@ -161,6 +162,13 @@ Module Module1
 
         Try
             Dim doc As Document = app.ActiveDocument
+
+            '如果没有文档
+            If app.Documents.Count = 0 Then
+                log("error", "没有找到活动文档")
+                Exit Sub
+            End If
+
             outputResult(app, doc, createJson)
         Catch ex As Exception
             log("error", "CorelDRAW执行功能错误")
