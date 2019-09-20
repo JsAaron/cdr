@@ -96,18 +96,20 @@ Module Module1
             '去掉最后一个，
             str = Left(str, Len(str) - 1)
             str = "[" + str + "]"
-            log("log", str)
             Dim p() = Split(doc.FileName, ".")
+            log("log", "开始处理字体FileName")
             Dim fs As FileStream = File.Create(doc.FilePath + p(0) + ".json")
+            log("log", "开始处理字体FileStream")
             Dim info As Byte() = New UTF8Encoding(True).GetBytes(str)
+            log("log", "开始处理字体UTF8Encoding")
             fs.Write(info, 0, info.Length)
+            log("log", "开始处理字体Write")
             fs.Close()
             log("fontjson", "true")
 
         End If
 
     End Sub
-
 
     Dim lineCount = 2
 
@@ -132,12 +134,15 @@ Module Module1
         app.Visible = True
         log("log", "CorelDRAW链接成功")
 
-        Try
-            '如果有命令路径参数，打开对应的cdr
-            If path <> "" Then
-                app.OpenDocument(path)
-            End If
+        If Len(path) <= 2 Then
+            log("error", "文档路径为空")
+            Exit Sub
+        End If
 
+
+        Try
+            log("log", "CorelDRAW开始连接文档")
+            app.OpenDocument(path)
             Dim doc As Document = app.ActiveDocument
 
             '如果没有文档
@@ -169,6 +174,7 @@ Module Module1
                 Exit Sub
             End If
 
+            log("log", "文档连接成功")
             outputResult(app, doc, createJson)
         Catch ex As Exception
             log("error", "CorelDRAW执行功能错误")
@@ -182,6 +188,17 @@ Module Module1
 
 
     Sub Main()
+        ''C:\Users\Administrator\Desktop\cdr\从严治党建文化墙.cdr
+        'Dim x As String
+        'x = InputBox("输入CDR文件路径,例如：C:\Users\Administrator\Desktop\cdr\从严治党建文化墙.cdr", "输入CDR文件路径")
+
+        'If Len(x) = 0 Then
+        'MsgBox("没有输入地址")
+        'Exit Sub
+        ' End If
+
+        ' path = x
+
         Try
             checkLine()
         Catch ex As Exception
@@ -195,6 +212,8 @@ Module Module1
             checkLine()
             Exit Sub
         End Try
+
+        '  MsgBox("结束")
     End Sub
 
 End Module
