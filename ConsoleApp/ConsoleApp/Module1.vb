@@ -119,7 +119,6 @@ Module Module1
 
 
     Function jsonDecode(jsonString)
-        Console.WriteLine(jsonString)
         Dim L = Len(jsonString)
         Dim str = Mid(jsonString, 2, L - 2)
         Dim args() = Split(str, ",")
@@ -150,7 +149,6 @@ Module Module1
         strFunc = "function jsonParse(s) { return eval('(' + s + ')'); }"
         objSC.AddCode(strFunc)
         objJSON = objSC.CodeObject.jsonParse(jsonString)
-        Console.WriteLine(11111)
         getJob = jsonDecode(objJSON)
     End Function
 
@@ -206,9 +204,6 @@ Module Module1
 
 
     Sub Main()
-
-        Console.Write(Command)
-
         '如果有外部命令
         If Len(Command) > 0 Then
             getJob(Command)
