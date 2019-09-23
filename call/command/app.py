@@ -7,7 +7,7 @@ import json
 
 python2json = {}
 python2json["path"] = "C:\\Users\\Administrator\\Desktop\\cdr\\创意红色大气党建展板.cdr"
-python2json["fontJson"] = "true"
+python2json["fontJson"] = "True"
 json_str = json.dumps(python2json)
 
 cmdStr = [

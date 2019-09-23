@@ -73,7 +73,7 @@ Module Module1
         'Console.Write("{""pagesize"":" + data + "}|")
 
         '创建当前文字的json
-        If cmdFontJson = True Then
+        If cmdFontJson = "True" Then
             log("log", "开始搜索文档字体")
             '获取当前的应用的字体
             Dim names = getFontNames(doc)
@@ -216,7 +216,7 @@ Module Module1
                 log("error", "文档路径为空")
                 Exit Sub
             End If
-            If cmdFontJson = True Then
+            If cmdFontJson = "True" Then
                 log("log", "启用了字体采集功能")
             End If
         End If
@@ -228,8 +228,7 @@ Module Module1
         log("log", "CorelDRAW链接成功")
 
         Try
-
-            '  checkLine(app)
+            checkLine(app)
         Catch ex As Exception
             If mainCount = 0 Then
                 log("error", "CorelDRAW软件无法链接")
