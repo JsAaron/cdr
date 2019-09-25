@@ -1,6 +1,6 @@
-﻿Imports Corel.Interop.VGCore
-Imports System.IO
+﻿Imports System.IO
 Imports System.Text
+Imports Corel.Interop.VGCore
 
 Module Module1
 
@@ -16,8 +16,34 @@ Module Module1
     End Function
 
 
+    '递归检测形状
+    Public Function recurveShape(allShapes)
+        Dim tempShape As Shape
+        ' Console.WriteLine(2)
+        '  Console.WriteLine(allShapes.Count)
+        For k = 1 To allShapes.Count
+            ' 得到这个形状
+            tempShape = allShapes.Item(k)
+            Dim cdrTextShape As cdrShapeType = 6
+            Dim cdrGroupShape As cdrShapeType = 7
+
+            '组
+            If tempShape.Type = cdrGroupShape Then
+                recurveShape(tempShape.Shapes)
+            End If
+
+            '文字
+            If tempShape.Type = cdrTextShape Then
+                Console.WriteLine(tempShape.Name)
+                Console.WriteLine(tempShape.Text.Story.Text)
+            End If
+
+        Next k
+
+    End Function
+
     '获取文档所有页面、所有图层、所有图形对象
-    Public Function getFontNames(doc) As ArrayList
+    Public Function getLayer(doc) As ArrayList
 
         Dim list As New ArrayList
 
@@ -38,20 +64,7 @@ Module Module1
             allLayers = tempPage.Layers
             For j = 1 To allLayers.Count
                 tempLayer = allLayers.Item(j)
-                Console.WriteLine(tempLayer.Name)
-                allShapes = tempLayer.Shapes
-                For k = 1 To allShapes.Count
-                    ' 得到这个形状
-                    tempShape = allShapes.Item(k)
-                    Dim cdrTextShape As cdrShapeType = 6
-
-                    '如果是文本形状
-                    If tempShape.Type = cdrTextShape Then
-
-                        list.Add(tempShape.Text.Selection.Font)
-                    End If
-
-                Next k
+                recurveShape(tempLayer.Shapes)
             Next j
         Next i
 
@@ -72,11 +85,12 @@ Module Module1
         '单独输出结构
         'Console.Write("{""pagesize"":" + data + "}|")
 
+        Dim names = getLayer(doc)
+
         '创建当前文字的json
         If cmdFontJson = "True" Then
             log("log", "开始搜索文档字体")
             '获取当前的应用的字体
-            Dim names = getFontNames(doc)
             Dim i As Integer
             Dim fontList As New ArrayList()
             Dim str As String = ""
@@ -90,7 +104,7 @@ Module Module1
                     End If
                 Next
                 If IsExist Then
-                    Console.WriteLine(names(i))
+                    'Console.WriteLine(names(i))
                     fontList.Add(names(i))
                     Dim empty As String = ""
                     str = str + "{" + """fontname""" + ":""" + empty + """," + """familyname""" + ":""" + Replace(names(i), Chr(10), "") + """," + """postscriptname""" + ":""" + empty + """},"
