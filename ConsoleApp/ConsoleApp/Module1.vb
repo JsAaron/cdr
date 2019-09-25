@@ -6,7 +6,7 @@ Module Module1
 
     Dim lineCount = 2
     Dim cmdPath
-    Dim cmdFontJson
+    Dim cmdFontJson = "True"
     Dim mainCount = 2
 
 
@@ -38,8 +38,7 @@ Module Module1
             allLayers = tempPage.Layers
             For j = 1 To allLayers.Count
                 tempLayer = allLayers.Item(j)
-
-                ' 遍历图层中的所有形状（对象）
+                Console.WriteLine(tempLayer.Name)
                 allShapes = tempLayer.Shapes
                 For k = 1 To allShapes.Count
                     ' 得到这个形状
@@ -48,6 +47,7 @@ Module Module1
 
                     '如果是文本形状
                     If tempShape.Type = cdrTextShape Then
+
                         list.Add(tempShape.Text.Selection.Font)
                     End If
 
@@ -90,6 +90,7 @@ Module Module1
                     End If
                 Next
                 If IsExist Then
+                    Console.WriteLine(names(i))
                     fontList.Add(names(i))
                     Dim empty As String = ""
                     str = str + "{" + """fontname""" + ":""" + empty + """," + """familyname""" + ":""" + Replace(names(i), Chr(10), "") + """," + """postscriptname""" + ":""" + empty + """},"
@@ -158,7 +159,10 @@ Module Module1
         Try
             log("log", "CorelDRAW开始连接文档")
 
-            app.OpenDocument(cmdPath)
+            If Len(cmdPath) > 2 Then
+                app.OpenDocument(cmdPath)
+            End If
+
             Dim doc As Document = app.ActiveDocument
 
             '如果没有文档
@@ -200,10 +204,8 @@ Module Module1
     End Sub
 
 
-
-
-
     Sub Main()
+
         '如果有外部命令
         If Len(Command) > 0 Then
             getJob(Command)
@@ -236,7 +238,7 @@ Module Module1
             Exit Sub
         End Try
 
-        '  MsgBox("结束")
+        MsgBox("结束")
     End Sub
 
 End Module
