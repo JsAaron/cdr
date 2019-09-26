@@ -6,7 +6,7 @@ Module Module1
 
     Dim lineCount = 2
     Dim cmdPath
-    Dim cmdFontJson = "True"
+    Dim cmdFontJson
     Dim mainCount = 2
 
 
@@ -19,13 +19,12 @@ Module Module1
     '递归检测形状
     Public Function recurveShape(allShapes)
         Dim tempShape As Shape
-        ' Console.WriteLine(2)
-        '  Console.WriteLine(allShapes.Count)
         For k = 1 To allShapes.Count
             ' 得到这个形状
             tempShape = allShapes.Item(k)
             Dim cdrTextShape As cdrShapeType = 6
             Dim cdrGroupShape As cdrShapeType = 7
+
 
             '组
             If tempShape.Type = cdrGroupShape Then
@@ -34,8 +33,11 @@ Module Module1
 
             '文字
             If tempShape.Type = cdrTextShape Then
-                Console.WriteLine(tempShape.Name)
-                Console.WriteLine(tempShape.Text.Story.Text)
+                '如果有值
+                If tempShape.Text.Story.Text <> "" Then
+                    log(tempShape.Name, tempShape.Text.Story.Text)
+                End If
+
             End If
 
         Next k
@@ -43,7 +45,7 @@ Module Module1
     End Function
 
     '获取文档所有页面、所有图层、所有图形对象
-    Public Function getLayer(doc) As ArrayList
+    Public Function getLayer(app, doc) As ArrayList
 
         Dim list As New ArrayList
 
@@ -55,18 +57,26 @@ Module Module1
         Dim tempPage As Page, tempLayer As Layer, tempShape As Shape
         Dim msg As String
 
-
-        allPages = doc.Pages
-        For i = 1 To allPages.Count
-            tempPage = allPages.Item(i)
-
-            ' 遍历页面中的所有图层
-            allLayers = tempPage.Layers
-            For j = 1 To allLayers.Count
-                tempLayer = allLayers.Item(j)
+        If cmdFontJson = "True" Then
+            allPages = doc.Pages
+            For i = 1 To allPages.Count
+                tempPage = allPages.Item(i)
+                ' 遍历页面中的所有图层
+                allLayers = tempPage.Layers
+                For j = 1 To allLayers.Count
+                    tempLayer = allLayers.Item(j)
+                    recurveShape(tempLayer.Shapes)
+                Next j
+            Next i
+        Else
+            allLayers = doc.ActivePage.AllLayers
+            For k = 1 To allLayers.Count
+                tempLayer = allLayers.Item(k)
                 recurveShape(tempLayer.Shapes)
-            Next j
-        Next i
+            Next k
+        End If
+
+
 
         Return list
 
@@ -85,7 +95,7 @@ Module Module1
         '单独输出结构
         'Console.Write("{""pagesize"":" + data + "}|")
 
-        Dim names = getLayer(doc)
+        Dim names = getLayer(app, doc)
 
         '创建当前文字的json
         If cmdFontJson = "True" Then
@@ -117,13 +127,13 @@ Module Module1
             str = Left(str, Len(str) - 1)
             str = "[" + str + "]"
             Dim p() = Split(doc.FileName, ".")
-            log("log", "开始处理字体FileName")
+            'log("log", "开始处理字体FileName")
             Dim fs As FileStream = File.Create(doc.FilePath + p(0) + ".json")
-            log("log", "开始处理字体FileStream")
+            'log("log", "开始处理字体FileStream")
             Dim info As Byte() = New UTF8Encoding(True).GetBytes(str)
-            log("log", "开始处理字体UTF8Encoding")
+            'log("log", "开始处理字体UTF8Encoding")
             fs.Write(info, 0, info.Length)
-            log("log", "开始处理字体Write")
+            'log("log", "开始处理字体Write")
             fs.Close()
             log("fontjson", "true")
 
