@@ -1,12 +1,15 @@
 ﻿Imports System.IO
 Imports System.Text
 Imports Corel.Interop.VGCore
+Imports System.Web.Script.Serialization
 
 Module Module1
 
     Dim lineCount = 2
     Dim cmdPath
     Dim cmdFontJson
+    '提取数据
+    Dim cmdExtractData
     Dim mainCount = 2
 
 
@@ -17,25 +20,28 @@ Module Module1
 
 
     '递归检测形状
-    Public Function recurveShape(allShapes)
+    Public Function recurveShape(allShapes, infoArr)
         Dim tempShape As Shape
+
         For k = 1 To allShapes.Count
             ' 得到这个形状
             tempShape = allShapes.Item(k)
             Dim cdrTextShape As cdrShapeType = 6
             Dim cdrGroupShape As cdrShapeType = 7
 
-
             '组
             If tempShape.Type = cdrGroupShape Then
-                recurveShape(tempShape.Shapes)
+                recurveShape(tempShape.Shapes, infoArr)
             End If
 
             '文字
             If tempShape.Type = cdrTextShape Then
                 '如果有值
                 If tempShape.Text.Story.Text <> "" Then
-                    log(tempShape.Name, tempShape.Text.Story.Text)
+                    Dim t As New ArrayList
+                    t.Add(tempShape.Name)
+                    t.Add(tempShape.Text.Story.Text)
+                    infoArr.Add(t)
                 End If
 
             End If
@@ -44,8 +50,46 @@ Module Module1
 
     End Function
 
+
+
+
     '获取文档所有页面、所有图层、所有图形对象
-    Public Function getLayer(app, doc) As ArrayList
+    Public Function getExtractData(doc)
+
+        Dim infoArr As New ArrayList
+
+        ' 定义循环变量
+        Dim i As Integer, j As Integer, k As Integer
+        Dim allPages As Pages, allShapes As Shapes, allLayers As Layers
+        ' 定义临时变量
+        Dim tempPage As Page, tempLayer As Layer, tempShape As Shape
+        Dim msg As String
+
+        allLayers = doc.ActivePage.AllLayers
+        For k = 1 To allLayers.Count
+            tempLayer = allLayers.Item(k)
+            recurveShape(tempLayer.Shapes, infoArr)
+        Next k
+
+        If infoArr.Count > 0 Then
+            Dim str = "{""extract""：["
+            For i = 0 To infoArr.Count
+                str = str & "{" & """" & (infoArr.Item(i).item(0)) & """" & ":" & """" & (infoArr.Item(i).item(1)) & """" & "}"
+                If i = (infoArr.Count - 1) Then
+                    str = str + "]}|"
+                    Console.Write(str)
+                Else
+                    str = str + ","
+                End If
+            Next i
+        End If
+
+    End Function
+
+
+
+    '获取文档所有页面、所有图层、所有图形对象
+    Public Function getFontNames(doc) As ArrayList
 
         Dim list As New ArrayList
 
@@ -57,30 +101,82 @@ Module Module1
         Dim tempPage As Page, tempLayer As Layer, tempShape As Shape
         Dim msg As String
 
-        If cmdFontJson = "True" Then
-            allPages = doc.Pages
-            For i = 1 To allPages.Count
-                tempPage = allPages.Item(i)
-                ' 遍历页面中的所有图层
-                allLayers = tempPage.Layers
-                For j = 1 To allLayers.Count
-                    tempLayer = allLayers.Item(j)
-                    recurveShape(tempLayer.Shapes)
-                Next j
-            Next i
-        Else
-            allLayers = doc.ActivePage.AllLayers
-            For k = 1 To allLayers.Count
-                tempLayer = allLayers.Item(k)
-                recurveShape(tempLayer.Shapes)
-            Next k
-        End If
 
+        allPages = doc.Pages
+        For i = 1 To allPages.Count
+            tempPage = allPages.Item(i)
 
+            ' 遍历页面中的所有图层
+            allLayers = tempPage.Layers
+            For j = 1 To allLayers.Count
+                tempLayer = allLayers.Item(j)
+
+                ' 遍历图层中的所有形状（对象）
+                allShapes = tempLayer.Shapes
+                For k = 1 To allShapes.Count
+                    ' 得到这个形状
+                    tempShape = allShapes.Item(k)
+                    Dim cdrTextShape As cdrShapeType = 6
+
+                    '如果是文本形状
+                    If tempShape.Type = cdrTextShape Then
+                        list.Add(tempShape.Text.Selection.Font)
+                    End If
+
+                Next k
+            Next j
+        Next i
 
         Return list
 
     End Function
+
+
+    '创建字体文件
+    Public Function createFontJson(doc)
+
+        Dim names = getFontNames(doc)
+
+        'log("log", "开始搜索文档字体")
+        '获取当前的应用的字体
+        Dim i As Integer
+        Dim fontList As New ArrayList()
+        Dim str As String = ""
+
+        For i = 0 To names.Count - 1
+            Dim IsExist As Boolean = True
+            For j As Integer = 0 To fontList.Count - 1
+                If fontList(j).ToString() = names(i) Then
+                    IsExist = False
+                    Exit For
+                End If
+            Next
+            If IsExist Then
+                'Console.WriteLine(names(i))
+                fontList.Add(names(i))
+                Dim empty As String = ""
+                str = str + "{" + """fontname""" + ":""" + empty + """," + """familyname""" + ":""" + Replace(names(i), Chr(10), "") + """," + """postscriptname""" + ":""" + empty + """},"
+            End If
+        Next
+
+        'log("log", "开始处理字体")
+
+        '去掉最后一个，
+        str = Left(str, Len(str) - 1)
+        str = "[" + str + "]"
+        Dim p() = Split(doc.FileName, ".")
+        'log("log", "开始处理字体FileName")
+        Dim fs As FileStream = File.Create(doc.FilePath + p(0) + ".json")
+        'log("log", "开始处理字体FileStream")
+        Dim info As Byte() = New UTF8Encoding(True).GetBytes(str)
+        'log("log", "开始处理字体UTF8Encoding")
+        fs.Write(info, 0, info.Length)
+        'log("log", "开始处理字体Write")
+        fs.Close()
+        log("createJson", "完成")
+
+    End Function
+
 
 
     Sub outputResult(app, doc)
@@ -93,50 +189,18 @@ Module Module1
         Dim tH = """height"""
         Dim data = "{" & tW & ":""" & width & """," & tH & ":""" & height & """}"
         '单独输出结构
-        'Console.Write("{""pagesize"":" + data + "}|")
+        Console.Write("{""pagesize"":" + data + "}|")
 
-        Dim names = getLayer(app, doc)
+
+
+        '获取数据
+        If cmdExtractData = "True" Then
+            getExtractData(doc)
+        End If
 
         '创建当前文字的json
         If cmdFontJson = "True" Then
-            log("log", "开始搜索文档字体")
-            '获取当前的应用的字体
-            Dim i As Integer
-            Dim fontList As New ArrayList()
-            Dim str As String = ""
-
-            For i = 0 To names.Count - 1
-                Dim IsExist As Boolean = True
-                For j As Integer = 0 To fontList.Count - 1
-                    If fontList(j).ToString() = names(i) Then
-                        IsExist = False
-                        Exit For
-                    End If
-                Next
-                If IsExist Then
-                    'Console.WriteLine(names(i))
-                    fontList.Add(names(i))
-                    Dim empty As String = ""
-                    str = str + "{" + """fontname""" + ":""" + empty + """," + """familyname""" + ":""" + Replace(names(i), Chr(10), "") + """," + """postscriptname""" + ":""" + empty + """},"
-                End If
-            Next
-
-            log("log", "开始处理字体")
-
-            '去掉最后一个，
-            str = Left(str, Len(str) - 1)
-            str = "[" + str + "]"
-            Dim p() = Split(doc.FileName, ".")
-            'log("log", "开始处理字体FileName")
-            Dim fs As FileStream = File.Create(doc.FilePath + p(0) + ".json")
-            'log("log", "开始处理字体FileStream")
-            Dim info As Byte() = New UTF8Encoding(True).GetBytes(str)
-            'log("log", "开始处理字体UTF8Encoding")
-            fs.Write(info, 0, info.Length)
-            'log("log", "开始处理字体Write")
-            fs.Close()
-            log("fontjson", "true")
-
+            createFontJson(doc)
         End If
 
     End Sub
@@ -162,6 +226,9 @@ Module Module1
                 If match.SubMatches(0) = "fontJson" Then
                     cmdFontJson = match.SubMatches(1)
                 End If
+                If match.SubMatches(0) = "extractData" Then
+                    cmdExtractData = match.SubMatches(1)
+                End If
             Next
         Next i
 
@@ -181,7 +248,7 @@ Module Module1
     Sub checkLine(app)
 
         Try
-            log("log", "CorelDRAW开始连接文档")
+            'log("log", "CorelDRAW开始连接文档")
 
             If Len(cmdPath) > 2 Then
                 app.OpenDocument(cmdPath)
@@ -218,10 +285,10 @@ Module Module1
                 Exit Sub
             End If
 
-            log("log", "文档连接成功")
+            '  log("log", "文档连接成功")
             outputResult(app, doc)
         Catch ex As Exception
-            log("error", "CorelDRAW执行功能错误")
+            'log("error", "CorelDRAW执行功能错误")
             Exit Sub
         End Try
 
@@ -238,15 +305,15 @@ Module Module1
                 Exit Sub
             End If
             If cmdFontJson = "True" Then
-                log("log", "启用了字体采集功能")
+                '    log("log", "启用了字体采集功能")
             End If
         End If
 
-        log("log", "CorelDRAW开始链接")
+        ' log("log", "CorelDRAW开始链接")
         Dim pia_type As Type = Type.GetTypeFromProgID("CorelDRAW.Application")
         Dim app As Application = Activator.CreateInstance(pia_type)
         app.Visible = True
-        log("log", "CorelDRAW链接成功")
+        ' log("log", "CorelDRAW链接成功")
 
         Try
             checkLine(app)
@@ -262,7 +329,7 @@ Module Module1
             Exit Sub
         End Try
 
-        MsgBox("结束")
+        'MsgBox("结束")
     End Sub
 
 End Module
