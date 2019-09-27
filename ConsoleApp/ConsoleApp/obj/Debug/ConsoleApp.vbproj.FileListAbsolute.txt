@@ -19,3 +19,5 @@ D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.CoreCompileInput
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.exe
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.xml
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.pdb
+D:\github\cdr\ConsoleApp\ConsoleApp\bin\Debug\Newtonsoft.Json.dll
+D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.CopyComplete

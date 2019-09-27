@@ -1,16 +1,25 @@
 ﻿Imports System.IO
 Imports System.Text
 Imports Corel.Interop.VGCore
-Imports System.Web.Script.Serialization
+Imports Newtonsoft.Json
+
 
 Module Module1
 
     Dim lineCount = 2
-    Dim cmdPath
-    Dim cmdFontJson
-    '提取数据
-    Dim cmdExtractData
     Dim mainCount = 2
+
+    Dim cmdPath As String
+    Dim cmdConfig As Object
+    Dim cmdExternalData As Object
+
+    Dim Test = True
+
+    '////////////////////////////////////// 功能 //////////////////////////////////////////////////
+
+    Public Function Debug(value)
+        Console.WriteLine("debug: " & value)
+    End Function
 
 
     Public Function log(name, value)
@@ -18,11 +27,50 @@ Module Module1
         Return False
     End Function
 
+    Function GetJSON(myrange)
+        Dim returnStr As String
+        Dim count As Integer
+        Dim colunms As Integer
+        count = UBound(myrange, 1)
+        colunms = UBound(myrange, 2)
+
+        returnStr = "{["
+
+        For i = 2 To count
+            returnStr = returnStr + "{"
+            For j = 1 To colunms
+                returnStr = returnStr + """" & myrange(1, j) & """:""" & Replace(myrange(i, j), """", "\""") & """"
+
+                If j <> colunms Then
+                    returnStr = returnStr + ","
+                End If
+
+                If i = count And j = colunms Then
+                    returnStr = returnStr + "}"
+                ElseIf j = colunms Then
+                    returnStr = returnStr + "},"
+                End If
+            Next
+        Next
+        returnStr = returnStr + "]}"
+        GetJSON = returnStr
+    End Function
+
+    Function parseJson(jsonString As String)
+        Dim strFunc, objSC
+        objSC = CreateObject("ScriptControl")
+        objSC.Language = "JScript"
+        strFunc = "function jsonParse(s) { return eval('(' + s + ')'); }"
+        objSC.AddCode(strFunc)
+        parseJson = objSC.CodeObject.jsonParse(jsonString)
+    End Function
+
+
+    '////////////////////////////////////// 逻辑 //////////////////////////////////////////////////
 
     '递归检测形状
     Public Function recurveShape(allShapes, infoArr)
         Dim tempShape As Shape
-
         For k = 1 To allShapes.Count
             ' 得到这个形状
             tempShape = allShapes.Item(k)
@@ -43,11 +91,8 @@ Module Module1
                     t.Add(tempShape.Text.Story.Text)
                     infoArr.Add(t)
                 End If
-
             End If
-
         Next k
-
     End Function
 
 
@@ -55,15 +100,9 @@ Module Module1
 
     '获取文档所有页面、所有图层、所有图形对象
     Public Function getExtractData(doc)
-
         Dim infoArr As New ArrayList
-
-        ' 定义循环变量
-        Dim i As Integer, j As Integer, k As Integer
-        Dim allPages As Pages, allShapes As Shapes, allLayers As Layers
-        ' 定义临时变量
-        Dim tempPage As Page, tempLayer As Layer, tempShape As Shape
-        Dim msg As String
+        Dim i As Integer, k As Integer
+        Dim tempLayer, allLayers
 
         allLayers = doc.ActivePage.AllLayers
         For k = 1 To allLayers.Count
@@ -72,7 +111,7 @@ Module Module1
         Next k
 
         If infoArr.Count > 0 Then
-            Dim str = "{""extract""：["
+            Dim str = "{""extract"":["
             For i = 0 To infoArr.Count
                 str = str & "{" & """" & (infoArr.Item(i).item(0)) & """" & ":" & """" & (infoArr.Item(i).item(1)) & """" & "}"
                 If i = (infoArr.Count - 1) Then
@@ -90,27 +129,20 @@ Module Module1
 
     '获取文档所有页面、所有图层、所有图形对象
     Public Function getFontNames(doc) As ArrayList
-
         Dim list As New ArrayList
-
-
         ' 定义循环变量
         Dim i As Integer, j As Integer, k As Integer
         Dim allPages As Pages, allShapes As Shapes, allLayers As Layers
         ' 定义临时变量
         Dim tempPage As Page, tempLayer As Layer, tempShape As Shape
         Dim msg As String
-
-
         allPages = doc.Pages
         For i = 1 To allPages.Count
             tempPage = allPages.Item(i)
-
             ' 遍历页面中的所有图层
             allLayers = tempPage.Layers
             For j = 1 To allLayers.Count
                 tempLayer = allLayers.Item(j)
-
                 ' 遍历图层中的所有形状（对象）
                 allShapes = tempLayer.Shapes
                 For k = 1 To allShapes.Count
@@ -122,21 +154,16 @@ Module Module1
                     If tempShape.Type = cdrTextShape Then
                         list.Add(tempShape.Text.Selection.Font)
                     End If
-
                 Next k
             Next j
         Next i
-
         Return list
-
     End Function
 
 
     '创建字体文件
     Public Function createFontJson(doc)
-
         Dim names = getFontNames(doc)
-
         'log("log", "开始搜索文档字体")
         '获取当前的应用的字体
         Dim i As Integer
@@ -158,9 +185,6 @@ Module Module1
                 str = str + "{" + """fontname""" + ":""" + empty + """," + """familyname""" + ":""" + Replace(names(i), Chr(10), "") + """," + """postscriptname""" + ":""" + empty + """},"
             End If
         Next
-
-        'log("log", "开始处理字体")
-
         '去掉最后一个，
         str = Left(str, Len(str) - 1)
         str = "[" + str + "]"
@@ -173,97 +197,64 @@ Module Module1
         fs.Write(info, 0, info.Length)
         'log("log", "开始处理字体Write")
         fs.Close()
-        log("createJson", "完成")
-
+        Console.Write("{""fontjson"":""True""}|")
     End Function
 
 
+    '主体方法
+    Sub execMain(app, doc)
+        Dim setPagesize, setFontjson, setExtract
 
-    Sub outputResult(app, doc)
+        If cmdConfig <> "" Then
+            setPagesize = cmdConfig.pagesize
+            setFontjson = cmdConfig.fontjson
+            setExtract = cmdConfig.extract
+        End If
 
-        '指定毫米
-        doc.Unit = 3
-        Dim width = app.ActivePage.SizeWidth
-        Dim height = app.ActivePage.SizeHeight
-        Dim tW = """width"""
-        Dim tH = """height"""
-        Dim data = "{" & tW & ":""" & width & """," & tH & ":""" & height & """}"
-        '单独输出结构
-        Console.Write("{""pagesize"":" + data + "}|")
+        If Test = True Then
+            setPagesize = "True"
+            setFontjson = "True"
+            setExtract = "True"
+        End If
 
-
-
-        '获取数据
-        If cmdExtractData = "True" Then
-            getExtractData(doc)
+        '页面尺寸
+        If setPagesize = "True" Then
+            '指定毫米
+            doc.Unit = 3
+            Dim width = app.ActivePage.SizeWidth
+            Dim height = app.ActivePage.SizeHeight
+            Dim tW = """width"""
+            Dim tH = """height"""
+            Dim data = "{" & tW & ":""" & width & """," & tH & ":""" & height & """}"
+            '单独输出结构
+            Console.Write("{""pagesize"":" + data + "}|")
         End If
 
         '创建当前文字的json
-        If cmdFontJson = "True" Then
+        If setFontjson = "True" Then
             createFontJson(doc)
+        End If
+
+
+        '获取数据
+        If setExtract = "True" Then
+            getExtractData(doc)
         End If
 
     End Sub
 
 
-
-    Function jsonDecode(jsonString)
-        Dim L = Len(jsonString)
-        Dim str = Mid(jsonString, 2, L - 2)
-        Dim args() = Split(str, ",")
-
-        Dim reg As Object = CreateObject("VBScript.Regexp")
-        reg.Global = True
-        reg.Pattern = """(.*?)"": ""(.*?)"""
-
-        For i = 0 To UBound(args)
-            Dim matches = reg.Execute(args(i))
-            '遍历所有匹配到的结果'    
-            For Each match In matches
-                If match.SubMatches(0) = "path" Then
-                    cmdPath = match.SubMatches(1)
-                End If
-                If match.SubMatches(0) = "fontJson" Then
-                    cmdFontJson = match.SubMatches(1)
-                End If
-                If match.SubMatches(0) = "extractData" Then
-                    cmdExtractData = match.SubMatches(1)
-                End If
-            Next
-        Next i
-
-    End Function
-
-    Function getJob(jsonString As String)
-        Dim strFunc, objSC, objJSON
-        objSC = CreateObject("ScriptControl")
-        objSC.Language = "JScript"
-        strFunc = "function jsonParse(s) { return eval('(' + s + ')'); }"
-        objSC.AddCode(strFunc)
-        objJSON = objSC.CodeObject.jsonParse(jsonString)
-        getJob = jsonDecode(objJSON)
-    End Function
-
-
     Sub checkLine(app)
-
         Try
-            'log("log", "CorelDRAW开始连接文档")
-
             If Len(cmdPath) > 2 Then
                 app.OpenDocument(cmdPath)
             End If
-
             Dim doc As Document = app.ActiveDocument
-
-            '如果没有文档
             If app.Documents.Count = 0 Then
                 log("error", "没有找到活动文档")
                 Exit Sub
             End If
-
         Catch ex As Exception
-            'log("log", "CorelDRAW打开文档失败，休眠3秒后重新链接")
             If lineCount = 0 Then
                 log("error", "CorelDRAW打开文档错误")
                 Exit Sub
@@ -275,45 +266,54 @@ Module Module1
             Exit Sub
         End Try
 
-
         Try
             Dim doc As Document = app.ActiveDocument
-
-            '如果没有文档
             If app.Documents.Count = 0 Then
                 log("error", "没有找到活动文档")
                 Exit Sub
             End If
-
-            '  log("log", "文档连接成功")
-            outputResult(app, doc)
+            Debug("执行主方法操作")
+            execMain(app, doc)
         Catch ex As Exception
-            'log("error", "CorelDRAW执行功能错误")
+            log("error", "CorelDRAW执行功能错误")
             Exit Sub
         End Try
 
     End Sub
 
 
+    Public Function parseCommand()
+        Dim args() = Split(Command, " ")
+        If args.Count < 3 Then
+            log("error", "外部传入参数解析错误")
+        End If
+        Debug("参数解析开始")
+        cmdPath = args(0)
+        cmdConfig = parseJson(args(1))
+        cmdExternalData = parseJson(args(2))
+        Debug("参数解析完毕")
+    End Function
+
     Sub Main()
+
+        Debug("外部参数 - " & Command())
 
         '如果有外部命令
         If Len(Command) > 0 Then
-            getJob(Command)
+            parseCommand()
             If Len(cmdPath) <= 2 Then
                 log("error", "文档路径为空")
                 Exit Sub
             End If
-            If cmdFontJson = "True" Then
-                '    log("log", "启用了字体采集功能")
-            End If
         End If
 
-        ' log("log", "CorelDRAW开始链接")
+        Debug("CorelDRAW开始链接")
+
         Dim pia_type As Type = Type.GetTypeFromProgID("CorelDRAW.Application")
         Dim app As Application = Activator.CreateInstance(pia_type)
         app.Visible = True
-        ' log("log", "CorelDRAW链接成功")
+
+        Debug("CorelDRAW链接成功")
 
         Try
             checkLine(app)
@@ -329,7 +329,7 @@ Module Module1
             Exit Sub
         End Try
 
-        'MsgBox("结束")
+        MsgBox("结束")
     End Sub
 
 End Module
