@@ -112,7 +112,7 @@ Module Module1
         If name = "address" Then
             str = "地址"
         ElseIf name = "name" Then
-            str = "性名"
+            str = "姓名"
         ElseIf name = "phone" Then
             str = "电话"
         ElseIf name = "url" Then
