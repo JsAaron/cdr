@@ -9,42 +9,36 @@ Module Module1
     Dim lineCount = 2
     Dim mainCount = 2
 
+    Dim cmdCommand As String
     Dim cmdPath As String
-    Dim cmdConfig = False
     Dim cmdExternalData
-
-    Dim Test = True
 
     Class Pagesize
         Public width
         Public height
     End Class
 
-    Class Extract
-        Public name
-        Public test
-    End Class
-
     'json返回数据类
     Class CreateData
+        Public state '状态'
         Public pagesize
-        Public fontjson
-        Public extract
+        Public text
+        Public errorlog '错误日志
+        Public steps '步骤
     End Class
 
-    Dim rData = New CreateData()
+    Dim globalData As CreateData = New CreateData()
 
 
     '////////////////////////////////////// 功能 //////////////////////////////////////////////////
 
     Public Function Debug(value)
-        ' Console.WriteLine("debug: " & value)
+        '   Console.WriteLine("debug: " & value)
     End Function
 
 
     Public Function log(name, value)
         Console.WriteLine("{""" + name + """:""" + value + """}")
-        Return False
     End Function
 
     Function GetJSON(myrange)
@@ -117,13 +111,12 @@ Module Module1
 
 
     '获取文档所有页面、所有图层、所有图形对象
-    Public Function getExtractData(doc)
+    Public Function getExtractTextData(doc)
+        globalData.steps = "获取文本形状信息"
         Dim infoArr As New ArrayList
-        Dim i As Integer, k As Integer
+        Dim k As Integer
         Dim allLayers As Layers
         Dim tempLayer As Layer
-        Dim tempShape As Shape
-        Dim str As String
 
         allLayers = doc.ActivePage.AllLayers
         For k = 1 To allLayers.Count
@@ -131,8 +124,9 @@ Module Module1
             recurveShape(tempLayer.Shapes, infoArr)
         Next k
 
-        rData.extract = infoArr
-
+        globalData.text = infoArr
+        globalData.state = "获取文本形状信息完成"
+        globalData.steps = "获取文本形状信息完成"
     End Function
 
 
@@ -144,7 +138,6 @@ Module Module1
         Dim allPages As Pages, allShapes As Shapes, allLayers As Layers
         ' 定义临时变量
         Dim tempPage As Page, tempLayer As Layer, tempShape As Shape
-        Dim msg As String
         allPages = doc.Pages
         For i = 1 To allPages.Count
             tempPage = allPages.Item(i)
@@ -173,7 +166,6 @@ Module Module1
     '创建字体文件
     Public Function createFontJson(doc)
         Dim names = getFontNames(doc)
-        'log("log", "开始搜索文档字体")
         '获取当前的应用的字体
         Dim i As Integer
         Dim fontList As New ArrayList()
@@ -206,48 +198,38 @@ Module Module1
         fs.Write(info, 0, info.Length)
         'log("log", "开始处理字体Write")
         fs.Close()
-        rData.fontjson = "True"
+        globalData.state = "生成字体json文件完成"
     End Function
 
 
     '主体方法
+    'pagesize 获取页面尺寸
+    'fontJson 启动字体json
+    'extract 提取文本数据（名片） 
     Sub execMain(app, doc)
-        Dim setPagesize, setFontjson, setExtract
-
-        setPagesize = cmdConfig.pagesize
-        setFontjson = cmdConfig.fontjson
-        setExtract = cmdConfig.extract
-
-        If Test = True Then
-            '   setPagesize = "True"
-            '     setFontjson = "True"
-            ' setExtract = "True"
-        End If
-
         '页面尺寸
-        If setPagesize = "True" Then
+        If cmdCommand = "get:pageSize" Then
+            globalData.steps = "开始获取页面尺寸"
             '指定毫米
             doc.Unit = 3
-            Dim width = app.ActivePage.SizeWidth
-            Dim height = app.ActivePage.SizeHeight
-            Dim tW = """width"""
-            Dim tH = """height"""
-            Dim data = "{" & tW & ":""" & width & """," & tH & ":""" & height & """}"
-            '单独输出结构
-            rData.pagesize = New Pagesize()
-            rData.pagesize.width = width
-            rData.pagesize.height = height
+            globalData.pagesize = New Pagesize()
+            globalData.pagesize.width = app.ActivePage.SizeWidth
+            globalData.pagesize.height = app.ActivePage.SizeHeight
+            globalData.state = "获取页面尺寸完成"
+            globalData.steps = "获取页面尺寸完成"
         End If
 
-        '创建当前文字的json
-        If setFontjson = "True" Then
+        '获取当前文字的json
+        If cmdCommand = "get:fontJson" Then
             createFontJson(doc)
         End If
 
 
         '获取数据
-        If setExtract = "True" Then
-            getExtractData(doc)
+        If cmdCommand = "get:text" Then
+            globalData.steps = "开始获取页面文本内容"
+            getExtractTextData(doc)
+            globalData.steps = "开始获取页面文本内容获取完成"
         End If
 
     End Sub
@@ -255,20 +237,23 @@ Module Module1
 
     Sub checkLine(app)
         Try
+
             If Len(cmdPath) > 2 Then
+                globalData.steps = "开始打开文档"
                 app.OpenDocument(cmdPath)
             End If
+
             Dim doc As Document = app.ActiveDocument
             If app.Documents.Count = 0 Then
-                log("error", "没有找到活动文档")
+                globalData.errorlog = "没有找到活动文档"
                 Exit Sub
             End If
+
         Catch ex As Exception
             If lineCount = 0 Then
-                log("error", "CorelDRAW打开文档错误")
+                globalData.errorlog = "CorelDRAW打开文档错误"
                 Exit Sub
             End If
-            log("error", "CorelDRAW文档打开失败,尝试重新打开文档")
             lineCount = lineCount - 1
             Threading.Thread.Sleep(3000)
             checkLine(app)
@@ -278,10 +263,20 @@ Module Module1
         Try
             Dim doc As Document = app.ActiveDocument
             If app.Documents.Count = 0 Then
-                log("error", "没有找到活动文档")
+                globalData.errorlog = "没有找到活动文档"
                 Exit Sub
             End If
-            Debug("执行主方法操作")
+
+
+            globalData.steps = "文档打开完成"
+
+            '如果只是打开文档，推出
+            If cmdCommand = "open" Then
+                globalData.state = "文档打开完成"
+                Exit Sub
+            End If
+
+
             execMain(app, doc)
         Catch ex As Exception
             ' log("error", "CorelDRAW执行功能错误")
@@ -293,53 +288,65 @@ Module Module1
 
     Public Function parseCommand()
         Dim args() = Split(Command, " ")
-        If args.Count < 3 Then
-            log("error", "外部传入参数解析错误")
+        Dim count = args.Count
+
+        cmdCommand = args(0)
+
+        If cmdCommand = "open" Then
+            If count = 2 Then
+                cmdPath = args(1)
+            End If
+        ElseIf cmdCommand = "get:pageSize" Then
+            If count = 2 Then
+                cmdPath = args(1)
+            End If
+        ElseIf cmdCommand = "get:fontJson" Then
+            If count = 2 Then
+                cmdPath = args(1)
+            End If
+        ElseIf cmdCommand = "get:text" Then
+            If count = 2 Then
+                cmdPath = args(1)
+            End If
+        ElseIf cmdCommand = "set:text" Then
+            If count = 2 Then
+                cmdExternalData = parseJson(args(1))
+            ElseIf count = 3 Then
+                cmdPath = args(2)
+            End If
         End If
-        Debug("参数解析开始")
-        cmdPath = args(0)
-        cmdConfig = parseJson(args(1))
-        cmdExternalData = parseJson(args(2))
-        Debug("参数解析完毕")
+
     End Function
 
     Sub Main()
 
-
-        Debug("外部参数 - " & Command())
-
         '如果有外部命令
         If Len(Command) > 0 Then
             parseCommand()
-            If Len(cmdPath) <= 2 Then
-                log("error", "文档路径为空")
-                Exit Sub
-            End If
         End If
 
-        Debug("CorelDRAW开始链接")
+        globalData.steps = "开始连接CorelDRAW"
 
         Dim pia_type As Type = Type.GetTypeFromProgID("CorelDRAW.Application")
         Dim app As Application = Activator.CreateInstance(pia_type)
         app.Visible = True
 
-        Debug("CorelDRAW链接成功")
+        globalData.steps = "连接CorelDRAW成功"
 
         Try
             checkLine(app)
         Catch ex As Exception
             If mainCount = 0 Then
-                log("error", "CorelDRAW软件无法链接")
+                globalData.errorlog = "CorelDRAW软件无法链接"
                 Exit Sub
             End If
-            log("log", "CorelDRAW链接失败,开始下一次链接")
             mainCount = mainCount - 1
             Threading.Thread.Sleep(3000)
             checkLine(app)
             Exit Sub
         End Try
 
-        Console.WriteLine(JsonConvert.SerializeObject(rData))
+        Console.WriteLine(JsonConvert.SerializeObject(globalData))
 
     End Sub
 
