@@ -136,21 +136,34 @@ Module Module1
     '////////////////////////////////////// 逻辑 //////////////////////////////////////////////////
 
     '递归检测形状
-    Public Function recurveShape(allShapes, infoArr)
+    Public Function recurveShape(doc, allShapes, infoArr, tempLayer)
         Dim tempShape As Shape
         For k = 1 To allShapes.Count
             ' 得到这个形状
             tempShape = allShapes.Item(k)
             Dim cdrTextShape As cdrShapeType = 6
             Dim cdrGroupShape As cdrShapeType = 7
+            Dim cdrBitmapShape As cdrShapeType = 5
+            Dim cdrJPEG As cdrFilter = 774
+
+
+            '位图
+            If tempShape.Type = cdrBitmapShape Then
+                Dim t As StructImportOptions = New StructImportOptions()
+                t.CropWidth = tempShape.Bitmap.Image.Width
+                t.CropHeight = tempShape.Bitmap.Image.Height
+                Console.WriteLine(t)
+                tempLayer.Import("C:\Users\Administrator\Desktop\test.jpg", 774, t)
+            End If
 
             '组
             If tempShape.Type = cdrGroupShape Then
-                recurveShape(tempShape.Shapes, infoArr)
+                recurveShape(doc, tempShape.Shapes, infoArr, tempLayer)
             End If
 
             '文字
             If tempShape.Type = cdrTextShape Then
+                '  Console.WriteLine(tempShape.Name)
                 '如果有值
                 If tempShape.Text.Story.Text <> "" Then
                     If cmdCommand = "get:text" Then
@@ -182,7 +195,7 @@ Module Module1
         allLayers = doc.ActivePage.AllLayers
         For k = 1 To allLayers.Count
             tempLayer = allLayers.Item(k)
-            recurveShape(tempLayer.Shapes, infoArr)
+            recurveShape(doc, tempLayer.Shapes, infoArr, tempLayer)
         Next k
 
         globalData.text = infoArr
