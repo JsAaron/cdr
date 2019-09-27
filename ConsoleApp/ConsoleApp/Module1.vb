@@ -10,15 +10,35 @@ Module Module1
     Dim mainCount = 2
 
     Dim cmdPath As String
-    Dim cmdConfig As Object
-    Dim cmdExternalData As Object
+    Dim cmdConfig = False
+    Dim cmdExternalData
 
     Dim Test = True
+
+    Class Pagesize
+        Public width
+        Public height
+    End Class
+
+    Class Extract
+        Public name
+        Public test
+    End Class
+
+    'json返回数据类
+    Class CreateData
+        Public pagesize
+        Public fontjson
+        Public extract
+    End Class
+
+    Dim rData = New CreateData()
+
 
     '////////////////////////////////////// 功能 //////////////////////////////////////////////////
 
     Public Function Debug(value)
-        Console.WriteLine("debug: " & value)
+        ' Console.WriteLine("debug: " & value)
     End Function
 
 
@@ -96,13 +116,14 @@ Module Module1
     End Function
 
 
-
-
     '获取文档所有页面、所有图层、所有图形对象
     Public Function getExtractData(doc)
         Dim infoArr As New ArrayList
         Dim i As Integer, k As Integer
-        Dim tempLayer, allLayers
+        Dim allLayers As Layers
+        Dim tempLayer As Layer
+        Dim tempShape As Shape
+        Dim str As String
 
         allLayers = doc.ActivePage.AllLayers
         For k = 1 To allLayers.Count
@@ -110,21 +131,9 @@ Module Module1
             recurveShape(tempLayer.Shapes, infoArr)
         Next k
 
-        If infoArr.Count > 0 Then
-            Dim str = "{""extract"":["
-            For i = 0 To infoArr.Count
-                str = str & "{" & """" & (infoArr.Item(i).item(0)) & """" & ":" & """" & (infoArr.Item(i).item(1)) & """" & "}"
-                If i = (infoArr.Count - 1) Then
-                    str = str + "]}|"
-                    Console.Write(str)
-                Else
-                    str = str + ","
-                End If
-            Next i
-        End If
+        rData.extract = infoArr
 
     End Function
-
 
 
     '获取文档所有页面、所有图层、所有图形对象
@@ -197,7 +206,7 @@ Module Module1
         fs.Write(info, 0, info.Length)
         'log("log", "开始处理字体Write")
         fs.Close()
-        Console.Write("{""fontjson"":""True""}|")
+        rData.fontjson = "True"
     End Function
 
 
@@ -205,16 +214,14 @@ Module Module1
     Sub execMain(app, doc)
         Dim setPagesize, setFontjson, setExtract
 
-        If cmdConfig <> "" Then
-            setPagesize = cmdConfig.pagesize
-            setFontjson = cmdConfig.fontjson
-            setExtract = cmdConfig.extract
-        End If
+        setPagesize = cmdConfig.pagesize
+        setFontjson = cmdConfig.fontjson
+        setExtract = cmdConfig.extract
 
         If Test = True Then
-            setPagesize = "True"
-            setFontjson = "True"
-            setExtract = "True"
+            '   setPagesize = "True"
+            '     setFontjson = "True"
+            ' setExtract = "True"
         End If
 
         '页面尺寸
@@ -227,7 +234,9 @@ Module Module1
             Dim tH = """height"""
             Dim data = "{" & tW & ":""" & width & """," & tH & ":""" & height & """}"
             '单独输出结构
-            Console.Write("{""pagesize"":" + data + "}|")
+            rData.pagesize = New Pagesize()
+            rData.pagesize.width = width
+            rData.pagesize.height = height
         End If
 
         '创建当前文字的json
@@ -275,7 +284,7 @@ Module Module1
             Debug("执行主方法操作")
             execMain(app, doc)
         Catch ex As Exception
-            log("error", "CorelDRAW执行功能错误")
+            ' log("error", "CorelDRAW执行功能错误")
             Exit Sub
         End Try
 
@@ -295,6 +304,7 @@ Module Module1
     End Function
 
     Sub Main()
+
 
         Debug("外部参数 - " & Command())
 
@@ -329,7 +339,8 @@ Module Module1
             Exit Sub
         End Try
 
-        MsgBox("结束")
+        Console.WriteLine(JsonConvert.SerializeObject(rData))
+
     End Sub
 
 End Module
