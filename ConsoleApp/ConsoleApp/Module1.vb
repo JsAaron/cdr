@@ -107,6 +107,32 @@ Module Module1
     End Function
 
 
+    Function convertStr(name)
+        Dim str = ""
+        If name = "address" Then
+            str = "地址"
+        ElseIf name = "name" Then
+            str = "性名"
+        ElseIf name = "phone" Then
+            str = "电话"
+        ElseIf name = "url" Then
+            str = "网址"
+        ElseIf name = "job" Then
+            str = "职务"
+        ElseIf name = "company" Then
+            str = "公司名称"
+        ElseIf name = "email" Then
+            str = "邮箱"
+        End If
+
+        If str = "" Then
+            convertStr = name
+        Else
+            convertStr = str
+        End If
+
+    End Function
+
     '////////////////////////////////////// 逻辑 //////////////////////////////////////////////////
 
     '递归检测形状
@@ -127,10 +153,18 @@ Module Module1
             If tempShape.Type = cdrTextShape Then
                 '如果有值
                 If tempShape.Text.Story.Text <> "" Then
-                    Dim t As New ArrayList
-                    t.Add(convertText(tempShape.Name))
-                    t.Add(tempShape.Text.Story.Text)
-                    infoArr.Add(t)
+                    If cmdCommand = "get:text" Then
+                        Dim t As New ArrayList
+                        t.Add(convertText(tempShape.Name))
+                        t.Add(tempShape.Text.Story.Text)
+                        infoArr.Add(t)
+                    Else
+                        Dim key As String = convertText(tempShape.Name)
+                        If cmdExternalData(key) <> "" Then
+                            tempShape.Text.Story.Replace(cmdExternalData(key))
+                        End If
+                    End If
+
                 End If
             End If
         Next k
@@ -259,7 +293,7 @@ Module Module1
         End If
 
         If cmdCommand = "set:text" Then
-            '  Console.WriteLine(cmdExternalData(0))
+            getExtractTextData(doc)
         End If
 
     End Sub
@@ -317,7 +351,7 @@ Module Module1
     Public Function parseCommand()
         Dim args() = Split(Command, " ")
         Dim count = args.Count
-
+        globalData.steps = "开始解析参数"
         cmdCommand = args(0)
 
         If cmdCommand = "open" Then
@@ -337,15 +371,15 @@ Module Module1
                 cmdPath = args(1)
             End If
         ElseIf cmdCommand = "set:text" Then
-            If count = 2 Then
-                cmdExternalData = parseJson(args(1))
-                Console.WriteLine(111)
-                Console.WriteLine(cmdExternalData.add)
+            If count = 1 Then
+                globalData.errorlog = "必须传递设置参数"
+            ElseIf count = 2 Then
+                cmdExternalData = JsonConvert.DeserializeObject(args(1))
             ElseIf count = 3 Then
                 cmdPath = args(2)
             End If
         End If
-
+        globalData.steps = "解析参数完成"
     End Function
 
     Sub Main()
