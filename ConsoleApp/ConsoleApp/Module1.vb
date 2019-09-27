@@ -152,8 +152,8 @@ Module Module1
                 Dim t As StructImportOptions = New StructImportOptions()
                 t.CropWidth = tempShape.Bitmap.Image.Width
                 t.CropHeight = tempShape.Bitmap.Image.Height
-                Console.WriteLine(t)
-                tempLayer.Import("C:\Users\Administrator\Desktop\test.jpg", 774, t)
+                ' Console.WriteLine(t)
+                'tempLayer.Import("C:\Users\Administrator\Desktop\test.jpg", 774, t)
             End If
 
             '组
@@ -423,6 +423,7 @@ Module Module1
             Exit Sub
         End Try
 
+        Console.OutputEncoding = Encoding.UTF8
         Console.WriteLine(JsonConvert.SerializeObject(globalData))
 
     End Sub
