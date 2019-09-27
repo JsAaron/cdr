@@ -80,6 +80,33 @@ Module Module1
     End Function
 
 
+    Function convertText(str)
+        Dim name = ""
+        If str = "地址" Then
+            name = "address"
+        ElseIf str = "性名" Then
+            name = "name"
+        ElseIf str = "电话" Then
+            name = "phone"
+        ElseIf str = "网址" Then
+            name = "url"
+        ElseIf str = "职务" Then
+            name = "job"
+        ElseIf str = "公司名称" Then
+            name = "company"
+        ElseIf str = "邮箱" Then
+            name = "email"
+        End If
+
+        If name = "" Then
+            convertText = str
+        Else
+            convertText = name
+        End If
+
+    End Function
+
+
     '////////////////////////////////////// 逻辑 //////////////////////////////////////////////////
 
     '递归检测形状
@@ -101,7 +128,7 @@ Module Module1
                 '如果有值
                 If tempShape.Text.Story.Text <> "" Then
                     Dim t As New ArrayList
-                    t.Add(tempShape.Name)
+                    t.Add(convertText(tempShape.Name))
                     t.Add(tempShape.Text.Story.Text)
                     infoArr.Add(t)
                 End If
@@ -224,7 +251,6 @@ Module Module1
             createFontJson(doc)
         End If
 
-
         '获取数据
         If cmdCommand = "get:text" Then
             globalData.steps = "开始获取页面文本内容"
@@ -232,12 +258,15 @@ Module Module1
             globalData.steps = "开始获取页面文本内容获取完成"
         End If
 
+        If cmdCommand = "set:text" Then
+            '  Console.WriteLine(cmdExternalData(0))
+        End If
+
     End Sub
 
 
     Sub checkLine(app)
         Try
-
             If Len(cmdPath) > 2 Then
                 globalData.steps = "开始打开文档"
                 app.OpenDocument(cmdPath)
@@ -267,7 +296,6 @@ Module Module1
                 Exit Sub
             End If
 
-
             globalData.steps = "文档打开完成"
 
             '如果只是打开文档，推出
@@ -276,8 +304,8 @@ Module Module1
                 Exit Sub
             End If
 
-
             execMain(app, doc)
+
         Catch ex As Exception
             ' log("error", "CorelDRAW执行功能错误")
             Exit Sub
@@ -311,6 +339,8 @@ Module Module1
         ElseIf cmdCommand = "set:text" Then
             If count = 2 Then
                 cmdExternalData = parseJson(args(1))
+                Console.WriteLine(111)
+                Console.WriteLine(cmdExternalData.add)
             ElseIf count = 3 Then
                 cmdPath = args(2)
             End If
