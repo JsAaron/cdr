@@ -390,6 +390,7 @@ Module Module1
             ElseIf count = 2 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
             ElseIf count = 3 Then
+                cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 cmdPath = args(2)
             End If
         End If
@@ -397,6 +398,7 @@ Module Module1
     End Function
 
     Sub Main()
+        Console.OutputEncoding = Encoding.UTF8
 
         '如果有外部命令
         If Len(Command) > 0 Then
@@ -424,10 +426,8 @@ Module Module1
             Exit Sub
         End Try
 
-        Console.OutputEncoding = Encoding.UTF8
         Console.WriteLine(JsonConvert.SerializeObject(globalData))
 
-        'MsgBox(1)
     End Sub
 
 End Module
