@@ -7,23 +7,22 @@ import json
 
 # 路径
 path ='C:\\Users\\Administrator\\Desktop\\黄蓝-黑.cdr'
-
 # 配置 
-# pagesize 获取页面尺寸
-# fontJson 启动字体json
-# extract 提取文本数据（名片） 
-config = "{'pagesize':'True','fontjson':'False','extract':'True'}"
-
+# open 打开文档 参数 (open,path)
+# get:pageSize 获取页面尺寸 (get:pageSize,path)
+# get:fontJson 获取字体json (get:fontJson,path)
+# get:text 提取文本数据（名片）(get:text,path)  
+# set:text 提取文本数据（名片）(set:text,externalData,path)  
+command = "set:extract"
 # 外部数据
-externalData = "{'test':{'aa':'11111111','bb':'11111111','cc':'11111111'}}"
-
+externalData = "{'job':'老大','name':'沉稳'}"
 
 cmdStr = [
-    "D:\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe", path,config,externalData]
+    "D:\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe", "get:text"]
 
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 for line in child.stdout.readlines():
-    output = line.decode('GBK')
+    output = line.decode('UTF-8')
     print(output)
 

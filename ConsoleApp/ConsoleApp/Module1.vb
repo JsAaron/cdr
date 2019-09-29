@@ -20,7 +20,7 @@ Module Module1
 
     'json返回数据类
     Class CreateData
-        Public state '状态'
+        Public state = False '状态'
         Public pagesize
         Public text
         Public errorlog '错误日志
@@ -80,63 +80,47 @@ Module Module1
     End Function
 
 
-    Function convertText(str)
-        Dim name = ""
-        If str = "地址" Then
-            name = "address"
-        ElseIf str = "性名" Then
-            name = "name"
-        ElseIf str = "电话" Then
-            name = "phone"
-        ElseIf str = "网址" Then
-            name = "url"
-        ElseIf str = "职务" Then
-            name = "job"
-        ElseIf str = "公司名称" Then
-            name = "company"
-        ElseIf str = "邮箱" Then
-            name = "email"
-        End If
-
-        If name = "" Then
-            convertText = str
-        Else
-            convertText = name
-        End If
-
+    Function getKeyEnglish(str)
+        Dim e = ""
+        Select Case str
+            Case "公司地址"
+                e = "address"
+            Case "地址"
+                e = "address"
+            Case "姓名"
+                e = "name"
+            Case "电话"
+                e = "mobile"
+            Case "网址"
+                e = "url"
+            Case "职务"
+                e = "job"
+            Case "公司名称"
+                e = "company"
+            Case "邮箱"
+                e = "email"
+            Case "Logo"
+                e = "logo"
+            Case "二维码"
+                e = "qrcode"
+            Case "QQ"
+                e = "qq"
+            Case "公众号"
+                e = "bjnews"
+            Case "固定电话"
+                e = "phone"
+            Case Else
+                e = str
+        End Select
+        getKeyEnglish = e
     End Function
 
 
-    Function convertStr(name)
-        Dim str = ""
-        If name = "address" Then
-            str = "地址"
-        ElseIf name = "name" Then
-            str = "姓名"
-        ElseIf name = "phone" Then
-            str = "电话"
-        ElseIf name = "url" Then
-            str = "网址"
-        ElseIf name = "job" Then
-            str = "职务"
-        ElseIf name = "company" Then
-            str = "公司名称"
-        ElseIf name = "email" Then
-            str = "邮箱"
-        End If
-
-        If str = "" Then
-            convertStr = name
-        Else
-            convertStr = str
-        End If
-
-    End Function
 
     '////////////////////////////////////// 逻辑 //////////////////////////////////////////////////
 
     '递归检测形状
-    Public Function recurveShape(doc, allShapes, infoArr, tempLayer)
+    Public Function recurveShape(doc, allShapes, infoArr, ActiveLayer)
         Dim tempShape As Shape
         For k = 1 To allShapes.Count
             ' 得到这个形状
@@ -146,33 +130,49 @@ Module Module1
             Dim cdrBitmapShape As cdrShapeType = 5
             Dim cdrJPEG As cdrFilter = 774
 
-
             '位图
             If tempShape.Type = cdrBitmapShape Then
-                Dim t As StructImportOptions = New StructImportOptions()
-                t.CropWidth = tempShape.Bitmap.Image.Width
-                t.CropHeight = tempShape.Bitmap.Image.Height
-                ' Console.WriteLine(t)
-                'tempLayer.Import("C:\Users\Administrator\Desktop\test.jpg", 774, t)
+                'logo图
+                If tempShape.Name = "Logo" Then
+                    '位图处理
+                    If cmdCommand = "get:text" Then
+                        '获取
+                    ElseIf cmdCommand = "set:text" Then
+                        Dim io As New StructImportOptions
+                        With io
+                            .Mode = 0
+                            .CombineMultilayerBitmaps = False
+                            .DetectWatermark = True
+                            .ExtractICCProfile = False
+                            .ICCFileName = "C:\Test.icc"
+                            .ImageIndex = 3
+                            .LinkBitmapExternally = False
+                            .MaintainLayers = True
+                            .UseOPILinks = False
+                        End With
+                        tempShape.Delete()
+                        Dim a = ActiveLayer.ImportEx("C:\Users\Administrator\Desktop\Logo.jpg", 774, io)
+                    End If
+                End If
             End If
 
             '组
             If tempShape.Type = cdrGroupShape Then
-                recurveShape(doc, tempShape.Shapes, infoArr, tempLayer)
+                recurveShape(doc, tempShape.Shapes, infoArr, ActiveLayer)
             End If
 
             '文字
             If tempShape.Type = cdrTextShape Then
-                '  Console.WriteLine(tempShape.Name)
                 '如果有值
                 If tempShape.Text.Story.Text <> "" Then
+
                     If cmdCommand = "get:text" Then
                         Dim t As New ArrayList
-                        t.Add(convertText(tempShape.Name))
+                        t.Add(getKeyEnglish(tempShape.Name))
                         t.Add(tempShape.Text.Story.Text)
                         infoArr.Add(t)
-                    Else
-                        Dim key As String = convertText(tempShape.Name)
+                    ElseIf cmdCommand = "set:text" Then
+                        Dim key As String = getKeyEnglish(tempShape.Name)
                         If cmdExternalData(key) <> "" Then
                             tempShape.Text.Story.Replace(cmdExternalData(key))
                         End If
@@ -185,22 +185,23 @@ Module Module1
 
 
     '获取文档所有页面、所有图层、所有图形对象
-    Public Function getExtractTextData(doc)
-        globalData.steps = "获取文本形状信息"
+    Public Function accessExtractTextData(doc)
         Dim infoArr As New ArrayList
         Dim k As Integer
         Dim allLayers As Layers
         Dim tempLayer As Layer
-
         allLayers = doc.ActivePage.AllLayers
         For k = 1 To allLayers.Count
             tempLayer = allLayers.Item(k)
             recurveShape(doc, tempLayer.Shapes, infoArr, tempLayer)
         Next k
-
         globalData.text = infoArr
-        globalData.state = "获取文本形状信息完成"
-        globalData.steps = "获取文本形状信息完成"
+        globalData.state = "True"
+        If cmdCommand = "get:text" Then
+            globalData.steps = "获取文本信息完成"
+        Else
+            globalData.steps = "设置文本信息完成"
+        End If
     End Function
 
 
@@ -272,7 +273,7 @@ Module Module1
         fs.Write(info, 0, info.Length)
         'log("log", "开始处理字体Write")
         fs.Close()
-        globalData.state = "生成字体json文件完成"
+        globalData.state = "True"
     End Function
 
 
@@ -289,7 +290,7 @@ Module Module1
             globalData.pagesize = New Pagesize()
             globalData.pagesize.width = app.ActivePage.SizeWidth
             globalData.pagesize.height = app.ActivePage.SizeHeight
-            globalData.state = "获取页面尺寸完成"
+            globalData.state = "True"
             globalData.steps = "获取页面尺寸完成"
         End If
 
@@ -301,12 +302,12 @@ Module Module1
         '获取数据
         If cmdCommand = "get:text" Then
             globalData.steps = "开始获取页面文本内容"
-            getExtractTextData(doc)
-            globalData.steps = "开始获取页面文本内容获取完成"
+            accessExtractTextData(doc)
         End If
 
         If cmdCommand = "set:text" Then
-            getExtractTextData(doc)
+            globalData.steps = "开始设置页面文本内容"
+            accessExtractTextData(doc)
         End If
 
     End Sub
@@ -347,7 +348,7 @@ Module Module1
 
             '如果只是打开文档，推出
             If cmdCommand = "open" Then
-                globalData.state = "文档打开完成"
+                globalData.state = "True"
                 Exit Sub
             End If
 
@@ -426,6 +427,7 @@ Module Module1
         Console.OutputEncoding = Encoding.UTF8
         Console.WriteLine(JsonConvert.SerializeObject(globalData))
 
+        'MsgBox(1)
     End Sub
 
 End Module
