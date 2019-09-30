@@ -110,7 +110,7 @@ Module Module1
     '////////////////////////////////////// 逻辑 //////////////////////////////////////////////////
 
     '递归检测形状
-    Public Function recurveShape(doc, allShapes, infoArr)
+    Public Function recurveText(doc, allShapes, infoArr)
         Dim tempShape As Shape
         For k = 1 To allShapes.Count
             ' 得到这个形状
@@ -120,66 +120,88 @@ Module Module1
             Dim cdrBitmapShape As cdrShapeType = 5
             Dim cdrJPEG As cdrFilter = 774
 
-            '位图
+            '组
+            If tempShape.Type = cdrGroupShape Then
+                recurveText(doc, tempShape.Shapes, infoArr)
+            End If
+
+            '文字
+            If tempShape.Type = cdrTextShape Then
+                '读数据
+                If cmdCommand = "get:text" Then
+                    If tempShape.Text.Story.Text <> "" Then
+                        Dim t As New ArrayList
+                        t.Add(getKeyEnglish(tempShape.Name))
+                        t.Add(tempShape.Text.Story.Text)
+                        infoArr.Add(t)
+                    End If
+                End If
+
+                '写数据
+                If cmdCommand = "set:text" Then
+                    Dim key As String = getKeyEnglish(tempShape.Name)
+                    If cmdExternalData(key) <> "" Then
+                        tempShape.Text.Story.Replace(cmdExternalData(key))
+                    End If
+                End If
+            End If
+        Next k
+    End Function
+
+
+
+    '递归检测形状
+    Public Function recurveImage(doc, allShapes, infoArr)
+        Dim tempShape As Shape
+        For k = 1 To allShapes.Count
+            ' 得到这个形状
+            tempShape = allShapes.Item(k)
+            Dim cdrTextShape As cdrShapeType = 6
+            Dim cdrGroupShape As cdrShapeType = 7
+            Dim cdrBitmapShape As cdrShapeType = 5
+            Dim cdrJPEG As cdrFilter = 774
+
+            '组
+            If tempShape.Type = cdrGroupShape Then
+                recurveImage(doc, tempShape.Shapes, infoArr)
+            End If
+
+            'logo图
             If tempShape.Type = cdrBitmapShape Then
-                'logo图
                 If tempShape.Name = "Logo" Then
-                    '位图处理
-                    If cmdCommand = "get:text" Then
-                        '获取
-                    ElseIf cmdCommand = "set:text" Then
-                        'logo
+                    '设置图片
+                    If cmdCommand = "set:text" Then
                         If cmdExternalData("logo") <> "" Then
-                            Dim activeLayer As Layer = tempShape.Layer
+                            globalData.steps = "开始logo图替换"
                             '中心点
                             doc.ReferencePoint = 9
                             Dim centerX = tempShape.CenterX
                             Dim centerY = tempShape.CenterY
                             Dim SizeWidth = tempShape.SizeWidth
                             Dim SizeHeight = tempShape.SizeHeight
-                            ' Console.WriteLine(cmdExternalData("logo"))
-                            tempShape.SetSize(SizeWidth, SizeHeight)
-                            tempShape.Delete()
-                            activeLayer.Import(cmdExternalData("logo"))
+
+                            Dim activeLayer As Layer = tempShape.Layer
+                            activeLayer.Import(cmdExternalData("logo"), 774)
+
+                            globalData.steps = "替换logo执行成功"
 
                             '重新设置图片
                             Dim dfShapes = doc.Selection.Shapes
-                            For j = 1 To dfShapes.Count
-                                dfShapes.Item(j).Name = "Logo"
-                                dfShapes.Item(j).SetSize(SizeWidth, SizeHeight)
-                                dfShapes.Item(j).SetPositionEx(9, centerX, centerY)
-                            Next j
-                            globalData.state = "True"
-                            globalData.steps = "设置文本信息完成"
+
+                            '插入成功才删除图片
+                            If dfShapes.Count > 0 Then
+                                For j = 1 To dfShapes.Count
+                                    dfShapes.Item(j).Name = "Logo"
+                                    dfShapes.Item(j).SetSize(SizeWidth, SizeHeight)
+                                    dfShapes.Item(j).SetPositionEx(9, centerX, centerY)
+                                Next j
+                            End If
+                            tempShape.Delete()
                         End If
                     End If
                 End If
             End If
 
-            '组
-            If tempShape.Type = cdrGroupShape Then
-                recurveShape(doc, tempShape.Shapes, infoArr)
-            End If
-
-            '文字
-            If tempShape.Type = cdrTextShape Then
-                '如果有值
-                If tempShape.Text.Story.Text <> "" Then
-                    If cmdCommand = "get:text" Then
-                        Dim t As New ArrayList
-                        t.Add(getKeyEnglish(tempShape.Name))
-                        t.Add(tempShape.Text.Story.Text)
-                        infoArr.Add(t)
-                    ElseIf cmdCommand = "set:text" Then
-                        Dim key As String = getKeyEnglish(tempShape.Name)
-                        ' Console.WriteLine(cmdExternalData(key))
-                        If cmdExternalData(key) <> "" Then
-                            tempShape.Text.Story.Replace(cmdExternalData(key))
-                        End If
-                    End If
-
-                End If
-            End If
         Next k
     End Function
 
@@ -193,7 +215,8 @@ Module Module1
         allLayers = doc.ActivePage.AllLayers
         For k = 1 To allLayers.Count
             activeLayer = allLayers.Item(k)
-            recurveShape(doc, activeLayer.Shapes, infoArr)
+            recurveText(doc, activeLayer.Shapes, infoArr)
+            recurveImage(doc, activeLayer.Shapes, infoArr)
         Next k
         globalData.text = infoArr
         globalData.state = "True"
