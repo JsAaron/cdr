@@ -9,7 +9,7 @@ Module Module1
     Dim lineCount = 2
     Dim mainCount = 2
 
-    Dim cmdCommand As String 
+    Dim cmdCommand As String = "set:text"
     Dim cmdPath As String
     Dim cmdExternalData
 
@@ -117,8 +117,6 @@ Module Module1
             tempShape = allShapes.Item(k)
             Dim cdrTextShape As cdrShapeType = 6
             Dim cdrGroupShape As cdrShapeType = 7
-            Dim cdrBitmapShape As cdrShapeType = 5
-            Dim cdrJPEG As cdrFilter = 774
 
             '组
             If tempShape.Type = cdrGroupShape Then
@@ -151,7 +149,7 @@ Module Module1
 
 
     '递归检测形状
-    Public Function recurveImage(doc, allShapes, infoArr)
+    Public Function recurveImage(doc, allShapes)
         Dim tempShape As Shape
         For k = 1 To allShapes.Count
             ' 得到这个形状
@@ -163,7 +161,7 @@ Module Module1
 
             '组
             If tempShape.Type = cdrGroupShape Then
-                recurveImage(doc, tempShape.Shapes, infoArr)
+                recurveImage(doc, tempShape.Shapes)
             End If
 
             'logo图
@@ -181,8 +179,17 @@ Module Module1
                             Dim SizeHeight = tempShape.SizeHeight
 
                             Dim activeLayer As Layer = tempShape.Layer
-                            activeLayer.Import(cmdExternalData("logo"), 774)
 
+                            Dim imageType = 802
+                            activeLayer.Activate()
+
+                            'jpg类型
+                            Dim args() = Split(cmdExternalData("logo"), ".jpg")
+                            If args.Count = 2 Then
+                                imageType = 774
+                            End If
+
+                            activeLayer.Import(cmdExternalData("logo"), imageType)
                             globalData.steps = "替换logo执行成功"
 
                             '重新设置图片
@@ -198,7 +205,7 @@ Module Module1
                             End If
                             tempShape.Delete()
                         End If
-                    End If
+                        End If
                 End If
             End If
 
@@ -208,16 +215,27 @@ Module Module1
 
     '获取文档所有页面、所有图层、所有图形对象
     Public Function accessExtractTextData(doc)
+
+
         Dim infoArr As New ArrayList
         Dim k As Integer
+        Dim m As Integer
         Dim allLayers As Layers
         Dim activeLayer As Layer
         allLayers = doc.ActivePage.AllLayers
+
+        '文本
         For k = 1 To allLayers.Count
             activeLayer = allLayers.Item(k)
             recurveText(doc, activeLayer.Shapes, infoArr)
-            recurveImage(doc, activeLayer.Shapes, infoArr)
         Next k
+
+        '图片
+        For m = 1 To allLayers.Count
+            activeLayer = allLayers.Item(m)
+            recurveImage(doc, activeLayer.Shapes)
+        Next m
+
         globalData.text = infoArr
         globalData.state = "True"
         If cmdCommand = "get:text" Then
@@ -462,7 +480,6 @@ Module Module1
 
         Console.WriteLine(JsonConvert.SerializeObject(globalData))
 
-        ' MsgBox(1)
     End Sub
 
 End Module
