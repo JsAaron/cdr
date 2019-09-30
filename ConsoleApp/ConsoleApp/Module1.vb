@@ -9,7 +9,7 @@ Module Module1
     Dim lineCount = 2
     Dim mainCount = 2
 
-    Dim cmdCommand As String
+    Dim cmdCommand As String 
     Dim cmdPath As String
     Dim cmdExternalData
 
@@ -32,14 +32,6 @@ Module Module1
 
     '////////////////////////////////////// 功能 //////////////////////////////////////////////////
 
-    Public Function Debug(value)
-        '   Console.WriteLine("debug: " & value)
-    End Function
-
-
-    Public Function log(name, value)
-        Console.WriteLine("{""" + name + """:""" + value + """}")
-    End Function
 
     Function GetJSON(myrange)
         Dim returnStr As String
@@ -115,12 +107,10 @@ Module Module1
         getKeyEnglish = e
     End Function
 
-
-
     '////////////////////////////////////// 逻辑 //////////////////////////////////////////////////
 
     '递归检测形状
-    Public Function recurveShape(doc, allShapes, infoArr, ActiveLayer)
+    Public Function recurveShape(doc, allShapes, infoArr)
         Dim tempShape As Shape
         For k = 1 To allShapes.Count
             ' 得到这个形状
@@ -138,34 +128,43 @@ Module Module1
                     If cmdCommand = "get:text" Then
                         '获取
                     ElseIf cmdCommand = "set:text" Then
-                        Dim io As New StructImportOptions
-                        With io
-                            .Mode = 0
-                            .CombineMultilayerBitmaps = False
-                            .DetectWatermark = True
-                            .ExtractICCProfile = False
-                            .ICCFileName = "C:\Test.icc"
-                            .ImageIndex = 3
-                            .LinkBitmapExternally = False
-                            .MaintainLayers = True
-                            .UseOPILinks = False
-                        End With
-                        tempShape.Delete()
-                        Dim a = ActiveLayer.ImportEx("C:\Users\Administrator\Desktop\Logo.jpg", 774, io)
+                        'logo
+                        If cmdExternalData("logo") <> "" Then
+                            Dim activeLayer As Layer = tempShape.Layer
+                            '中心点
+                            doc.ReferencePoint = 9
+                            Dim centerX = tempShape.CenterX
+                            Dim centerY = tempShape.CenterY
+                            Dim SizeWidth = tempShape.SizeWidth
+                            Dim SizeHeight = tempShape.SizeHeight
+                            ' Console.WriteLine(cmdExternalData("logo"))
+                            tempShape.SetSize(SizeWidth, SizeHeight)
+                            tempShape.Delete()
+                            activeLayer.Import(cmdExternalData("logo"))
+
+                            '重新设置图片
+                            Dim dfShapes = doc.Selection.Shapes
+                            For j = 1 To dfShapes.Count
+                                dfShapes.Item(j).Name = "Logo"
+                                dfShapes.Item(j).SetSize(SizeWidth, SizeHeight)
+                                dfShapes.Item(j).SetPositionEx(9, centerX, centerY)
+                            Next j
+                            globalData.state = "True"
+                            globalData.steps = "设置文本信息完成"
+                        End If
                     End If
                 End If
             End If
 
             '组
             If tempShape.Type = cdrGroupShape Then
-                recurveShape(doc, tempShape.Shapes, infoArr, ActiveLayer)
+                recurveShape(doc, tempShape.Shapes, infoArr)
             End If
 
             '文字
             If tempShape.Type = cdrTextShape Then
                 '如果有值
                 If tempShape.Text.Story.Text <> "" Then
-
                     If cmdCommand = "get:text" Then
                         Dim t As New ArrayList
                         t.Add(getKeyEnglish(tempShape.Name))
@@ -173,6 +172,7 @@ Module Module1
                         infoArr.Add(t)
                     ElseIf cmdCommand = "set:text" Then
                         Dim key As String = getKeyEnglish(tempShape.Name)
+                        ' Console.WriteLine(cmdExternalData(key))
                         If cmdExternalData(key) <> "" Then
                             tempShape.Text.Story.Replace(cmdExternalData(key))
                         End If
@@ -189,11 +189,11 @@ Module Module1
         Dim infoArr As New ArrayList
         Dim k As Integer
         Dim allLayers As Layers
-        Dim tempLayer As Layer
+        Dim activeLayer As Layer
         allLayers = doc.ActivePage.AllLayers
         For k = 1 To allLayers.Count
-            tempLayer = allLayers.Item(k)
-            recurveShape(doc, tempLayer.Shapes, infoArr, tempLayer)
+            activeLayer = allLayers.Item(k)
+            recurveShape(doc, activeLayer.Shapes, infoArr)
         Next k
         globalData.text = infoArr
         globalData.state = "True"
@@ -389,11 +389,13 @@ Module Module1
                 globalData.errorlog = "必须传递设置参数"
             ElseIf count = 2 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
+                ' Console.WriteLine(cmdExternalData)
             ElseIf count = 3 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 cmdPath = args(2)
             End If
         End If
+
         globalData.steps = "解析参数完成"
     End Function
 
@@ -428,6 +430,7 @@ Module Module1
 
         Console.WriteLine(JsonConvert.SerializeObject(globalData))
 
+        ' MsgBox(1)
     End Sub
 
 End Module
