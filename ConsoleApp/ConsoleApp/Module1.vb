@@ -362,6 +362,14 @@ Module Module1
     End Sub
 
 
+    Function decodeURI(cmdExternalData, key)
+        If cmdExternalData(key) <> "" Then
+            Dim e = CreateObject("MSScriptControl.ScriptControl")
+            e.Language = "javascript"
+            cmdExternalData(key) = e.Eval("decodeURI('" & cmdExternalData(key) & "')")
+        End If
+    End Function
+
     Public Function parseCommand()
         Dim args() = Split(Command, " ")
         Dim count = args.Count
@@ -389,18 +397,19 @@ Module Module1
                 globalData.errorlog = "必须传递设置参数"
             ElseIf count = 2 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
-                ' Console.WriteLine(cmdExternalData)
+                decodeURI(cmdExternalData, "logo")
             ElseIf count = 3 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
+                decodeURI(cmdExternalData, "logo")
                 cmdPath = args(2)
             End If
         End If
-
         globalData.steps = "解析参数完成"
     End Function
 
     Sub Main()
         Console.OutputEncoding = Encoding.UTF8
+
 
         '如果有外部命令
         If Len(Command) > 0 Then
