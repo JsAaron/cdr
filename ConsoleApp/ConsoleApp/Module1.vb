@@ -11,6 +11,7 @@ Module Module1
 
     Dim cmdCommand As String = "set:text"
     Dim cmdPath As String
+    Dim cmdStylePath As String
     Dim cmdExternalData
 
     Class Pagesize
@@ -216,7 +217,6 @@ Module Module1
     '获取文档所有页面、所有图层、所有图形对象
     Public Function accessExtractTextData(doc)
 
-
         Dim infoArr As New ArrayList
         Dim k As Integer
         Dim m As Integer
@@ -236,13 +236,15 @@ Module Module1
             recurveImage(doc, activeLayer.Shapes)
         Next m
 
-        globalData.text = infoArr
-        globalData.state = "True"
+
         If cmdCommand = "get:text" Then
             globalData.steps = "获取文本信息完成"
         Else
             globalData.steps = "设置文本信息完成"
         End If
+        globalData.text = infoArr
+        globalData.state = "True"
+
     End Function
 
 
@@ -393,6 +395,20 @@ Module Module1
                 Exit Sub
             End If
 
+            '加载样式
+            If cmdCommand = "set:style" Then
+                globalData.steps = "文档加载样式开始"
+                If Len(cmdStylePath) = 0 Then
+                    globalData.state = "False"
+                    globalData.errorlog = "必须传递样式路径参数"
+                    Exit Sub
+                End If
+                doc.LoadStyleSheet(cmdStylePath)
+                globalData.state = "True"
+                globalData.steps = "文档加载样式完成"
+                Exit Sub
+            End If
+
             execMain(app, doc)
 
         Catch ex As Exception
@@ -444,7 +460,23 @@ Module Module1
                 decodeURI(cmdExternalData, "logo")
                 cmdPath = args(2)
             End If
+        ElseIf cmdCommand = "set:style" Then
+            '参数不够
+            If count = 1 Then
+                globalData.errorlog = "必须传递样式路径参数"
+            End If
+
+            If count = 2 Then
+                cmdStylePath = args(1)
+            End If
+
+            '设置样式
+            If count = 3 Then
+                cmdPath = args(1)
+            End If
+
         End If
+
         globalData.steps = "解析参数完成"
     End Function
 
