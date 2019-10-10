@@ -224,6 +224,44 @@ Module Module1
     End Function
 
 
+    Function setVisible(activeLayer, name, visibleLayerName)
+        If name = visibleLayerName Then
+            activeLayer.Visible = True
+        Else
+            activeLayer.Visible = False
+        End If
+    End Function
+
+
+    '设置层级的可见性    
+    '如果网址/公众号，都没有，那么要隐藏“4 字段”图层，显示“3 字段”图层。如果邮箱/QQ 号，也没有，那么就显示“2 字段图层
+    Public Function setLayerVisible(activeLayer As Layer, visibleLayerName As String)
+        Dim name = activeLayer.Name
+        If name = "2字段" Then
+            setVisible(activeLayer, name, visibleLayerName)
+        End If
+        If name = "3字段" Then
+            setVisible(activeLayer, name, visibleLayerName)
+        End If
+        If name = "4字段" Then
+            setVisible(activeLayer, name, visibleLayerName)
+        End If
+    End Function
+
+
+    '获取显示的层级
+    Public Function getVisibleLayer()
+        Dim layer As String = "2字段"
+        '显示层级4
+        If cmdExternalData("bjnews") <> "" Or cmdExternalData("url") Then
+            layer = "4字段"
+        ElseIf cmdExternalData("email") <> "" Or cmdExternalData("qq") Then
+            layer = "3字段"
+        End If
+        Return layer
+    End Function
+
+
     '获取文档所有页面、所有图层、所有图形对象
     Public Function accessExtractTextData(doc)
 
@@ -241,11 +279,18 @@ Module Module1
         Next k
         globalData.text = infoArr
 
-        '设置图片
+        '设置图片/层的可见性
         If cmdCommand = "set:text" Then
+
+            '获取显示的层级
+            Dim visibleLayerName = getVisibleLayer()
+
             For m = 1 To allLayers.Count
                 activeLayer = allLayers.Item(m)
+                '设置图片
                 processImage(doc, activeLayer.Shapes)
+                '设置状态，处理层级可见性
+                setLayerVisible(activeLayer, visibleLayerName)
             Next m
         End If
 
