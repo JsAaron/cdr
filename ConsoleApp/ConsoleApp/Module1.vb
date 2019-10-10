@@ -9,7 +9,7 @@ Module Module1
     Dim lineCount = 2
     Dim mainCount = 2
 
-    Dim cmdCommand As String = "set:text"
+    Dim cmdCommand As String
     Dim cmdPath As String
     Dim cmdStylePath As String
     Dim cmdExternalData
@@ -152,65 +152,71 @@ Module Module1
     End Function
 
 
+    '替换图片
+    Public Function replaceImage(doc, tempShape, type, typeName)
+        globalData.steps = "开始logo图替换"
+        '中心点
+        doc.ReferencePoint = 9
+        Dim centerX = tempShape.CenterX
+        Dim centerY = tempShape.CenterY
+        Dim SizeWidth = tempShape.SizeWidth
+        Dim SizeHeight = tempShape.SizeHeight
 
-    '递归检测形状
-    Public Function recurveImage(doc, allShapes)
+        Dim activeLayer As Layer = tempShape.Layer
+
+        Dim imageType = 802
+        activeLayer.Activate()
+
+        'jpg类型
+        Dim args() = Split(cmdExternalData(type), ".jpg")
+        If args.Count = 2 Then
+            imageType = 774
+        End If
+
+        activeLayer.Import(cmdExternalData(type), imageType)
+        globalData.steps = "替换" + type + "执行成功"
+
+        '重新设置图片
+        Dim dfShapes = doc.Selection.Shapes
+
+        '插入成功才删除图片
+        If dfShapes.Count > 0 Then
+            For j = 1 To dfShapes.Count
+                dfShapes.Item(j).Name = typeName
+                dfShapes.Item(j).SetSize(SizeWidth, SizeHeight)
+                dfShapes.Item(j).SetPositionEx(9, centerX, centerY)
+            Next j
+        End If
+        tempShape.Delete()
+    End Function
+
+
+
+
+    '递归检测形状,并替换图片
+    Public Function processImage(doc, allShapes)
         Dim tempShape As Shape
         For k = 1 To allShapes.Count
             ' 得到这个形状
             tempShape = allShapes.Item(k)
-            Dim cdrTextShape As cdrShapeType = 6
+
             Dim cdrGroupShape As cdrShapeType = 7
             Dim cdrBitmapShape As cdrShapeType = 5
-            Dim cdrJPEG As cdrFilter = 774
 
             '组
             If tempShape.Type = cdrGroupShape Then
-                recurveImage(doc, tempShape.Shapes)
+                processImage(doc, tempShape.Shapes)
             End If
 
-            'logo图
             If tempShape.Type = cdrBitmapShape Then
-                If tempShape.Name = "Logo" Then
-                    '设置图片
-                    If cmdCommand = "set:text" Then
-                        If cmdExternalData("logo") <> "" Then
-                            globalData.steps = "开始logo图替换"
-                            '中心点
-                            doc.ReferencePoint = 9
-                            Dim centerX = tempShape.CenterX
-                            Dim centerY = tempShape.CenterY
-                            Dim SizeWidth = tempShape.SizeWidth
-                            Dim SizeHeight = tempShape.SizeHeight
+                '二维码
+                If tempShape.Name = "二维码" And cmdExternalData("qrcode") <> "" Then
+                    replaceImage(doc, tempShape, "qrcode", "二维码")
+                End If
 
-                            Dim activeLayer As Layer = tempShape.Layer
-
-                            Dim imageType = 802
-                            activeLayer.Activate()
-
-                            'jpg类型
-                            Dim args() = Split(cmdExternalData("logo"), ".jpg")
-                            If args.Count = 2 Then
-                                imageType = 774
-                            End If
-
-                            activeLayer.Import(cmdExternalData("logo"), imageType)
-                            globalData.steps = "替换logo执行成功"
-
-                            '重新设置图片
-                            Dim dfShapes = doc.Selection.Shapes
-
-                            '插入成功才删除图片
-                            If dfShapes.Count > 0 Then
-                                For j = 1 To dfShapes.Count
-                                    dfShapes.Item(j).Name = "Logo"
-                                    dfShapes.Item(j).SetSize(SizeWidth, SizeHeight)
-                                    dfShapes.Item(j).SetPositionEx(9, centerX, centerY)
-                                Next j
-                            End If
-                            tempShape.Delete()
-                        End If
-                        End If
+                'logo图片
+                If tempShape.Name = "Logo" And cmdExternalData("logo") <> "" Then
+                    replaceImage(doc, tempShape, "logo", "Logo")
                 End If
             End If
 
@@ -233,12 +239,15 @@ Module Module1
             activeLayer = allLayers.Item(k)
             recurveText(doc, activeLayer.Shapes, infoArr)
         Next k
+        globalData.text = infoArr
 
-        '图片
-        For m = 1 To allLayers.Count
-            activeLayer = allLayers.Item(m)
-            recurveImage(doc, activeLayer.Shapes)
-        Next m
+        '设置图片
+        If cmdCommand = "set:text" Then
+            For m = 1 To allLayers.Count
+                activeLayer = allLayers.Item(m)
+                processImage(doc, activeLayer.Shapes)
+            Next m
+        End If
 
 
         If cmdCommand = "get:text" Then
@@ -246,7 +255,7 @@ Module Module1
         Else
             globalData.steps = "设置文本信息完成"
         End If
-        globalData.text = infoArr
+
         globalData.state = "True"
 
     End Function
@@ -459,9 +468,11 @@ Module Module1
             ElseIf count = 2 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 decodeURI(cmdExternalData, "logo")
+                decodeURI(cmdExternalData, "qrcode")
             ElseIf count = 3 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 decodeURI(cmdExternalData, "logo")
+                decodeURI(cmdExternalData, "qrcode")
                 cmdPath = args(2)
             End If
         ElseIf cmdCommand = "set:style" Then
@@ -487,11 +498,11 @@ Module Module1
     Sub Main()
         Console.OutputEncoding = Encoding.UTF8
 
-
         '如果有外部命令
         If Len(Command) > 0 Then
             parseCommand()
         End If
+
 
         globalData.steps = "开始连接CorelDRAW"
 
@@ -515,6 +526,8 @@ Module Module1
         End Try
 
         Console.WriteLine(JsonConvert.SerializeObject(globalData))
+
+        ' MsgBox(1)
 
     End Sub
 
