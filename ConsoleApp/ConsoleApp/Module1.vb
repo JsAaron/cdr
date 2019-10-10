@@ -252,10 +252,11 @@ Module Module1
     '获取显示的层级
     Public Function getVisibleLayer()
         Dim layer As String = "2字段"
+
         '显示层级4
-        If cmdExternalData("bjnews") <> "" Or cmdExternalData("url") Then
+        If cmdExternalData("bjnews") <> "" Or cmdExternalData("url") <> "" Then
             layer = "4字段"
-        ElseIf cmdExternalData("email") <> "" Or cmdExternalData("qq") Then
+        ElseIf cmdExternalData("email") <> "" Or cmdExternalData("qq") <> "" Then
             layer = "3字段"
         End If
         Return layer
@@ -490,7 +491,6 @@ Module Module1
         Dim count = args.Count
         globalData.steps = "开始解析参数"
         cmdCommand = args(0)
-
         If cmdCommand = "open" Then
             If count = 2 Then
                 cmdPath = args(1)
