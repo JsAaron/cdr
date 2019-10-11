@@ -26,7 +26,6 @@ Module Module1
         Public text
         Public errorlog '错误日志
         Public steps '步骤
-        Public branch
     End Class
 
     Dim globalData As ReturnData = New ReturnData()
@@ -275,8 +274,7 @@ Module Module1
                         Dim hasRange = branchObject.getScope(key)
                         If hasRange = True Then
                             '可能存在合并数据
-                            tempShape.Text.Story.Replace(cmdExternalData(key))
-                            ' tempShape.Text.Story.Replace(branchObject.getValue(key))
+                            tempShape.Text.Story.Replace(branchObject.getValue(key))
                         Else
                             '正常处理
                             tempShape.Text.Story.Replace(cmdExternalData(key))
@@ -422,16 +420,17 @@ Module Module1
 
 
         '预处理
-        For k = 1 To allLayers.Count
-            activeLayer = allLayers.Item(k)
-            '字段
-            branchObject.setField(activeLayer.Name)
-            '获取显示的层级
-            branchObject.setVisibleField()
-            '文本名
-            preproccessText(activeLayer.Shapes)
-        Next k
-
+        If cmdCommand = "set:text" Then
+            For k = 1 To allLayers.Count
+                activeLayer = allLayers.Item(k)
+                '字段
+                branchObject.setField(activeLayer.Name)
+                '获取显示的层级
+                branchObject.setVisibleField()
+                '文本名
+                preproccessText(activeLayer.Shapes)
+            Next k
+        End If
 
         '文本
         For k = 1 To allLayers.Count
@@ -698,8 +697,6 @@ Module Module1
     End Function
 
     Sub Main()
-
-        Console.WriteLine(1)
         Console.OutputEncoding = Encoding.UTF8
 
         '如果有外部命令
@@ -707,7 +704,6 @@ Module Module1
             parseCommand()
         End If
 
-        Console.WriteLine(2)
 
         globalData.steps = "开始连接CorelDRAW"
 
