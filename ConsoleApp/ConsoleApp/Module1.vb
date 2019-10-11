@@ -20,16 +20,106 @@ Module Module1
     End Class
 
     'json返回数据类
-    Class CreateData
+    Class ReturnData
         Public state = False '状态'
         Public pagesize
         Public text
         Public errorlog '错误日志
         Public steps '步骤
+        Public branch
     End Class
 
-    Dim globalData As CreateData = New CreateData()
+    Dim globalData As ReturnData = New ReturnData()
 
+
+    '数据判断类，是否分行
+    Class BranchData
+        Private b_url = False
+        Private b_bjnews = False
+
+        Private b_mobile = False
+        Private b_phone = False
+
+        Private b_email = False
+        Private b_qq = False
+
+        Public Function setState(key)
+            Select Case key
+                Case "url"
+                    b_url = True
+                Case "bjnews"
+                    b_bjnews = True
+                Case "mobile"
+                    b_mobile = True
+                Case "phone"
+                    b_phone = True
+                Case "email"
+                    b_email = True
+                Case "qq"
+                    b_qq = True
+            End Select
+        End Function
+
+        Public Function getScope(key)
+            Dim has = False
+            Select Case key
+                Case "url"
+                    has = True
+                Case "bjnews"
+                    has = True
+                Case "mobile"
+                    has = True
+                Case "phone"
+                    has = True
+                Case "email"
+                    has = True
+                Case "qq"
+                    has = True
+            End Select
+            Return has
+        End Function
+
+        '设置数据，可能会存在合并的情况
+        Public Function getValue(tempShape As Shape, key As Object)
+            Dim newValue = cmdExternalData(key)
+            Select Case key
+
+                '网址/公众号
+                Case "url"
+                Case "bjnews"
+
+               '手机/固定电话
+                Case "mobile"
+                    '如果没有字段，但是用户设了值，合并到mobile
+                    Dim v_phone = cmdExternalData("phone")
+                    If v_phone <> "" And b_phone = False Then
+                        Console.WriteLine(1)
+                        'newValue = cmdExternalData("mobile") + "\n" + cmdExternalData("phone")
+                        'Console.WriteLine(globalData.branch)
+                        ' newValue = cmdExternalData("mobile") + "\n" + cmdExternalData("phone")
+                        tempShape.Text.Story.Alignment = 0
+                        tempShape.Text.Story.Replace(cmdExternalData("mobile"))
+                    End If
+                Case "phone"
+                    '如果没有字段，但是用户设了值，合并到mobile
+                    Dim v_phone = cmdExternalData("mobile")
+                    If v_phone <> "" And b_phone = False Then
+                        Console.WriteLine(2)
+                        newValue = cmdExternalData("phone") + "\u000b" + cmdExternalData("mobile")
+                        newValue = JsonConvert.DeserializeObject(newValue)
+                        Console.WriteLine(newValue)
+                    End If
+                '邮箱/QQ
+                Case "email"
+
+                Case "qq"
+            End Select
+            Return newValue
+        End Function
+
+    End Class
+
+    Dim branchObject As BranchData = New BranchData()
 
     '////////////////////////////////////// 功能 //////////////////////////////////////////////////
 
@@ -98,6 +188,8 @@ Module Module1
                 e = "email"
             Case "Logo"
                 e = "logo"
+            Case "Logo2"
+                e = "logo2"
             Case "二维码"
                 e = "qrcode"
             Case "QQ"
@@ -106,8 +198,6 @@ Module Module1
                 e = "bjnews"
             Case "固定电话"
                 e = "phone"
-            Case Else
-                e = str
         End Select
         getKeyEnglish = e
     End Function
@@ -144,7 +234,16 @@ Module Module1
                 If cmdCommand = "set:text" Then
                     Dim key As String = getKeyEnglish(tempShape.Name)
                     If cmdExternalData(key) <> "" Then
-                        tempShape.Text.Story.Replace(cmdExternalData(key))
+                        '是否是处理范围
+                        Dim hasRange = branchObject.getScope(key)
+                        If hasRange = True Then
+                            '可能存在合并数据
+                            branchObject.getValue(tempShape, key)
+                            ' tempShape.Text.Story.Replace(branchObject.getValue(tempShape, key))
+                        Else
+                            '正常处理
+                            tempShape.Text.Story.Replace(cmdExternalData(key))
+                        End If
                     End If
                 End If
             End If
@@ -263,6 +362,31 @@ Module Module1
     End Function
 
 
+
+    '文本预处理
+    Public Function preproccessText(allShapes)
+        Dim tempShape As Shape
+        For k = 1 To allShapes.Count
+            ' 得到这个形状
+            tempShape = allShapes.Item(k)
+            Dim cdrTextShape As cdrShapeType = 6
+            Dim cdrGroupShape As cdrShapeType = 7
+
+            '组
+            If tempShape.Type = cdrGroupShape Then
+                preproccessText(tempShape.Shapes)
+            End If
+
+            '文字
+            If tempShape.Type = cdrTextShape Then
+                Dim key As String = getKeyEnglish(tempShape.Name)
+                branchObject.setState(key)
+            End If
+        Next k
+    End Function
+
+
+
     '获取文档所有页面、所有图层、所有图形对象
     Public Function accessExtractTextData(doc)
 
@@ -273,6 +397,13 @@ Module Module1
         Dim activeLayer As Layer
         allLayers = doc.ActivePage.AllLayers
 
+
+        '预处理
+        For k = 1 To allLayers.Count
+            activeLayer = allLayers.Item(k)
+            preproccessText(activeLayer.Shapes)
+        Next k
+
         '文本
         For k = 1 To allLayers.Count
             activeLayer = allLayers.Item(k)
@@ -282,10 +413,8 @@ Module Module1
 
         '设置图片/层的可见性
         If cmdCommand = "set:text" Then
-
             '获取显示的层级
             Dim visibleLayerName = getVisibleLayer()
-
             For m = 1 To allLayers.Count
                 activeLayer = allLayers.Item(m)
                 '设置图片
