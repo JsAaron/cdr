@@ -34,85 +34,81 @@ Module Module1
 
     '数据判断类，是否分行
     Class BranchData
-        Private b_url = False
-        Private b_bjnews = False
+        Private user_url = False
+        Private user_bjnews = False
 
-        Private b_mobile = False
-        Private b_phone = False
+        Private user_mobile = False
+        Private user_phone = False
 
-        Private b_email = False
-        Private b_qq = False
+        Private user_email = False
+        Private user_qq = False
 
         Public Function setState(key)
             Select Case key
                 Case "url"
-                    b_url = True
+                    user_url = True
                 Case "bjnews"
-                    b_bjnews = True
+                    user_bjnews = True
                 Case "mobile"
-                    b_mobile = True
+                    user_mobile = True
                 Case "phone"
-                    b_phone = True
+                    user_phone = True
                 Case "email"
-                    b_email = True
+                    user_email = True
                 Case "qq"
-                    b_qq = True
+                    user_qq = True
             End Select
         End Function
 
         Public Function getScope(key)
-            Dim has = False
-            Select Case key
-                Case "url"
-                    has = True
-                Case "bjnews"
-                    has = True
-                Case "mobile"
-                    has = True
-                Case "phone"
-                    has = True
-                Case "email"
-                    has = True
-                Case "qq"
-                    has = True
-            End Select
-            Return has
+            If key = "url" Or key = "bjnews" Or key = "mobile" Or key = "phone" Or key = "email" Or key = "qq" Then
+                Return True
+            Else
+                Return False
+            End If
         End Function
 
         '设置数据，可能会存在合并的情况
-        Public Function getValue(tempShape As Shape, key As Object)
+        Public Function getValue(key)
             Dim newValue = cmdExternalData(key)
             Select Case key
-
                 '网址/公众号
                 Case "url"
+                    Dim v_bjnews = cmdExternalData("bjnews")
+                    If v_bjnews <> "" And user_bjnews = False Then
+                        newValue = newValue + Chr(13) + v_bjnews
+                    End If
                 Case "bjnews"
-
+                    Dim v_url = cmdExternalData("url")
+                    If v_url <> "" And user_url = False Then
+                        newValue = newValue + Chr(13) + v_url
+                    End If
                '手机/固定电话
                 Case "mobile"
-                    '如果没有字段，但是用户设了值，合并到mobile
                     Dim v_phone = cmdExternalData("phone")
-                    If v_phone <> "" And b_phone = False Then
-                        Console.WriteLine(1)
-                        'newValue = cmdExternalData("mobile") + "\n" + cmdExternalData("phone")
-                        'Console.WriteLine(globalData.branch)
-                        ' newValue = cmdExternalData("mobile") + "\n" + cmdExternalData("phone")
-                        tempShape.Text.Story.Alignment = 0
-                        tempShape.Text.Story.Replace(cmdExternalData("mobile"))
+                    Console.WriteLine(v_phone & " " & user_phone)
+
+                    '没有电话字段，但是用户设置了手机
+                    If v_phone <> "" And user_phone = False Then
+                        newValue = newValue + Chr(13) + v_phone
                     End If
                 Case "phone"
-                    '如果没有字段，但是用户设了值，合并到mobile
-                    Dim v_phone = cmdExternalData("mobile")
-                    If v_phone <> "" And b_phone = False Then
-                        Console.WriteLine(2)
-                        newValue = cmdExternalData("phone") + "\u000b" + cmdExternalData("mobile")
-                        newValue = JsonConvert.DeserializeObject(newValue)
-                        Console.WriteLine(newValue)
+                    '没有手机字段，但是用户设置了电话
+                    Dim v_mobile = cmdExternalData("mobile")
+                    If v_mobile <> "" And user_mobile = False Then
+                        newValue = newValue + Chr(13) + v_mobile
                     End If
                 '邮箱/QQ
                 Case "email"
-
+                    Dim v_qq = cmdExternalData("qq")
+                    If v_qq <> "" And user_qq = False Then
+                        newValue = newValue + Chr(13) + v_qq
+                    End If
                 Case "qq"
+                    Dim v_email = cmdExternalData("email")
+                    If v_email <> "" And user_email = False Then
+                        newValue = newValue + Chr(13) + v_email
+                    End If
             End Select
             Return newValue
         End Function
@@ -238,8 +234,7 @@ Module Module1
                         Dim hasRange = branchObject.getScope(key)
                         If hasRange = True Then
                             '可能存在合并数据
-                            branchObject.getValue(tempShape, key)
-                            ' tempShape.Text.Story.Replace(branchObject.getValue(tempShape, key))
+                            tempShape.Text.Story.Replace(branchObject.getValue(key))
                         Else
                             '正常处理
                             tempShape.Text.Story.Replace(cmdExternalData(key))
@@ -640,6 +635,7 @@ Module Module1
             If count = 1 Then
                 globalData.errorlog = "必须传递设置参数"
             ElseIf count = 2 Then
+                Console.WriteLine(args(1))
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 decodeURI(cmdExternalData, "logo")
                 decodeURI(cmdExternalData, "qrcode")
@@ -670,6 +666,7 @@ Module Module1
     End Function
 
     Sub Main()
+
         Console.OutputEncoding = Encoding.UTF8
 
         '如果有外部命令
