@@ -34,29 +34,29 @@ Module Module1
 
     '数据判断类，是否分行
     Class BranchData
-        Private user_url = False
-        Private user_bjnews = False
+        Private cdr_url = False
+        Private cdr_bjnews = False
 
-        Private user_mobile = False
-        Private user_phone = False
+        Private cdr_mobile = False
+        Private cdr_phone = False
 
-        Private user_email = False
-        Private user_qq = False
+        Private cdr_email = False
+        Private cdr_qq = False
 
         Public Function setState(key)
             Select Case key
                 Case "url"
-                    user_url = True
+                    cdr_url = True
                 Case "bjnews"
-                    user_bjnews = True
+                    cdr_bjnews = True
                 Case "mobile"
-                    user_mobile = True
+                    cdr_mobile = True
                 Case "phone"
-                    user_phone = True
+                    cdr_phone = True
                 Case "email"
-                    user_email = True
+                    cdr_email = True
                 Case "qq"
-                    user_qq = True
+                    cdr_qq = True
             End Select
         End Function
 
@@ -74,40 +74,38 @@ Module Module1
             Select Case key
                 '网址/公众号
                 Case "url"
-                    Dim v_bjnews = cmdExternalData("bjnews")
-                    If v_bjnews <> "" And user_bjnews = False Then
-                        newValue = newValue + Chr(13) + v_bjnews
+                    Dim user_bjnews = cmdExternalData("bjnews")
+                    If user_bjnews <> "" And cdr_bjnews = False Then
+                        newValue = newValue + Chr(13) + user_bjnews
                     End If
                 Case "bjnews"
-                    Dim v_url = cmdExternalData("url")
-                    If v_url <> "" And user_url = False Then
-                        newValue = newValue + Chr(13) + v_url
+                    Dim user_url = cmdExternalData("url")
+                    If user_url <> "" And cdr_url = False Then
+                        newValue = newValue + Chr(13) + user_url
                     End If
                '手机/固定电话
                 Case "mobile"
-                    Dim v_phone = cmdExternalData("phone")
-                    Console.WriteLine(v_phone & " " & user_phone)
-
+                    Dim user_phone = cmdExternalData("phone")
                     '没有电话字段，但是用户设置了手机
-                    If v_phone <> "" And user_phone = False Then
-                        newValue = newValue + Chr(13) + v_phone
+                    If user_phone <> "" And cdr_phone = False Then
+                        newValue = newValue + Chr(13) + user_phone
                     End If
                 Case "phone"
                     '没有手机字段，但是用户设置了电话
-                    Dim v_mobile = cmdExternalData("mobile")
-                    If v_mobile <> "" And user_mobile = False Then
-                        newValue = newValue + Chr(13) + v_mobile
+                    Dim user_mobile = cmdExternalData("mobile")
+                    If user_mobile <> "" And cdr_mobile = False Then
+                        newValue = newValue + Chr(13) + user_mobile
                     End If
                 '邮箱/QQ
                 Case "email"
-                    Dim v_qq = cmdExternalData("qq")
-                    If v_qq <> "" And user_qq = False Then
-                        newValue = newValue + Chr(13) + v_qq
+                    Dim user_qq = cmdExternalData("qq")
+                    If user_qq <> "" And cdr_qq = False Then
+                        newValue = newValue + Chr(13) + user_qq
                     End If
                 Case "qq"
-                    Dim v_email = cmdExternalData("email")
-                    If v_email <> "" And user_email = False Then
-                        newValue = newValue + Chr(13) + v_email
+                    Dim user_email = cmdExternalData("email")
+                    If user_email <> "" And cdr_email = False Then
+                        newValue = newValue + Chr(13) + user_email
                     End If
             End Select
             Return newValue
