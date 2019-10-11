@@ -34,6 +34,12 @@ Module Module1
 
     '数据判断类，是否分行
     Class BranchData
+
+        Private field_2 = False
+        Private field_3 = False
+        Private field_4 = False
+        Private visibleField = "2字段"
+
         Private cdr_url = False
         Private cdr_bjnews = False
 
@@ -42,6 +48,43 @@ Module Module1
 
         Private cdr_email = False
         Private cdr_qq = False
+
+        '可用字段
+        Public Function setField(key)
+            Select Case key
+                Case "2字段"
+                    field_2 = True
+                Case "3字段"
+                    field_3 = True
+                Case "4字段"
+                    field_4 = True
+            End Select
+        End Function
+
+
+        '设置使用层级模板
+        Public Function setVisibleField()
+            '如果有4字段 显示层级4
+            If field_4 = True Then
+                If cmdExternalData("bjnews") <> "" Or cmdExternalData("url") <> "" Then
+                    visibleField = "4字段"
+                End If
+            End If
+
+            '如果有3字段
+            If field_3 = True Then
+                If cmdExternalData("email") <> "" Or cmdExternalData("qq") <> "" Then
+                    visibleField = "3字段"
+                End If
+            End If
+        End Function
+
+        '获取字段
+        Public Function getVisibleField()
+            Return visibleField
+        End Function
+
+
 
         Public Function setState(key)
             Select Case key
@@ -232,7 +275,8 @@ Module Module1
                         Dim hasRange = branchObject.getScope(key)
                         If hasRange = True Then
                             '可能存在合并数据
-                            tempShape.Text.Story.Replace(branchObject.getValue(key))
+                            tempShape.Text.Story.Replace(cmdExternalData(key))
+                            ' tempShape.Text.Story.Replace(branchObject.getValue(key))
                         Else
                             '正常处理
                             tempShape.Text.Story.Replace(cmdExternalData(key))
@@ -341,20 +385,6 @@ Module Module1
     End Function
 
 
-    '获取显示的层级
-    Public Function getVisibleLayer()
-        Dim layer As String = "2字段"
-
-        '显示层级4
-        If cmdExternalData("bjnews") <> "" Or cmdExternalData("url") <> "" Then
-            layer = "4字段"
-        ElseIf cmdExternalData("email") <> "" Or cmdExternalData("qq") <> "" Then
-            layer = "3字段"
-        End If
-        Return layer
-    End Function
-
-
 
     '文本预处理
     Public Function preproccessText(allShapes)
@@ -394,8 +424,14 @@ Module Module1
         '预处理
         For k = 1 To allLayers.Count
             activeLayer = allLayers.Item(k)
+            '字段
+            branchObject.setField(activeLayer.Name)
+            '获取显示的层级
+            branchObject.setVisibleField()
+            '文本名
             preproccessText(activeLayer.Shapes)
         Next k
+
 
         '文本
         For k = 1 To allLayers.Count
@@ -404,10 +440,10 @@ Module Module1
         Next k
         globalData.text = infoArr
 
+
         '设置图片/层的可见性
         If cmdCommand = "set:text" Then
-            '获取显示的层级
-            Dim visibleLayerName = getVisibleLayer()
+            Dim visibleLayerName = branchObject.getVisibleField()
             For m = 1 To allLayers.Count
                 activeLayer = allLayers.Item(m)
                 '设置图片
@@ -479,7 +515,6 @@ Module Module1
                 End If
             Next
             If IsExist Then
-                'Console.WriteLine(names(i))
                 fontList.Add(names(i))
                 Dim empty As String = ""
                 str = str + "{" + """fontname""" + ":""" + empty + """," + """familyname""" + ":""" + Replace(names(i), Chr(10), "") + """," + """postscriptname""" + ":""" + empty + """},"
@@ -633,7 +668,6 @@ Module Module1
             If count = 1 Then
                 globalData.errorlog = "必须传递设置参数"
             ElseIf count = 2 Then
-                Console.WriteLine(args(1))
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 decodeURI(cmdExternalData, "logo")
                 decodeURI(cmdExternalData, "qrcode")
@@ -665,6 +699,7 @@ Module Module1
 
     Sub Main()
 
+        Console.WriteLine(1)
         Console.OutputEncoding = Encoding.UTF8
 
         '如果有外部命令
@@ -672,6 +707,7 @@ Module Module1
             parseCommand()
         End If
 
+        Console.WriteLine(2)
 
         globalData.steps = "开始连接CorelDRAW"
 
