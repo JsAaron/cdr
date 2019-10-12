@@ -63,6 +63,7 @@ Module Module1
 
         '设置使用层级模板
         Public Function setVisibleField()
+
             '如果有4字段 显示层级4
             If field_4 = True Then
                 If cmdExternalData("bjnews") <> "" Or cmdExternalData("url") <> "" Then
@@ -72,11 +73,16 @@ Module Module1
 
             '如果有3字段
             If field_3 = True Then
-                If cmdExternalData("email") <> "" Or cmdExternalData("qq") <> "" Then
-                    visibleField = "3字段"
+                '4字段的优先级更高
+                If visibleField <> "4字段" Then
+                    If cmdExternalData("mail") <> "" Or cmdExternalData("qq") <> "" Then
+                        visibleField = "3字段"
+                    End If
                 End If
+
             End If
         End Function
+
 
         '获取字段
         Public Function getVisibleField()
