@@ -20,12 +20,15 @@ stylePath = "C:\\Users\\Administrator\\Desktop\\1618d6a4-e32c-11e9-b5e8-086266c8
 
 # 外部数据
 # externalData = "{'logo':'C:%5CUsers%5CAdministrator%5CDesktop%5Ctt.jpg'}"
-externalData = "{'address':'aaaaaaaaaaaa','url':''}"
+data1 = "{'name':'张天奕1','job':'设计总监1','company':'','companyname':'','slogan':'','mobile':'168-88888888555','phone':'0731-55555555','email':'555@qq.com','qq':'','url':'68475588@qq.com\u000bwww.tianyishidai.com','address':'北京市朝阳区农展馆南路13号\u000b瑞辰国际中心1807室','bjnews':'','logo':'','logo2':'','qrcode':''}"
 
-cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",command,externalData]
+data2 = "{'name':'张天奕\u000b设计总监','job':'设计总监','company':'','companyname':'','slogan':'','mobile':'168-88888888','phone':'123','email':'','qq':'','url':'68475588@qq.com\u000bwww.tianyishidai.com','address':'北京市朝阳区农展馆南路13号\u000b瑞辰国际中心1807室','bjnews':'','logo':'','logo2':'','qrcode':''}"
+
+cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",command,data1]
 
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 for line in child.stdout.readlines():
     output = line.decode('UTF-8')
+
     print(output)

@@ -4,7 +4,7 @@ Imports Corel.Interop.VGCore
 Imports Newtonsoft.Json
 
 
-Module Module1
+Module App
 
     Dim lineCount = 2
     Dim mainCount = 2
@@ -541,13 +541,23 @@ Module Module1
     End Function
 
 
-    '主体方法
-    'pagesize 获取页面尺寸
-    'fontJson 启动字体json
-    'extract 提取文本数据（名片） 
-    Sub execMain(app, doc)
-        '页面尺寸
-        If cmdCommand = "get:pageSize" Then
+
+    '===================== 功能调用 =====================
+
+
+    '文本处理
+    Function fn_accessText(doc)
+        If param.cmdCommand = "get:text" Or param.cmdCommand = "get:text" Then
+            accessExtractTextData(doc)
+            globalData.state = "True"
+            Return True
+        End If
+    End Function
+
+
+    '设置页面尺寸
+    Function fn_pageSize(app, doc)
+        If param.cmdCommand = "get:pageSize" Then
             globalData.steps = "开始获取页面尺寸"
             '指定毫米
             doc.Unit = 3
@@ -556,32 +566,57 @@ Module Module1
             globalData.pagesize.height = app.ActivePage.SizeHeight
             globalData.state = "True"
             globalData.steps = "获取页面尺寸完成"
+            Return True
         End If
+    End Function
 
-        '获取当前文字的json
-        If cmdCommand = "get:fontJson" Then
+
+    '打开文档功能
+    Function fn_open()
+        '如果只是打开文档，推出
+        If param.cmdCommand = "open" Then
+            globalData.state = "True"
+            Return True
+        End If
+    End Function
+
+
+    '设置样式功能
+    Function fn_setStyle(doc)
+        '加载样式
+        If param.cmdCommand = "set:style" Then
+            globalData.steps = "文档加载样式开始"
+            If Len(param.cmdStylePath) = 0 Then
+                globalData.state = "False"
+                globalData.errorlog = "必须传递样式路径参数"
+                Return True
+            End If
+            doc.LoadStyleSheet(param.cmdStylePath)
+            globalData.state = "True"
+            globalData.steps = "文档加载样式完成"
+            Return True
+        End If
+    End Function
+
+
+    '获取当前文字的json
+    Function fn_fontJson(doc)
+        If param.cmdCommand = "get:fontJson" Then
             createFontJson(doc)
+            globalData.state = "True"
+            Return True
         End If
-
-        '获取数据
-        If cmdCommand = "get:text" Then
-            globalData.steps = "开始获取页面文本内容"
-            accessExtractTextData(doc)
-        End If
-
-        If cmdCommand = "set:text" Then
-            globalData.steps = "开始设置页面文本内容"
-            accessExtractTextData(doc)
-        End If
-
-    End Sub
+    End Function
 
 
-    Sub checkLine(app)
+    '===================== 功能链接 =====================
+
+    '建立链接
+    Sub openLink(app)
         Try
-            If Len(cmdPath) > 2 Then
+            If Len(param.cmdPath) > 2 Then
                 globalData.steps = "开始打开文档"
-                app.OpenDocument(cmdPath)
+                app.OpenDocument(param.cmdPath)
             End If
 
             Dim doc As Document = app.ActiveDocument
@@ -597,7 +632,7 @@ Module Module1
             End If
             lineCount = lineCount - 1
             Threading.Thread.Sleep(3000)
-            checkLine(app)
+            openLink(app)
             Exit Sub
         End Try
 
@@ -610,27 +645,30 @@ Module Module1
 
             globalData.steps = "文档打开完成"
 
-            '如果只是打开文档，推出
-            If cmdCommand = "open" Then
-                globalData.state = "True"
+            '打开文档
+            If fn_open() = True Then
                 Exit Sub
             End If
 
-            '加载样式
-            If cmdCommand = "set:style" Then
-                globalData.steps = "文档加载样式开始"
-                If Len(cmdStylePath) = 0 Then
-                    globalData.state = "False"
-                    globalData.errorlog = "必须传递样式路径参数"
-                    Exit Sub
-                End If
-                doc.LoadStyleSheet(cmdStylePath)
-                globalData.state = "True"
-                globalData.steps = "文档加载样式完成"
+            '设置样式
+            If fn_setStyle(doc) = True Then
                 Exit Sub
             End If
 
-            execMain(app, doc)
+            '页面尺寸
+            If fn_pageSize(app, doc) = True Then
+                Exit Sub
+            End If
+
+            '获取字体文件
+            If fn_fontJson(doc) = True Then
+                Exit Sub
+            End If
+
+            '文本处理
+            If fn_accessText(doc) = True Then
+                Exit Sub
+            End If
 
         Catch ex As Exception
             ' log("error", "CorelDRAW执行功能错误")
@@ -640,102 +678,22 @@ Module Module1
     End Sub
 
 
-    Function decodeURI(cmdExternalData, key)
-        If cmdExternalData(key) <> "" Then
-            Dim e = CreateObject("MSScriptControl.ScriptControl")
-            e.Language = "javascript"
-            cmdExternalData(key) = e.Eval("decodeURI('" & cmdExternalData(key) & "')")
-        End If
-    End Function
-
-    Public Function parseCommand()
-        Dim args() = Split(Command, " ")
-        Dim count = args.Count
-        globalData.steps = "开始解析参数"
-        cmdCommand = args(0)
-        If cmdCommand = "open" Then
-            If count = 2 Then
-                cmdPath = args(1)
-            End If
-        ElseIf cmdCommand = "get:pageSize" Then
-            If count = 2 Then
-                cmdPath = args(1)
-            End If
-        ElseIf cmdCommand = "get:fontJson" Then
-            If count = 2 Then
-                cmdPath = args(1)
-            End If
-        ElseIf cmdCommand = "get:text" Then
-            If count = 2 Then
-                cmdPath = args(1)
-            End If
-        ElseIf cmdCommand = "set:text" Then
-            If count = 1 Then
-                globalData.errorlog = "必须传递设置参数"
-            ElseIf count = 2 Then
-                cmdExternalData = JsonConvert.DeserializeObject(args(1))
-                decodeURI(cmdExternalData, "logo")
-                decodeURI(cmdExternalData, "qrcode")
-            ElseIf count = 3 Then
-                cmdExternalData = JsonConvert.DeserializeObject(args(1))
-                decodeURI(cmdExternalData, "logo")
-                decodeURI(cmdExternalData, "qrcode")
-                cmdPath = args(2)
-            End If
-        ElseIf cmdCommand = "set:style" Then
-            '参数不够
-            If count = 1 Then
-                globalData.errorlog = "必须传递样式路径参数"
-            End If
-
-            If count = 2 Then
-                cmdStylePath = args(1)
-            End If
-
-            '设置样式
-            If count = 3 Then
-                cmdPath = args(1)
-            End If
-
-        End If
-
-        globalData.steps = "解析参数完成"
-    End Function
-
     Sub Main()
         Console.OutputEncoding = Encoding.UTF8
-
         '如果有外部命令
         If Len(Command) > 0 Then
-            parseCommand()
+            parseCommand(Command)
         End If
 
-
         globalData.steps = "开始连接CorelDRAW"
-
         Dim pia_type As Type = Type.GetTypeFromProgID("CorelDRAW.Application")
         Dim app As Application = Activator.CreateInstance(pia_type)
         app.Visible = True
-
         globalData.steps = "连接CorelDRAW成功"
 
-        Try
-            checkLine(app)
-        Catch ex As Exception
-            If mainCount = 0 Then
-                globalData.errorlog = "CorelDRAW软件无法链接"
-                Exit Sub
-            End If
-            mainCount = mainCount - 1
-            Threading.Thread.Sleep(3000)
-            checkLine(app)
-            Exit Sub
-        End Try
+        openLink(app)
 
         Console.WriteLine(JsonConvert.SerializeObject(globalData))
-
-        ' MsgBox(1)
-
     End Sub
 
 End Module

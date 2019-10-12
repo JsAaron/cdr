@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{03DA0B1B-5D1B-491E-8B71-5F2CDE5D1F4B}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <StartupObject>ConsoleApp.Module1</StartupObject>
+    <StartupObject>ConsoleApp.app</StartupObject>
     <RootNamespace>ConsoleApp</RootNamespace>
     <AssemblyName>ConsoleApp</AssemblyName>
     <FileAlignment>512</FileAlignment>
@@ -75,8 +75,10 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Branch.vb" />
+    <Compile Include="Fn.vb" />
     <Compile Include="JavaScriptSerializer.vb" />
-    <Compile Include="Module1.vb" />
+    <Compile Include="App.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -92,6 +94,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="param.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
