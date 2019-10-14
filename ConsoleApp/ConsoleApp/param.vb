@@ -4,12 +4,19 @@ Imports Corel.Interop.VGCore
 Imports Newtonsoft.Json
 
 '定义参数
-Module param
+Module Param
 
-    Public cmdCommand As String
+    Public cmdCommand As String = "get:text"
     Public cmdPath As String
     Public cmdStylePath As String
     Public cmdExternalData
+
+    '获取设置数据
+    Public Function getSetdata(key, pageIndex)
+        If cmdExternalData("key") Then
+            Return cmdExternalData("key").value
+        End If
+    End Function
 
 
     Sub decodeURI(cmdExternalData, key)
@@ -73,9 +80,6 @@ Module param
         ' Console.WriteLine(cmdExternalData)
         ' globalData.steps = "解析参数完成"
     End Sub
-
-
-
 
 
 End Module

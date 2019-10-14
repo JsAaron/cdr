@@ -75,8 +75,10 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Branch.vb" />
-    <Compile Include="Fn.vb" />
+    <Compile Include="Determine.vb" />
+    <Compile Include="GlobalData.vb" />
+    <Compile Include="Inputs.vb" />
+    <Compile Include="Utils.vb" />
     <Compile Include="JavaScriptSerializer.vb" />
     <Compile Include="App.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
@@ -94,7 +96,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="param.vb" />
+    <Compile Include="Param.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
