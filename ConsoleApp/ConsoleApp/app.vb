@@ -14,6 +14,7 @@ Module App
     Dim mainCount = 2
 
 
+
     Class Pagesize
         Public width
         Public height
@@ -335,7 +336,6 @@ Module App
 
 
     Sub Main()
-
         Console.OutputEncoding = Encoding.UTF8
         '如果有外部命令
         If Len(Command) > 0 Then

@@ -6,8 +6,6 @@ Module Inputs
 
     '获取文本
     Private Function getText(tempShape, pageIndex)
-
-
         If tempShape.Text.Story.Text <> "" Then
 
             Dim key = Utils.getKeyEnglish(tempShape.Name)
