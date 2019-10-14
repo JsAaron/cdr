@@ -8,8 +8,6 @@ Module Utils
 
 
 
-
-
     '////////////////////////////////////// 功能 //////////////////////////////////////////////////
 
     Function GetJSON(myrange)
@@ -53,8 +51,6 @@ Module Utils
     Function getKeyEnglish(str)
         Dim e = ""
         Select Case str
-            Case "公司地址"
-                e = "address"
             Case "地址"
                 e = "address"
             Case "姓名"
@@ -86,7 +82,7 @@ Module Utils
             Case "固定电话"
                 e = "phone"
         End Select
-        getKeyEnglish = e
+        Return e
     End Function
 
 

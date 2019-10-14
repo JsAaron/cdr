@@ -14,6 +14,13 @@ Module Param
 
     '获取参数是有值
     Function hasValue(key)
+
+        '为空
+        If TypeName(cmdExternalData) = "Nothing" Then
+            Return False
+        End If
+
+
         '如果是JObject对象在去判断
         If TypeName(cmdExternalData(key)) = "JObject" Then
             If Len(cmdExternalData(key)("value")) > 0 Then
@@ -25,9 +32,12 @@ Module Param
 
     '获取外部参数的值
     Function getExternalValue(key)
+        '为空
+        If TypeName(cmdExternalData) = "Nothing" Then
+            Return False
+        End If
         Return cmdExternalData(key)("value")
     End Function
-
 
 
     Sub decodeURI(cmdExternalData, key)

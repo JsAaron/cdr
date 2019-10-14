@@ -14,7 +14,6 @@ Module App
     Dim mainCount = 2
 
 
-
     Class Pagesize
         Public width
         Public height
@@ -34,13 +33,11 @@ Module App
 
         '预处理
         globalData.steps = "预处理"
-        If Param.cmdCommand = "set:text" Then
-            For k = 1 To allLayers.Count
-                curLayer = allLayers.Item(k)
-                '初始化预处理
-                determine.init(curLayer.Name, curLayer.Shapes)
-            Next k
-        End If
+        For k = 1 To allLayers.Count
+            curLayer = allLayers.Item(k)
+            '初始化预处理
+            determine.init(curLayer.Name, curLayer.Shapes, pageIndex)
+        Next k
 
 
         '文本读取操作
@@ -72,10 +69,7 @@ Module App
 
 
 
-
-
-
-    '===================== 功能调用 =====================
+    '========================================== 功能调用 ==========================================
 
 
     '文本处理
@@ -244,7 +238,6 @@ Module App
 
         Console.WriteLine(globalData.retrunData())
 
-        'MsgBox(1)
     End Sub
 
 End Module

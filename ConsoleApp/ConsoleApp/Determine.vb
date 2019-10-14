@@ -18,6 +18,7 @@ Class Determine
     Private cdr_email = False
     Private cdr_qq = False
 
+
     '可用字段
     Private Function setField(key)
         Select Case key
@@ -73,8 +74,17 @@ Class Determine
     End Function
 
 
+    '设置所有字段
+    Private Function setAllField(tempShape)
+        Dim key = Utils.getKeyEnglish(tempShape.Name)
+        If key <> "" Then
+            globalData.saveInputFiled(key)
+        End If
+    End Function
+
+
     '文本预处理
-    Private Function proccessText(allShapes)
+    Private Function proccessText(allShapes, pageIndex)
         Dim tempShape As Shape
         For k = 1 To allShapes.Count
             ' 得到这个形状
@@ -82,9 +92,12 @@ Class Determine
             Dim cdrTextShape As cdrShapeType = 6
             Dim cdrGroupShape As cdrShapeType = 7
 
+            '保存所有字段
+            setAllField(tempShape)
+
             '组
             If tempShape.Type = cdrGroupShape Then
-                proccessText(tempShape.Shapes)
+                proccessText(tempShape.Shapes, pageIndex)
             End If
 
             '文字
@@ -102,10 +115,10 @@ Class Determine
 
 
     '初始化
-    Function init(key, shapes)
+    Function init(key, shapes, pageIndex)
         setField(key)
         setVisibleField()
-        proccessText(shapes)
+        proccessText(shapes, pageIndex)
     End Function
 
 
