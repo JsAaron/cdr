@@ -36,7 +36,7 @@ Class Determine
 
         '如果有4字段 显示层级4
         If field_4 = True Then
-            If param.cmdExternalData("bjnews") <> "" Or param.cmdExternalData("url") <> "" Then
+            If Param.hasValue("bjnews") Or Param.hasValue("url") Then
                 visibleField = "4字段"
             End If
         End If
@@ -45,7 +45,7 @@ Class Determine
         If field_3 = True Then
             '4字段的优先级更高
             If visibleField <> "4字段" Then
-                If param.cmdExternalData("mail") <> "" Or param.cmdExternalData("qq") <> "" Then
+                If Param.hasValue("email") Or Param.hasValue("qq") Then
                     visibleField = "3字段"
                 End If
             End If
@@ -109,13 +109,9 @@ Class Determine
     End Function
 
 
-    '获取字段的状态
-    Public Function getVisibleField()
-        Return visibleField
-    End Function
 
-
-    Public Function getScope(key)
+    '判断是否需要合并的数据
+    Public Function getRangeScope(key)
         If key = "url" Or key = "bjnews" Or key = "mobile" Or key = "phone" Or key = "email" Or key = "qq" Then
             Return True
         Else
@@ -125,46 +121,86 @@ Class Determine
 
 
     '设置数据，可能会存在合并的情况
-    Public Function getValue(key)
-        Dim newValue = cmdExternalData(key)
+    Public Function getMergeValue(key)
+
+        Dim newValue = Param.getExternalValue(key)
+
         Select Case key
                 '网址/公众号
             Case "url"
-                Dim user_bjnews = cmdExternalData("bjnews")
-                If user_bjnews <> "" And cdr_bjnews = False Then
+                If Param.hasValue("bjnews") And cdr_bjnews = False Then
+                    Dim user_bjnews = Param.getExternalValue("bjnews")
                     newValue = newValue + Chr(13) + user_bjnews
                 End If
             Case "bjnews"
-                Dim user_url = cmdExternalData("url")
-                If user_url <> "" And cdr_url = False Then
+                If Param.hasValue("url") <> "" And cdr_url = False Then
+                    Dim user_url = Param.getExternalValue("url")
                     newValue = newValue + Chr(13) + user_url
                 End If
                '手机/固定电话
             Case "mobile"
-                Dim user_phone = cmdExternalData("phone")
                 '没有电话字段，但是用户设置了手机
-                If user_phone <> "" And cdr_phone = False Then
+                If Param.hasValue("phone") And cdr_phone = False Then
+                    Dim user_phone = Param.getExternalValue("phone")
                     newValue = newValue + Chr(13) + user_phone
                 End If
             Case "phone"
                 '没有手机字段，但是用户设置了电话
-                Dim user_mobile = cmdExternalData("mobile")
-                If user_mobile <> "" And cdr_mobile = False Then
+                If Param.hasValue("mobile") And cdr_mobile = False Then
+                    Dim user_mobile = Param.getExternalValue("mobile")
                     newValue = newValue + Chr(13) + user_mobile
                 End If
                 '邮箱/QQ
             Case "email"
-                Dim user_qq = cmdExternalData("qq")
-                If user_qq <> "" And cdr_qq = False Then
+                If Param.hasValue("qq") And cdr_qq = False Then
+                    Dim user_qq = Param.getExternalValue("qq")
                     newValue = newValue + Chr(13) + user_qq
                 End If
             Case "qq"
-                Dim user_email = cmdExternalData("email")
-                If user_email <> "" And cdr_email = False Then
+                If Param.hasValue("email") And cdr_email = False Then
+                    Dim user_email = Param.getExternalValue("email")
                     newValue = newValue + Chr(13) + user_email
                 End If
         End Select
+
         Return newValue
     End Function
+
+
+
+    '////////////////////////////////////// 可见性 //////////////////////////////////////////////////
+
+
+
+    '获取字段的状态
+    Public Function getVisibleField()
+        Return visibleField
+    End Function
+
+
+    Private Function setVisible(activeLayer, name, visibleLayerName)
+        If name = visibleLayerName Then
+            activeLayer.Visible = True
+        Else
+            activeLayer.Visible = False
+        End If
+    End Function
+
+
+    '设置层级的可见性    
+    '如果网址/公众号，都没有，那么要隐藏“4 字段”图层，显示“3 字段”图层。如果邮箱/QQ 号，也没有，那么就显示“2 字段图层
+    Public Function setLayerVisible(activeLayer As Layer, visibleLayerName As String)
+        Dim name = activeLayer.Name
+        If name = "2字段" Then
+            setVisible(activeLayer, name, visibleLayerName)
+        End If
+        If name = "3字段" Then
+            setVisible(activeLayer, name, visibleLayerName)
+        End If
+        If name = "4字段" Then
+            setVisible(activeLayer, name, visibleLayerName)
+        End If
+    End Function
+
 
 End Class

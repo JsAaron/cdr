@@ -21,106 +21,6 @@ Module App
     End Class
 
 
-    '////////////////////////////////////// 逻辑 //////////////////////////////////////////////////
-
-
-    '替换图片
-    Public Function replaceImage(doc, tempShape, type, typeName)
-        globalData.steps = "开始logo图替换"
-        '中心点
-        doc.ReferencePoint = 9
-        Dim centerX = tempShape.CenterX
-        Dim centerY = tempShape.CenterY
-        Dim SizeWidth = tempShape.SizeWidth
-        Dim SizeHeight = tempShape.SizeHeight
-
-        Dim activeLayer As Layer = tempShape.Layer
-
-        Dim imageType = 802
-        activeLayer.Activate()
-
-        'jpg类型
-        Dim args() = Split(cmdExternalData(type), ".jpg")
-        If args.Count = 2 Then
-            imageType = 774
-        End If
-
-        activeLayer.Import(cmdExternalData(type), imageType)
-        globalData.steps = "替换" + type + "执行成功"
-
-        '重新设置图片
-        Dim dfShapes = doc.Selection.Shapes
-
-        '插入成功才删除图片
-        If dfShapes.Count > 0 Then
-            For j = 1 To dfShapes.Count
-                dfShapes.Item(j).Name = typeName
-                dfShapes.Item(j).SetSize(SizeWidth, SizeHeight)
-                dfShapes.Item(j).SetPositionEx(9, centerX, centerY)
-            Next j
-        End If
-        tempShape.Delete()
-    End Function
-
-
-
-
-    '递归检测形状,并替换图片
-    Public Function processImage(doc, allShapes)
-        Dim tempShape As Shape
-        For k = 1 To allShapes.Count
-            ' 得到这个形状
-            tempShape = allShapes.Item(k)
-
-            Dim cdrGroupShape As cdrShapeType = 7
-            Dim cdrBitmapShape As cdrShapeType = 5
-
-            '组
-            If tempShape.Type = cdrGroupShape Then
-                processImage(doc, tempShape.Shapes)
-            End If
-
-            If tempShape.Type = cdrBitmapShape Then
-                '二维码
-                If tempShape.Name = "二维码" And cmdExternalData("qrcode") <> "" Then
-                    replaceImage(doc, tempShape, "qrcode", "二维码")
-                End If
-
-                'logo图片
-                If tempShape.Name = "Logo" And cmdExternalData("logo") <> "" Then
-                    replaceImage(doc, tempShape, "logo", "Logo")
-                End If
-            End If
-
-        Next k
-    End Function
-
-
-    Function setVisible(activeLayer, name, visibleLayerName)
-        If name = visibleLayerName Then
-            activeLayer.Visible = True
-        Else
-            activeLayer.Visible = False
-        End If
-    End Function
-
-
-    '设置层级的可见性    
-    '如果网址/公众号，都没有，那么要隐藏“4 字段”图层，显示“3 字段”图层。如果邮箱/QQ 号，也没有，那么就显示“2 字段图层
-    Public Function setLayerVisible(activeLayer As Layer, visibleLayerName As String)
-        Dim name = activeLayer.Name
-        If name = "2字段" Then
-            setVisible(activeLayer, name, visibleLayerName)
-        End If
-        If name = "3字段" Then
-            setVisible(activeLayer, name, visibleLayerName)
-        End If
-        If name = "4字段" Then
-            setVisible(activeLayer, name, visibleLayerName)
-        End If
-    End Function
-
-
     '获取文档所有页面、所有图层、所有图形对象
     Public Function accessExtractTextData(doc As Document, page As Page, determine As Determine)
 
@@ -133,6 +33,7 @@ Module App
         Dim pageIndex = page.Index
 
         '预处理
+        globalData.steps = "预处理"
         If Param.cmdCommand = "set:text" Then
             For k = 1 To allLayers.Count
                 curLayer = allLayers.Item(k)
@@ -143,37 +44,28 @@ Module App
 
 
         '文本读取操作
+        globalData.steps = "文本操作"
         For k = 1 To allLayers.Count
             curLayer = allLayers.Item(k)
             Inputs.accessText(doc, curLayer.Shapes, determine, pageIndex)
         Next k
 
 
-        If True Then
-            Return True
-        End If
-
-
-
         '设置图片/层的可见性
+        globalData.steps = "设置图片/层级可见性"
         If cmdCommand = "set:text" Then
             Dim visibleLayerName = determine.getVisibleField()
             For m = 1 To allLayers.Count
                 curLayer = allLayers.Item(m)
                 '设置图片
-                processImage(doc, curLayer.Shapes)
+                Inputs.accessImage(doc, curLayer.Shapes)
                 '设置状态，处理层级可见性
-                setLayerVisible(curLayer, visibleLayerName)
+                determine.setLayerVisible(curLayer, visibleLayerName)
             Next m
         End If
 
 
-        If cmdCommand = "get:text" Then
-            globalData.steps = "获取文本信息完成"
-        Else
-            globalData.steps = "设置文本信息完成"
-        End If
-
+        globalData.steps = "文本处理完成"
         globalData.state = "True"
 
     End Function
@@ -352,7 +244,7 @@ Module App
 
         Console.WriteLine(globalData.retrunData())
 
-        MsgBox(1)
+        'MsgBox(1)
     End Sub
 
 End Module
