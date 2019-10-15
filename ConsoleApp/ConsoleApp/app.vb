@@ -222,6 +222,7 @@ Module App
 
 
     Sub Main()
+
         Console.OutputEncoding = Encoding.UTF8
         '如果有外部命令
         If Len(Command) > 0 Then
@@ -237,6 +238,8 @@ Module App
         openLink(app)
 
         Console.WriteLine(globalData.retrunData())
+
+        MsgBox(1)
 
     End Sub
 

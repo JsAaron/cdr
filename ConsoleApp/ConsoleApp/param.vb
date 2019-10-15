@@ -12,6 +12,7 @@ Module Param
     Public cmdExternalData
 
 
+
     '获取参数是有值
     Function hasValue(key)
 
@@ -72,6 +73,7 @@ Module Param
             End If
         ElseIf cmdCommand = "set:text" Then
             If count = 1 Then
+                globalData.errorlog = "没有传递设置参数"
             ElseIf count = 2 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 decodeURI(cmdExternalData, "logo")
@@ -85,7 +87,7 @@ Module Param
         ElseIf cmdCommand = "set:style" Then
             '参数不够
             If count = 1 Then
-                ' globalData.errorlog = "必须传递样式路径参数"
+                globalData.errorlog = "必须传递样式路径参数"
             End If
 
             If count = 2 Then

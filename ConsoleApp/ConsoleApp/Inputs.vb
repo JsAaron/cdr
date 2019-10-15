@@ -7,11 +7,11 @@ Module Inputs
     '////////////////////////////////////// 文本 //////////////////////////////////////////////////
 
     '获取文本
-    Private Function getText(tempShape, pageIndex)
+    Private Function getText(tempShape As Shape, pageIndex As String, determine As Determine)
         If tempShape.Text.Story.Text <> "" Then
             Dim key = Utils.getKeyEnglish(tempShape.Name)
             If Len(key) > 0 Then
-                globalData.setValue(pageIndex, key, tempShape.Text.Story.Text)
+                globalData.saveValue(pageIndex, key, tempShape, determine)
             Else
                 ' Console.WriteLine("找不到对应的命名：" & tempShape.Name)
             End If
@@ -20,7 +20,7 @@ Module Inputs
 
 
     '设置文本
-    Private Function setText(tempShape, determine, pageIndex)
+    Private Function setText(tempShape, pageIndex, determine)
         Dim key As String = Utils.getKeyEnglish(tempShape.Name)
 
         If Param.hasValue(key) Then
@@ -55,12 +55,12 @@ Module Inputs
             If tempShape.Type = cdrTextShape Then
                 '读数据
                 If Param.cmdCommand = "get:text" Then
-                    getText(tempShape, pageIndex)
+                    getText(tempShape, pageIndex, determine)
                 End If
 
                 '写数据
                 If Param.cmdCommand = "set:text" Then
-                    setText(tempShape, determine, pageIndex)
+                    setText(tempShape, pageIndex, determine)
                 End If
             End If
         Next k
