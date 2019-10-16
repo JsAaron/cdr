@@ -42,17 +42,17 @@ Module globalData
         '相关的情况处理
         Select Case key
             Case "url"
-                inputFiled.Add("bjnews", "url")
+                inputFiled.Add("bjnews", "url+bjnews")
             Case "bjnews"
-                inputFiled.Add("url", "bjnews")
+                inputFiled.Add("url", "url+bjnews")
             Case "mobile"
-                inputFiled.Add("phone", "mobile")
+                inputFiled.Add("phone", "mobile+phone")
             Case "phone"
-                inputFiled.Add("mobile", "phone")
+                inputFiled.Add("mobile", "mobile+phone")
             Case "email"
-                inputFiled.Add("qq", "email")
+                inputFiled.Add("qq", "email+qq")
             Case "qq"
-                inputFiled.Add("email", "qq")
+                inputFiled.Add("email", "email+qq")
         End Select
 
         inputFiled.Add(key, True)
@@ -72,24 +72,52 @@ Module globalData
 
 
     '通过段落去匹配出key来
-    Function valueTokey(pageIndex, name, p)
+    Function valueTokey(pageIndex, name, tempShape)
+
+        Dim p = tempShape.Text.Story.Paragraphs
+        Dim v1 = p.Item(1).Text
+        Dim v2 = p.Item(2).Text
+
         '电话手机一组
         If name = "mobile" Or name = "phone" Then
-            saveData(pageIndex, "mobile", p.Item(1).Text)
-            saveData(pageIndex, "phone", p.Item(2).Text)
+            saveData(pageIndex, "mobile", v1)
+            saveData(pageIndex, "phone", v2)
         End If
 
         If name = "email" Or name = "qq" Then
-            saveData(pageIndex, "email", p.Item(1).Text)
-            saveData(pageIndex, "qq", p.Item(2).Text)
+            saveData(pageIndex, "email", v1)
+            saveData(pageIndex, "qq", v2)
         End If
 
         If name = "url" Or name = "bjnews" Then
-            saveData(pageIndex, "url", p.Item(1).Text)
-            saveData(pageIndex, "bjnews", p.Item(2).Text)
+            saveData(pageIndex, "url", v1)
+            saveData(pageIndex, "bjnews", v2)
         End If
     End Function
 
+    '填充默认值给外部
+    Function fillDefault(pageIndex, key, tempShape)
+
+        '保存当前值
+        saveData(pageIndex, key, tempShape.Text.Story.Text)
+
+        '填充默认值
+        Select Case key
+            Case "url"
+                saveData(pageIndex, "bjnews", "")
+            Case "bjnews"
+                saveData(pageIndex, "url", "")
+            Case "mobile"
+                saveData(pageIndex, "phone", "")
+            Case "phone"
+                saveData(pageIndex, "mobile", "")
+            Case "email"
+                saveData(pageIndex, "qq", "")
+            Case "qq"
+                saveData(pageIndex, "email", "")
+        End Select
+
+    End Function
 
     '保存获取的值
     '1 可能有分组组合的情况，所以需要找到字段合计，然后找到分组的数组
@@ -110,10 +138,10 @@ Module globalData
         If hasRange = True Then
             '一个字段有上下2行,可能是被改变过，需要分解
             If tempShape.Text.Story.Paragraphs.Count = 2 Then
-                valueTokey(pageIndex, key, tempShape.Text.Story.Paragraphs)
+                valueTokey(pageIndex, key, tempShape)
             Else
-                '一行的情况下，直接保存
-                saveData(pageIndex, key, tempShape.Text.Story.Text)
+                '填充默认值
+                fillDefault(pageIndex, key, tempShape)
             End If
         Else
             '直接保存
