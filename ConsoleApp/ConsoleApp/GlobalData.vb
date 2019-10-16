@@ -70,6 +70,27 @@ Module globalData
     End Function
 
 
+
+    '通过段落去匹配出key来
+    Function valueTokey(pageIndex, name, p)
+        '电话手机一组
+        If name = "mobile" Or name = "phone" Then
+            saveData(pageIndex, "mobile", p.Item(1).Text)
+            saveData(pageIndex, "phone", p.Item(2).Text)
+        End If
+
+        If name = "email" Or name = "qq" Then
+            saveData(pageIndex, "email", p.Item(1).Text)
+            saveData(pageIndex, "qq", p.Item(2).Text)
+        End If
+
+        If name = "url" Or name = "bjnews" Then
+            saveData(pageIndex, "url", p.Item(1).Text)
+            saveData(pageIndex, "bjnews", p.Item(2).Text)
+        End If
+    End Function
+
+
     '保存获取的值
     '1 可能有分组组合的情况，所以需要找到字段合计，然后找到分组的数组
     Public Function saveValue(pageIndex As String, key As String, tempShape As Shape, determine As Determine)
@@ -89,10 +110,7 @@ Module globalData
         If hasRange = True Then
             '一个字段有上下2行,可能是被改变过，需要分解
             If tempShape.Text.Story.Paragraphs.Count = 2 Then
-                Dim p = tempShape.Text.Story.Paragraphs
-                For i = 1 To p.Count
-                    Console.WriteLine(p.Item(i).Text)
-                Next
+                valueTokey(pageIndex, key, tempShape.Text.Story.Paragraphs)
             Else
                 '一行的情况下，直接保存
                 saveData(pageIndex, key, tempShape.Text.Story.Text)

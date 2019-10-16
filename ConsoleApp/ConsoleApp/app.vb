@@ -229,17 +229,17 @@ Module App
             parseCommand(Command)
         End If
 
-        globalData.steps = "开始连接CorelDRAW"
-        Dim pia_type As Type = Type.GetTypeFromProgID("CorelDRAW.Application")
-        Dim app As Application = Activator.CreateInstance(pia_type)
-        app.Visible = True
-        globalData.steps = "连接CorelDRAW成功"
-
-        openLink(app)
+        '没有解析错误的情况
+        If Len(globalData.errorlog) = 0 Then
+            globalData.steps = "开始连接CorelDRAW"
+            Dim pia_type As Type = Type.GetTypeFromProgID("CorelDRAW.Application")
+            Dim app As Application = Activator.CreateInstance(pia_type)
+            app.Visible = True
+            globalData.steps = "连接CorelDRAW成功"
+            openLink(app)
+        End If
 
         Console.WriteLine(globalData.retrunData())
-
-        MsgBox(1)
 
     End Sub
 

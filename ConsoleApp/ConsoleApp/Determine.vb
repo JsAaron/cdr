@@ -140,20 +140,23 @@ Class Determine
         Select Case key
                 '网址/公众号
             Case "url"
+                'url + bjnews
                 If Param.hasValue("bjnews") And cdr_bjnews = False Then
                     globalData.addRecord("bjnews被合并到url中")
                     Dim user_bjnews = Param.getExternalValue("bjnews")
                     newValue = newValue + Chr(13) + user_bjnews
                 End If
             Case "bjnews"
+                'url + bjnews
                 If Param.hasValue("url") <> "" And cdr_url = False Then
                     globalData.addRecord("url被合并到bjnews中")
                     Dim user_url = Param.getExternalValue("url")
-                    newValue = newValue + Chr(13) + user_url
+                    newValue = user_url + Chr(13) + newValue
                 End If
                '手机/固定电话
             Case "mobile"
                 '没有电话字段，但是用户设置了手机
+                'mobile + phone
                 If Param.hasValue("phone") And cdr_phone = False Then
                     globalData.addRecord("phone被合并到mobile中")
                     Dim user_phone = Param.getExternalValue("phone")
@@ -161,23 +164,26 @@ Class Determine
                 End If
             Case "phone"
                 '没有手机字段，但是用户设置了电话
+                'mobile + phone
                 If Param.hasValue("mobile") And cdr_mobile = False Then
                     globalData.addRecord("mobile被合并到phone中")
                     Dim user_mobile = Param.getExternalValue("mobile")
-                    newValue = newValue + Chr(13) + user_mobile
+                    newValue = user_mobile + Chr(13) + newValue
                 End If
                 '邮箱/QQ
             Case "email"
+                'email + qq
                 If Param.hasValue("qq") And cdr_qq = False Then
                     globalData.addRecord("qq被合并到email中")
                     Dim user_qq = Param.getExternalValue("qq")
                     newValue = newValue + Chr(13) + user_qq
                 End If
             Case "qq"
+                'email + qq
                 If Param.hasValue("email") And cdr_email = False Then
                     globalData.addRecord("email被合并到qq中")
                     Dim user_email = Param.getExternalValue("email")
-                    newValue = newValue + Chr(13) + user_email
+                    newValue = user_email + Chr(13) + newValue
                 End If
         End Select
 
