@@ -225,9 +225,16 @@ Module App
 
         Console.OutputEncoding = Encoding.UTF8
 
+        Console.WriteLine(123)
+
         '如果有外部命令
         If Len(Command) > 0 Then
-            parseCommand(Command)
+            Try
+                parseCommand(Command)
+            Catch ex As Exception
+                globalData.errorlog = "命令参数解析错误"
+            End Try
+
         End If
 
         '没有解析错误的情况
@@ -241,7 +248,6 @@ Module App
         End If
 
         Console.WriteLine(globalData.retrunData())
-
 
         ' MsgBox(1)
 
