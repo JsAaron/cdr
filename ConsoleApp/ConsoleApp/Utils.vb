@@ -51,6 +51,8 @@ Module Utils
     Function getKeyEnglish(str)
         Dim e = ""
         Select Case str
+            Case "公司地址"
+                e = "address"
             Case "地址"
                 e = "address"
             Case "姓名"
