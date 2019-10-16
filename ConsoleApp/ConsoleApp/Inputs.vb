@@ -6,12 +6,19 @@ Module Inputs
 
     '////////////////////////////////////// 文本 //////////////////////////////////////////////////
 
+    '图片的读，创建基本结构
+    Private Function getImage(tempShape As Shape, pageIndex As String, determine As Determine)
+        Dim key = Utils.getKeyEnglish(tempShape.Name)
+        globalData.saveValue(pageIndex, key, tempShape, determine, True)
+    End Function
+
+
     '获取文本
     Private Function getText(tempShape As Shape, pageIndex As String, determine As Determine)
         If tempShape.Text.Story.Text <> "" Then
             Dim key = Utils.getKeyEnglish(tempShape.Name)
             If Len(key) > 0 Then
-                globalData.saveValue(pageIndex, key, tempShape, determine)
+                globalData.saveValue(pageIndex, key, tempShape, determine, False)
             Else
                 ' Console.WriteLine("找不到对应的命名：" & tempShape.Name)
             End If
@@ -38,20 +45,28 @@ Module Inputs
 
 
     '递归检测形状
-    Public Function accessText(doc, allShapes, determine, pageIndex)
+    Public Function accesstShape(doc, allShapes, determine, pageIndex)
         Dim tempShape As Shape
         For k = 1 To allShapes.Count
             ' 得到这个形状
             tempShape = allShapes.Item(k)
             Dim cdrTextShape As cdrShapeType = 6
             Dim cdrGroupShape As cdrShapeType = 7
+            Dim cdrBitmapShape As cdrShapeType = 5
 
             '组
             If tempShape.Type = cdrGroupShape Then
-                accessText(doc, tempShape.Shapes, determine, pageIndex)
+                accesstShape(doc, tempShape.Shapes, determine, pageIndex)
             End If
 
-            '文字
+            '图片的读
+            If tempShape.Type = cdrBitmapShape Then
+                If Param.cmdCommand = "get:text" Then
+                    getImage(tempShape, pageIndex, determine)
+                End If
+            End If
+
+            '文字读写
             If tempShape.Type = cdrTextShape Then
                 '读数据
                 If Param.cmdCommand = "get:text" Then
@@ -68,7 +83,10 @@ Module Inputs
 
 
 
+
     '////////////////////////////////////// 图片 //////////////////////////////////////////////////
+
+
 
 
     '替换图片
@@ -136,8 +154,12 @@ Module Inputs
                 If tempShape.Name = "Logo" And Param.hasValue("logo") Then
                     replaceImage(doc, tempShape, "logo", "Logo")
                 End If
-            End If
 
+                'logo2图片
+                If tempShape.Name = "Logo2" And Param.hasValue("logo2") Then
+                    replaceImage(doc, tempShape, "logo2", "Logo2")
+                End If
+            End If
         Next k
     End Function
 

@@ -40,17 +40,17 @@ Module App
         Next k
 
 
-        '文本读取操作
-        globalData.steps = "文本操作"
+        '读/取操作
+        globalData.steps = "文本/图像读取操作"
         For k = 1 To allLayers.Count
             curLayer = allLayers.Item(k)
-            Inputs.accessText(doc, curLayer.Shapes, determine, pageIndex)
+            Inputs.accesstShape(doc, curLayer.Shapes, determine, pageIndex)
         Next k
 
 
         '设置图片/层的可见性
         globalData.steps = "设置图片/层级可见性"
-        If cmdCommand = "set:text" Then
+        If Param.cmdCommand = "set:text" Then
             Dim visibleLayerName = determine.getVisibleField()
             For m = 1 To allLayers.Count
                 curLayer = allLayers.Item(m)
@@ -242,7 +242,7 @@ Module App
         Console.WriteLine(globalData.retrunData())
 
 
-        '  MsgBox(1)
+        ' MsgBox(1)
 
     End Sub
 

@@ -14,7 +14,7 @@ Module globalData
 
     Dim recordlog As ArrayList = New ArrayList() '//记录一些有用数据
     Dim inputFiled = New JObject()
-    Dim textData = New JObject()
+    Dim inputData = New JObject()
 
 
     '增加日志记录
@@ -66,7 +66,7 @@ Module globalData
         Dim json = New JObject()
         json.Add("pageIndex", pageIndex.ToString())
         json.Add("value", value.ToString())
-        textData.Add(key, json)
+        inputData.Add(key, json)
     End Function
 
 
@@ -119,10 +119,11 @@ Module globalData
 
     End Function
 
+
     '保存获取的值
     '1 可能有分组组合的情况，所以需要找到字段合计，然后找到分组的数组
-    Public Function saveValue(pageIndex As String, key As String, tempShape As Shape, determine As Determine)
-        Dim type = TypeName(textData(key))
+    Public Function saveValue(pageIndex As String, key As String, tempShape As Shape, determine As Determine, onlyFill As Boolean)
+        Dim type = TypeName(inputData(key))
         If type = "Nothing" Then
 
         Else
@@ -132,6 +133,14 @@ Module globalData
                 Return True
             End If
         End If
+
+        '如果只是填充默认值
+        '仅针对图片的读
+        If onlyFill Then
+            saveData(pageIndex, key, "")
+            Return True
+        End If
+
 
         '是否存在需要分解的数据
         Dim hasRange = determine.getRangeScope(key)
@@ -158,7 +167,7 @@ Module globalData
 
         If Param.cmdCommand = "get:text" Then
             json.Add("fileds", inputFiled)
-            json.Add("text", textData)
+            json.Add("text", inputData)
         End If
 
         If Param.cmdCommand = "get:pageSize" Then
