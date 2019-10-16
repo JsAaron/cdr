@@ -15,12 +15,10 @@ Module Param
 
     '获取参数是有值
     Function hasValue(key)
-
         '为空
         If TypeName(cmdExternalData) = "Nothing" Then
             Return False
         End If
-
 
         '如果是JObject对象在去判断
         If TypeName(cmdExternalData(key)) = "JObject" Then
@@ -41,11 +39,11 @@ Module Param
     End Function
 
 
-    Sub decodeURI(cmdExternalData, key)
-        If cmdExternalData(key) <> "" Then
+    Sub decodeURI(key)
+        If Param.hasValue(key) Then
             Dim e = CreateObject("MSScriptControl.ScriptControl")
             e.Language = "javascript"
-            cmdExternalData(key) = e.Eval("decodeURI('" & cmdExternalData(key) & "')")
+            cmdExternalData(key)("value") = e.Eval("decodeURI('" & Param.getExternalValue(key) & "')")
         End If
     End Sub
 
@@ -76,12 +74,12 @@ Module Param
                 globalData.errorlog = "没有传递设置参数"
             ElseIf count = 2 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
-                decodeURI(cmdExternalData, "logo")
-                decodeURI(cmdExternalData, "qrcode")
+                decodeURI("logo")
+                decodeURI("qrcode")
             ElseIf count = 3 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
-                decodeURI(cmdExternalData, "logo")
-                decodeURI(cmdExternalData, "qrcode")
+                decodeURI("logo")
+                decodeURI("qrcode")
                 cmdPath = args(2)
             End If
         ElseIf cmdCommand = "set:style" Then

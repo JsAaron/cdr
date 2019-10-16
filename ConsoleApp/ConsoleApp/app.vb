@@ -224,6 +224,7 @@ Module App
     Sub Main()
 
         Console.OutputEncoding = Encoding.UTF8
+
         '如果有外部命令
         If Len(Command) > 0 Then
             parseCommand(Command)
