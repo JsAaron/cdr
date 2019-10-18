@@ -29,17 +29,23 @@ Module Inputs
     '设置文本
     Private Function setText(tempShape, pageIndex, determine)
         Dim key As String = Utils.getKeyEnglish(tempShape.Name)
-
-        If Param.hasValue(key) Then
+        Dim value
+        If key <> "" Then
             '是否是处理范围
             Dim hasRange = determine.getRangeScope(key)
             If hasRange = True Then
-                '可能存在合并数据
-                tempShape.Text.Story.Replace(determine.getMergeValue(key))
+                value = determine.getMergeValue(key)
             Else
-                '正常处理
-                tempShape.Text.Story.Replace(Param.getExternalValue(key))
+                value = Param.getExternalValue(key)
             End If
+
+            '替换/清空
+            If value <> "" Then
+                tempShape.Text.Story.Replace(value)
+            Else
+                tempShape.Text.Story.Delete()
+            End If
+
         End If
     End Function
 
@@ -112,6 +118,7 @@ Module Inputs
 
         activeLayer.Import(Param.getExternalValue(type), imageType)
         globalData.steps = "替换" + type + "执行成功"
+        globalData.state = "True"
 
         '重新设置图片
         Dim dfShapes = doc.Selection.Shapes

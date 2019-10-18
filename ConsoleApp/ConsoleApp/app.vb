@@ -225,8 +225,6 @@ Module App
 
         Console.OutputEncoding = Encoding.UTF8
 
-        Console.WriteLine(123)
-
         '如果有外部命令
         If Len(Command) > 0 Then
             Try
