@@ -39,14 +39,12 @@ Module App
             determine.init(curLayer.Name, curLayer.Shapes, pageIndex)
         Next k
 
-
         '读/取操作
         globalData.steps = "文本/图像读取操作"
         For k = 1 To allLayers.Count
             curLayer = allLayers.Item(k)
             Inputs.accesstShape(doc, curLayer.Shapes, determine, pageIndex)
         Next k
-
 
         '设置图片/层的可见性
         globalData.steps = "设置图片/层级可见性"
@@ -57,10 +55,9 @@ Module App
                 '设置图片
                 Inputs.accessImage(doc, curLayer.Shapes)
                 '设置状态，处理层级可见性
-                determine.setLayerVisible(curLayer, visibleLayerName)
+                'determine.setLayerVisible(curLayer, visibleLayerName)
             Next m
         End If
-
 
         globalData.steps = "文本处理完成"
         globalData.state = "True"

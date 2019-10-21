@@ -30,7 +30,14 @@ Module Inputs
     Private Function setText(tempShape, pageIndex, determine)
         Dim key As String = Utils.getKeyEnglish(tempShape.Name)
         Dim value
+
         If key <> "" Then
+
+            '如果参数没有这个key，退出
+            If Param.hasKey(key) = False Then
+                Return False
+            End If
+
             '是否是处理范围
             Dim hasRange = determine.getRangeScope(key)
             If hasRange = True Then
@@ -96,7 +103,7 @@ Module Inputs
 
 
     '替换图片
-    Public Function replaceImage(doc, tempShape, type, typeName)
+    Public Function replaceImage(doc, tempShape, key, typeName)
         globalData.steps = "开始logo图替换"
         '中心点
         doc.ReferencePoint = 9
@@ -105,19 +112,26 @@ Module Inputs
         Dim SizeWidth = tempShape.SizeWidth
         Dim SizeHeight = tempShape.SizeHeight
 
-        Dim activeLayer As Layer = tempShape.Layer
-
+        '返回或设置形状所在的图层
+        Dim parentLayer As Layer = tempShape.Layer
         Dim imageType = 802
-        activeLayer.Activate()
+        parentLayer.Activate()
+
 
         'jpg类型
-        Dim args() = Split(Param.getExternalValue(type), ".jpg")
+        Dim args() = Split(Param.getExternalValue(key), ".jpg")
         If args.Count = 2 Then
             imageType = 774
         End If
 
-        activeLayer.Import(Param.getExternalValue(type), imageType)
-        globalData.steps = "替换" + type + "执行成功"
+        Dim s As StructImportOptions = New StructImportOptions()
+        s.CropWidth = SizeWidth
+        s.CropHeight = SizeHeight
+        s.CropLeft = centerX
+        s.CropTop = centerY
+
+        parentLayer.Import(Param.getExternalValue(key), imageType)
+        globalData.steps = "替换" + key + "执行成功"
         globalData.state = "True"
 
         '重新设置图片
@@ -131,7 +145,9 @@ Module Inputs
                 dfShapes.Item(j).SetPositionEx(9, centerX, centerY)
             Next j
         End If
+
         tempShape.Delete()
+
     End Function
 
 
@@ -152,20 +168,14 @@ Module Inputs
             End If
 
             If tempShape.Type = cdrBitmapShape Then
-                '二维码
                 If tempShape.Name = "二维码" And Param.hasValue("qrcode") Then
                     replaceImage(doc, tempShape, "qrcode", "二维码")
-                End If
-
-                'logo图片
-                If tempShape.Name = "Logo" And Param.hasValue("logo") Then
+                ElseIf tempShape.Name = "Logo" And Param.hasValue("logo") Then
                     replaceImage(doc, tempShape, "logo", "Logo")
-                End If
-
-                'logo2图片
-                If tempShape.Name = "Logo2" And Param.hasValue("logo2") Then
+                ElseIf tempShape.Name = "Logo2" And Param.hasValue("logo2") Then
                     replaceImage(doc, tempShape, "logo2", "Logo2")
                 End If
+
             End If
         Next k
     End Function

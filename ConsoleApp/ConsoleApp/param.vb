@@ -11,6 +11,13 @@ Module Param
     Public cmdStylePath As String
     Public cmdExternalData
 
+    '判断参数是否有key
+    Function hasKey(key)
+        '为空
+        If TypeName(cmdExternalData) = "Nothing" Then
+            Return False
+        End If
+    End Function
 
 
     '获取参数是有值
@@ -75,10 +82,12 @@ Module Param
             ElseIf count = 2 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 decodeURI("logo")
+                decodeURI("logo2")
                 decodeURI("qrcode")
             ElseIf count = 3 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 decodeURI("logo")
+                decodeURI("logo2")
                 decodeURI("qrcode")
                 cmdPath = args(2)
             End If
@@ -90,6 +99,9 @@ Module Param
 
             If count = 2 Then
                 cmdStylePath = args(1)
+                Dim e = CreateObject("MSScriptControl.ScriptControl")
+                e.Language = "javascript"
+                cmdStylePath = e.Eval("decodeURI('" & cmdStylePath & "')")
             End If
 
             '设置样式
