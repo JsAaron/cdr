@@ -11,15 +11,6 @@ Module Param
     Public cmdStylePath As String
     Public cmdExternalData
 
-    '判断参数是否有key
-    Function hasKey(key)
-        '为空
-        If TypeName(cmdExternalData) = "Nothing" Then
-            Return False
-        End If
-    End Function
-
-
     '获取参数是有值
     Function hasValue(key)
         '为空

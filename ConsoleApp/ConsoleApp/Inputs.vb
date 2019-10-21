@@ -32,12 +32,6 @@ Module Inputs
         Dim value
 
         If key <> "" Then
-
-            '如果参数没有这个key，退出
-            If Param.hasKey(key) = False Then
-                Return False
-            End If
-
             '是否是处理范围
             Dim hasRange = determine.getRangeScope(key)
             If hasRange = True Then
@@ -123,12 +117,6 @@ Module Inputs
         If args.Count = 2 Then
             imageType = 774
         End If
-
-        Dim s As StructImportOptions = New StructImportOptions()
-        s.CropWidth = SizeWidth
-        s.CropHeight = SizeHeight
-        s.CropLeft = centerX
-        s.CropTop = centerY
 
         parentLayer.Import(Param.getExternalValue(key), imageType)
         globalData.steps = "替换" + key + "执行成功"
