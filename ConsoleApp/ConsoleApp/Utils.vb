@@ -65,10 +65,14 @@ Module Utils
                 e = "job"
             Case "公司英文名称"
                 e = "companyname"
+            Case "公司英文名称2"
+                e = "companyname2"
             Case "标语"
                 e = "slogan"
             Case "公司名称"
                 e = "company"
+            Case "公司名称2"
+                e = "company2"
             Case "邮箱"
                 e = "email"
             Case "Logo"
@@ -86,7 +90,6 @@ Module Utils
         End Select
         Return e
     End Function
-
 
 
     '获取文档所有页面、所有图层、所有图形对象
