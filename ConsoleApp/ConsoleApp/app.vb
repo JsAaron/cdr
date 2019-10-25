@@ -55,7 +55,7 @@ Module App
                 '设置图片
                 Inputs.accessImage(doc, curLayer.Shapes)
                 '设置状态，处理层级可见性
-                determine.setLayerVisible(curLayer, visibleLayerName)
+                ' determine.setLayerVisible(curLayer, visibleLayerName)
             Next m
         End If
 

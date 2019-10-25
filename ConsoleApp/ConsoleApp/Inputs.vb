@@ -27,7 +27,7 @@ Module Inputs
 
 
     '设置文本
-    Private Function setText(tempShape, pageIndex, determine)
+    Private Function setText(tempShape As Shape, pageIndex As String, determine As Determine)
         Dim key As String = Utils.getKeyEnglish(tempShape.Name)
         Dim value
 
@@ -45,7 +45,12 @@ Module Inputs
 
             '替换/清空
             If value <> "" Then
-                tempShape.Text.Story.Replace(value)
+                If tempShape.Text.Story.Text = value Then
+                    '不替换重复
+                Else
+                    tempShape.Text.Story.Delete()
+                    tempShape.Text.Story.Replace(value)
+                End If
             Else
                 tempShape.Text.Story.Delete()
             End If
