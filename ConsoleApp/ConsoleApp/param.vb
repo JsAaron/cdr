@@ -31,9 +31,18 @@ Module Param
     Function getExternalValue(key)
         '为空
         If TypeName(cmdExternalData) = "Nothing" Then
-            Return False
+            Return ""
         End If
+
+        Dim valueType = TypeName(cmdExternalData(key))
+        '数据为空是删除
+        If valueType = "Nothing" Then
+            Return ""
+        End If
+
+        'JObject对象
         Return cmdExternalData(key)("value")
+
     End Function
 
 
@@ -50,6 +59,7 @@ Module Param
     Public Sub parseCommand(command)
         Dim args() = Split(command, " ")
         Dim count = args.Count
+
         cmdCommand = args(0)
         If cmdCommand = "open" Then
             If count = 2 Then

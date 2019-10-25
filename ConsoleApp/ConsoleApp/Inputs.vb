@@ -34,9 +34,12 @@ Module Inputs
         If key <> "" Then
             '是否是处理范围
             Dim hasRange = determine.getRangeScope(key)
+
             If hasRange = True Then
+                '字段合并处理
                 value = determine.getMergeValue(key)
             Else
+                '单独字段
                 value = Param.getExternalValue(key)
             End If
 

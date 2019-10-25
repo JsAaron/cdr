@@ -211,7 +211,7 @@ Module App
             Next
 
         Catch ex As Exception
-            ' log("error", "CorelDRAW执行功能错误")
+            Console.WriteLine(ex)
             Exit Sub
         End Try
 
