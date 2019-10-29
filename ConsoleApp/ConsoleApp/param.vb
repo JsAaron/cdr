@@ -55,6 +55,12 @@ Module Param
     End Sub
 
 
+    Function decodePath(value)
+        Dim e = CreateObject("MSScriptControl.ScriptControl")
+        e.Language = "javascript"
+        Return e.Eval("decodeURI('" & value & "')")
+    End Function
+
     '参数解析
     Public Sub parseCommand(command)
         Dim args() = Split(command, " ")
@@ -63,19 +69,19 @@ Module Param
         cmdCommand = args(0)
         If cmdCommand = "open" Then
             If count = 2 Then
-                cmdPath = args(1)
+                cmdPath = decodePath(args(1))
             End If
         ElseIf cmdCommand = "get:pageSize" Then
             If count = 2 Then
-                cmdPath = args(1)
+                cmdPath = decodePath(args(1))
             End If
         ElseIf cmdCommand = "get:fontJson" Then
             If count = 2 Then
-                cmdPath = args(1)
+                cmdPath = decodePath(args(1))
             End If
         ElseIf cmdCommand = "get:text" Then
             If count = 2 Then
-                cmdPath = args(1)
+                cmdPath = decodePath(args(1))
             End If
         ElseIf cmdCommand = "set:text" Then
             If count = 1 Then
@@ -90,7 +96,7 @@ Module Param
                 decodeURI("logo")
                 decodeURI("logo2")
                 decodeURI("qrcode")
-                cmdPath = args(2)
+                cmdPath = decodePath(args(2))
             End If
         ElseIf cmdCommand = "set:style" Then
             '参数不够
@@ -99,15 +105,12 @@ Module Param
             End If
 
             If count = 2 Then
-                cmdStylePath = args(1)
-                Dim e = CreateObject("MSScriptControl.ScriptControl")
-                e.Language = "javascript"
-                cmdStylePath = e.Eval("decodeURI('" & cmdStylePath & "')")
+                cmdStylePath = decodePath(args(1))
             End If
 
             '设置样式
             If count = 3 Then
-                cmdPath = args(1)
+                cmdPath = decodePath(args(1))
             End If
         End If
 

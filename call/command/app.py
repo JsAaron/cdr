@@ -20,11 +20,23 @@ stylePath = "C:\\Users\\Administrator\\Desktop\\1618d6a4-e32c-11e9-b5e8-086266c8
 
 # 外部数据
 # externalData = "{'logo':'C:%5CUsers%5CAdministrator%5CDesktop%5Ctt.jpg'}"
-data1 = "{'name':'张天奕1','job':'设计总监1','company':'','companyname':'','slogan':'','mobile':'168-88888888555','phone':'0731-55555555','email':'555@qq.com','qq':'','url':'68475588@qq.com\u000bwww.tianyishidai.com','address':'北京市朝阳区农展馆南路13号\u000b瑞辰国际中心1807室','bjnews':'','logo':'','logo2':'','qrcode':''}"
 
-data2 = "{'name':'张天奕\u000b设计总监','job':'设计总监','company':'','companyname':'','slogan':'','mobile':'168-88888888','phone':'123','email':'','qq':'','url':'68475588@qq.com\u000bwww.tianyishidai.com','address':'北京市朝阳区农展馆南路13号\u000b瑞辰国际中心1807室','bjnews':'','logo':'','logo2':'','qrcode':''}"
+data = "{'job':{'pageIndex':'1','value':'设计总监1'},'name':{'pageIndex':'1','value':'张天'},'address':{'pageIndex':'2','value':'北京市朝阳区农展馆南路13号\u000b瑞辰国际中心1807室'},'mobile':{'pageIndex':'2','value':'168-88888881'},'phone':{'pageIndex':'2','value':'0737-88888882'},'url':{'pageIndex':'2','value':'www.tianyishidai.com'},'email':{'pageIndex':'2','value':'68475588@qq.com'}}"
 
-cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",command,data1]
+data1 = "{'mobile':{'pageIndex':'1','value':'168-888888882'},'phone':{'pageIndex':'1','value':'123'},'url':{'pageIndex':'1','value':'68475588@qq.com\u000bwww.tianyishidai.com'},'bjnews':{'pageIndex':'1','value':''},'address':{'pageIndex':'1','value':'北京市朝阳区农展馆南路13号\u000b瑞辰国际中心1807'},'job':{'pageIndex':'1','value':'设计总监12'},'name':{'pageIndex':'1','value':'张天奕\u000b设计总监'},'company':{'pageIndex':'2','value':'北京天奕时代创意设计有限公司'},'qrcode':{'pageIndex':'2','value':''}}"
+
+data2 = "{'mobile':{'pageIndex':'1','value':'168-11111'},'phone':{'pageIndex':'1','value':'2222'},'address':{'pageIndex':'1','value':'13北京市朝阳区农展馆\u000b南路13号瑞辰国际中心1807室'},'':{'pageIndex':'1','value':''},'email':{'pageIndex':'1','value':'68475588@qq.com\u000bwww.tianyishidai.com'},'qq':{'pageIndex':'1','value':'11111111111'},'job':{'pageIndex':'1','value':'设计总监'},'name':{'pageIndex':'1','value':'张天奕\u000b\u000b'},'company':{'pageIndex':'2','value':'北京天奕时代创意设计有限公司'},'logo':{'pageIndex':'2','value':'C:%5CUsers%5CAdministrator%5CDesktop%5Ctt.jpg'}}"
+
+data3 = "{'logo':{'pageIndex':'2','value':'C:%5CUsers%5CAdministrator%5CDesktop%5Ctttt.jpg'},'qrcode':{'pageIndex':'2','value':'C:%5CUsers%5CAdministrator%5CDesktop%5Ctt.jpg'}}"
+
+data4 = "{'logo':{'pageIndex':'2','value':'C:%5CUsers%5CAdministrator%5CDesktop%5Ctttt.jpg'}}"
+
+data5 = "{'address':{'pageIndex':'2','value':'123测试4445'}}"
+
+
+
+cmdStr = [
+    "D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe", command,data5]
 
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)
