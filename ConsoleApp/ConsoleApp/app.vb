@@ -205,10 +205,17 @@ Module App
                 Exit Sub
             End If
 
-            For i = 1 To pages.Count
+            globalData.totalPages = pages.Count
+
+            If cmdActivePagte <> "" Then
                 Dim determine As Determine = New Determine()
-                execFn(app, doc, pages.Item(i), determine)
-            Next
+                execFn(app, doc, pages.Item(cmdActivePagte), determine)
+            Else
+                For i = 1 To pages.Count
+                    Dim determine As Determine = New Determine()
+                    execFn(app, doc, pages.Item(i), determine)
+                Next
+            End If
 
         Catch ex As Exception
             Console.WriteLine(ex)

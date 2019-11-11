@@ -10,7 +10,7 @@ Module globalData
     Public pagesize = ""
     Public errorlog As String '错误日志
     Public steps As String  '步骤
-
+    Public totalPages = 0
 
     Dim recordlog As ArrayList = New ArrayList() '//记录一些有用数据
     Dim inputFiled = New JObject()
@@ -164,6 +164,7 @@ Module globalData
     Function retrunData()
         Dim json = New JObject()
         json.Add("state", state.ToString())
+        json.Add("totalpages", totalPages.ToString())
 
         If Param.cmdCommand = "get:text" Then
             json.Add("fileds", inputFiled)

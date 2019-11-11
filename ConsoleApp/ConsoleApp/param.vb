@@ -10,6 +10,8 @@ Module Param
     Public cmdPath As String
     Public cmdStylePath As String
     Public cmdExternalData
+    '活动页面
+    Public cmdActivePagte
 
     '获取参数是有值
     Function hasValue(key)
@@ -80,9 +82,24 @@ Module Param
                 cmdPath = decodePath(args(1))
             End If
         ElseIf cmdCommand = "get:text" Then
+            '如果是2个参数
             If count = 2 Then
-                cmdPath = decodePath(args(1))
+                '如果是单页设置：(get:pageSize,page,path)
+                '默认页面数不会多余100个，都算page的参数
+                If Len(args(1)) < 3 Then
+                    cmdActivePagte = args(1)
+                Else
+                    cmdPath = decodePath(args(1))
+                End If
             End If
+
+            '如果是3个参数
+            If count = 3 Then
+                '(get:pageSize,page,path)
+                cmdActivePagte = args(1)
+                cmdPath = decodePath(args(2))
+            End If
+
         ElseIf cmdCommand = "set:text" Then
             If count = 1 Then
                 globalData.errorlog = "没有传递设置参数"
@@ -92,11 +109,28 @@ Module Param
                 decodeURI("logo2")
                 decodeURI("qrcode")
             ElseIf count = 3 Then
+                '如果第3个参数，是页码
+                If Len(args(2)) < 3 Then
+                    cmdExternalData = JsonConvert.DeserializeObject(args(1))
+                    decodeURI("logo")
+                    decodeURI("logo2")
+                    decodeURI("qrcode")
+                    cmdActivePagte = args(2)
+                Else
+                    cmdExternalData = JsonConvert.DeserializeObject(args(1))
+                    decodeURI("logo")
+                    decodeURI("logo2")
+                    decodeURI("qrcode")
+                    cmdPath = decodePath(args(2))
+                End If
+
+            ElseIf count = 4 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 decodeURI("logo")
                 decodeURI("logo2")
                 decodeURI("qrcode")
-                cmdPath = decodePath(args(2))
+                cmdActivePagte = args(2)
+                cmdPath = decodePath(args(3))
             End If
         ElseIf cmdCommand = "set:style" Then
             '参数不够
