@@ -11,6 +11,7 @@ Module globalData
     Public errorlog As String '错误日志
     Public steps As String  '步骤
     Public totalPages = 0
+    Public textOverflow = False
 
     Dim recordlog As ArrayList = New ArrayList() '//记录一些有用数据
     Dim inputFiled = New JObject()
@@ -62,8 +63,14 @@ Module globalData
 
 
 
-    Function saveData(pageIndex, key, value)
+    Function saveData(pageIndex, key, value, overflow)
         Dim json = New JObject()
+
+        '溢出了
+        If overflow = True Then
+            json.Add("overflow", True)
+        End If
+
         json.Add("pageIndex", pageIndex.ToString())
         json.Add("value", value.ToString())
         inputData.Add(key, json)
@@ -80,18 +87,18 @@ Module globalData
 
         '电话手机一组
         If name = "mobile" Or name = "phone" Then
-            saveData(pageIndex, "mobile", v1)
-            saveData(pageIndex, "phone", v2)
+            saveData(pageIndex, "mobile", v1, False)
+            saveData(pageIndex, "phone", v2, False)
         End If
 
         If name = "email" Or name = "qq" Then
-            saveData(pageIndex, "email", v1)
-            saveData(pageIndex, "qq", v2)
+            saveData(pageIndex, "email", v1, False)
+            saveData(pageIndex, "qq", v2, False)
         End If
 
         If name = "url" Or name = "bjnews" Then
-            saveData(pageIndex, "url", v1)
-            saveData(pageIndex, "bjnews", v2)
+            saveData(pageIndex, "url", v1, False)
+            saveData(pageIndex, "bjnews", v2, False)
         End If
     End Function
 
@@ -99,22 +106,22 @@ Module globalData
     Function fillDefault(pageIndex, key, tempShape)
 
         '保存当前值
-        saveData(pageIndex, key, tempShape.Text.Story.Text)
+        saveData(pageIndex, key, tempShape.Text.Story.Text, False)
 
         '填充默认值
         Select Case key
             Case "url"
-                saveData(pageIndex, "bjnews", "")
+                saveData(pageIndex, "bjnews", "", False)
             Case "bjnews"
-                saveData(pageIndex, "url", "")
+                saveData(pageIndex, "url", "", False)
             Case "mobile"
-                saveData(pageIndex, "phone", "")
+                saveData(pageIndex, "phone", "", False)
             Case "phone"
-                saveData(pageIndex, "mobile", "")
+                saveData(pageIndex, "mobile", "", False)
             Case "email"
-                saveData(pageIndex, "qq", "")
+                saveData(pageIndex, "qq", "", False)
             Case "qq"
-                saveData(pageIndex, "email", "")
+                saveData(pageIndex, "email", "", False)
         End Select
 
     End Function
@@ -137,7 +144,7 @@ Module globalData
         '如果只是填充默认值
         '仅针对图片的读
         If onlyFill Then
-            saveData(pageIndex, key, "")
+            saveData(pageIndex, key, "", False)
             Return True
         End If
 
@@ -154,7 +161,7 @@ Module globalData
             End If
         Else
             '直接保存
-            saveData(pageIndex, key, tempShape.Text.Story.Text)
+            saveData(pageIndex, key, tempShape.Text.Story.Text, tempShape.Text.Overflow)
         End If
 
 
@@ -165,6 +172,10 @@ Module globalData
         Dim json = New JObject()
         json.Add("state", state.ToString())
         json.Add("totalpages", totalPages.ToString())
+
+        If Param.cmdCommand = "set:font" Then
+            json.Add("overflow", textOverflow.ToString())
+        End If
 
         If Param.cmdCommand = "get:text" Then
             json.Add("fileds", inputFiled)

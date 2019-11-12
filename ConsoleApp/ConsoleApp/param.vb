@@ -6,12 +6,14 @@ Imports Newtonsoft.Json
 '定义参数
 Module Param
 
-    Public cmdCommand As String = "get:text"
+    Public cmdCommand As String = "set:font"
     Public cmdPath As String
     Public cmdStylePath As String
     Public cmdExternalData
     '活动页面
     Public cmdActivePagte
+    '字体名字
+    Public cmdFontName As String
 
     '获取参数是有值
     Function hasValue(key)
@@ -146,6 +148,12 @@ Module Param
             If count = 3 Then
                 cmdPath = decodePath(args(1))
             End If
+
+        ElseIf cmdCommand = "set:font" Then
+            If count = 1 Then
+                globalData.errorlog = "必须传递字体名"
+            End If
+            cmdFontName = args(1)
         End If
 
         ' Console.WriteLine(cmdExternalData)

@@ -207,6 +207,31 @@ Module App
 
             globalData.totalPages = pages.Count
 
+
+            '单独设置字体
+            If Param.cmdCommand = "set:font" Then
+                globalData.steps = "设置字体"
+
+                '没有任何焦点
+                If TypeName(app.ActiveShape) = "Nothing" Then
+                    globalData.errorlog = "没有任何选中"
+                    globalData.steps = "设置字体失败"
+                Else
+                    '如果是文本类型
+                    If app.ActiveShape.Type = 6 Then
+                        app.ActiveShape.Text.Story.Font = Param.cmdFontName
+                        globalData.steps = "设置字体完成"
+                        globalData.state = "True"
+                        globalData.textOverflow = app.ActiveShape.Text.Overflow
+                    Else
+                        globalData.errorlog = "没有选中文本类型"
+                        globalData.steps = "设置字体失败"
+                    End If
+                End If
+                Exit Sub
+            End If
+
+            '遍历页面
             If cmdActivePagte <> "" Then
                 Dim determine As Determine = New Determine()
                 execFn(app, doc, pages.Item(cmdActivePagte), determine)
