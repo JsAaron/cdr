@@ -264,6 +264,8 @@ Module App
 
         End If
 
+        Console.WriteLine(cmdExternalData)
+
         '没有解析错误的情况
         If Len(globalData.errorlog) = 0 Then
             globalData.steps = "开始连接CorelDRAW"

@@ -52,9 +52,7 @@ Module Param
 
     Sub decodeURI(key)
         If Param.hasValue(key) Then
-            Dim e = CreateObject("MSScriptControl.ScriptControl")
-            e.Language = "javascript"
-            cmdExternalData(key)("value") = e.Eval("decodeURIComponent('" & Param.getExternalValue(key) & "')")
+            cmdExternalData(key)("value") = decodePath(cmdExternalData(key)("value"))
         End If
     End Sub
 
