@@ -264,7 +264,7 @@ Module App
 
         End If
 
-        Console.WriteLine(cmdExternalData)
+        'Console.WriteLine(cmdExternalData)
 
         '没有解析错误的情况
         If Len(globalData.errorlog) = 0 Then
