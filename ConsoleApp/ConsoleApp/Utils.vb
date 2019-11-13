@@ -50,6 +50,11 @@ Module Utils
 
     Function getKeyEnglish(str)
         Dim e = ""
+
+        '去空格
+        str = LTrim(str)
+        str = RTrim(str)
+
         Select Case str
             Case "公司地址"
                 e = "address"

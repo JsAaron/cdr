@@ -6,7 +6,7 @@ Imports Newtonsoft.Json
 '定义参数
 Module Param
 
-    Public cmdCommand As String = "set:font"
+    Public cmdCommand As String = "get:text"
     Public cmdPath As String
     Public cmdStylePath As String
     Public cmdExternalData

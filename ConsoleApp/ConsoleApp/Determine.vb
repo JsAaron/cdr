@@ -134,9 +134,7 @@ Class Determine
 
     '设置数据，可能会存在合并的情况
     Public Function getMergeValue(key)
-
         Dim newValue = Param.getExternalValue(key)
-
         Select Case key
                 '网址/公众号
             Case "url"
@@ -148,7 +146,7 @@ Class Determine
                 End If
             Case "bjnews"
                 'url + bjnews
-                If Param.hasValue("url") <> "" And cdr_url = False Then
+                If Param.hasValue("url") And cdr_url = False Then
                     globalData.addRecord("url被合并到bjnews中")
                     Dim user_url = Param.getExternalValue("url")
                     newValue = user_url + Chr(13) + newValue

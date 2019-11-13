@@ -130,6 +130,7 @@ Module globalData
     '保存获取的值
     '1 可能有分组组合的情况，所以需要找到字段合计，然后找到分组的数组
     Public Function saveValue(pageIndex As String, key As String, tempShape As Shape, determine As Determine, onlyFill As Boolean)
+
         Dim type = TypeName(inputData(key))
         If type = "Nothing" Then
 

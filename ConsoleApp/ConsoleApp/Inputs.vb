@@ -9,7 +9,10 @@ Module Inputs
     '图片的读，创建基本结构
     Private Function getImage(tempShape As Shape, pageIndex As String, determine As Determine)
         Dim key = Utils.getKeyEnglish(tempShape.Name)
-        globalData.saveValue(pageIndex, key, tempShape, determine, True)
+        If Len(key) > 0 Then
+            globalData.saveValue(pageIndex, key, tempShape, determine, True)
+        End If
+        '
     End Function
 
 
