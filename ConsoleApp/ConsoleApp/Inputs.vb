@@ -120,32 +120,48 @@ Module Inputs
         '返回或设置形状所在的图层
         Dim parentLayer As Layer = tempShape.Layer
         Dim imageType = 802
+        Dim imagePath = Param.getExternalValue(key)
         parentLayer.Activate()
 
-
         'jpg类型
-        Dim args() = Split(Param.getExternalValue(key), ".jpg")
+        Dim args() = Split(imagePath, ".jpg")
+
         If args.Count = 2 Then
             imageType = 774
         End If
 
-        parentLayer.Import(Param.getExternalValue(key), imageType)
-        globalData.steps = "替换" + key + "执行成功"
-        globalData.state = "True"
-
-        '重新设置图片
-        Dim dfShapes = doc.Selection.Shapes
-
-        '插入成功才删除图片
-        If dfShapes.Count > 0 Then
-            For j = 1 To dfShapes.Count
-                dfShapes.Item(j).Name = typeName
-                dfShapes.Item(j).SetSize(SizeWidth, SizeHeight)
-                dfShapes.Item(j).SetPositionEx(9, centerX, centerY)
-            Next j
+        '修改图片必须是显示状态才可以
+        Dim fixVisible
+        If parentLayer.Visible = False Then
+            fixVisible = True
+            parentLayer.Visible = True
         End If
 
-        tempShape.Delete()
+        Try
+            parentLayer.Import(imagePath, imageType)
+            globalData.steps = "替换" + key + "执行成功"
+            globalData.state = "True"
+            '重新设置图片
+            Dim dfShapes = doc.Selection.Shapes
+            '插入成功才删除图片
+            If dfShapes.Count > 0 Then
+                For j = 1 To dfShapes.Count
+                    dfShapes.Item(j).Name = typeName
+                    dfShapes.Item(j).SetSize(SizeWidth, SizeHeight)
+                    dfShapes.Item(j).SetPositionEx(9, centerX, centerY)
+                Next j
+            End If
+            tempShape.Delete()
+
+            '如果修改了图片状态
+            If fixVisible = True Then
+                parentLayer.Visible = False
+            End If
+
+        Catch ex As Exception
+            globalData.errorlog = "图片:" + imagePath + " 替换失败"
+        End Try
+
 
     End Function
 
