@@ -59,7 +59,7 @@ Module App
             Next m
         End If
 
-        globalData.steps = "文本处理完成"
+        globalData.steps = "处理结束"
         globalData.state = "True"
 
     End Function
@@ -172,6 +172,7 @@ Module App
 
     '建立链接
     Sub openLink(app As Application)
+        Console.WriteLine(Param.cmdPath)
         Try
             If Len(Param.cmdPath) > 2 Then
                 globalData.steps = "开始打开文档"
@@ -222,7 +223,7 @@ Module App
                         app.ActiveShape.Text.Story.Font = Param.cmdFontName
                         globalData.steps = "设置字体完成"
                         globalData.state = "True"
-                        globalData.textOverflow = app.ActiveShape.Text.Overflow
+                        ' globalData.textOverflow = app.ActiveShape.Text.Overflow
                     Else
                         globalData.errorlog = "没有选中文本类型"
                         globalData.steps = "设置字体失败"
@@ -250,6 +251,67 @@ Module App
     End Sub
 
 
+    '============================================== 命 令==============================================
+
+    '增加层
+    Function getLayerSet(page As Page)
+        Dim layer As Layer = page.CreateLayer("测试层")
+        Return layer
+    End Function
+
+
+    Function test1(page As Page)
+        Console.WriteLine(page)
+
+    End Function
+
+
+    '设置文本字体
+    Function setFontSize(activeShape As Shape, fontsize As Integer)
+        '文本类型
+        If activeShape.Type = 6 Then
+            If activeShape.Text.Story.Size <> fontsize Then
+                activeShape.Text.Story.Size = fontsize
+            End If
+            globalData.addFnReturn("shapewidth", activeShape.SizeWidth)
+            globalData.addFnReturn("shapeheight", activeShape.SizeHeight)
+            globalData.addFnReturn("overflow", activeShape.Text.Overflow)
+        End If
+    End Function
+
+
+    '设置形状尺寸
+    Function setShareSize(activeShape As Shape, width As Integer, height As Integer)
+
+    End Function
+
+
+
+
+    Sub test(app As Application)
+
+        Dim doc As Document = app.ActiveDocument
+
+        '如果没有创建文档
+        If TypeName(doc) = "Nothing" Then
+            doc = app.CreateDocument()
+        End If
+
+        '毫米单位
+        doc.Unit = 3
+
+        'setFontSize(app.ActiveShape, 10)
+
+        Dim pages = doc.Pages
+        For i = 1 To pages.Count
+            'Dim layer As Layer = getLayerSet(pages.Item(i))
+
+            'layer.CreateParagraphText(100, 200, 0, 190, "这是段落文本的内容",,,, 24, -1,, 3)
+            'layer.CreateCustomShape("Table", 1, 10, 5, 7, 7, 6)
+        Next
+    End Sub
+
+
     Sub Main()
 
         Console.OutputEncoding = Encoding.UTF8
@@ -264,7 +326,7 @@ Module App
 
         End If
 
-        'Console.WriteLine(cmdExternalData)
+        ' Console.WriteLine(cmdExternalData)
 
         '没有解析错误的情况
         If Len(globalData.errorlog) = 0 Then
@@ -273,12 +335,13 @@ Module App
             Dim app As Application = Activator.CreateInstance(pia_type)
             app.Visible = True
             globalData.steps = "连接CorelDRAW成功"
-            openLink(app)
+            test(app)
+            'openLink(app)
         End If
 
         Console.WriteLine(globalData.retrunData())
 
-        'MsgBox(1)
+        MsgBox(1)
 
     End Sub
 

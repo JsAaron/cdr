@@ -11,11 +11,12 @@ Module globalData
     Public errorlog As String '错误日志
     Public steps As String  '步骤
     Public totalPages = 0
-    Public textOverflow = False
+    Public fnreturn = New JObject() '设置返回数据
 
     Dim recordlog As ArrayList = New ArrayList() '//记录一些有用数据
     Dim inputFiled = New JObject()
     Dim inputData = New JObject()
+
 
 
     '增加日志记录
@@ -59,6 +60,14 @@ Module globalData
         inputFiled.Add(key, True)
 
 
+    End Function
+
+
+
+    '增加函数功能返回数据
+    Public Function addFnReturn(key, value)
+        Dim json = New JObject()
+        fnreturn.Add(key, value.ToString())
     End Function
 
 
@@ -174,10 +183,6 @@ Module globalData
         json.Add("state", state.ToString())
         json.Add("totalpages", totalPages.ToString())
 
-        If Param.cmdCommand = "set:font" Then
-            json.Add("overflow", textOverflow.ToString())
-        End If
-
         If Param.cmdCommand = "get:text" Then
             json.Add("fileds", inputFiled)
             json.Add("text", inputData)
@@ -187,6 +192,7 @@ Module globalData
             json.Add("pagesize", pagesize.ToString())
         End If
 
+        json.Add("fnreturn", fnReturn)
         json.Add("recordlog", JsonConvert.SerializeObject(recordlog))
         json.Add("errorlog", errorlog)
         json.Add("steps", steps)

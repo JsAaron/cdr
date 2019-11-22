@@ -21,3 +21,4 @@ D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.CopyComplete
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.exe
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.xml
 D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.pdb
+D:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbprojAssemblyReference.cache
