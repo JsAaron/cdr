@@ -6,7 +6,7 @@ import win32api
 import win32con
 import win32com.client
 from win32com.client import Dispatch, constants
-import para
+from determine import Determine
 
 
 class CDR():
@@ -17,7 +17,7 @@ class CDR():
 
         self.doc = self.app.ActiveDocument
         if self.doc == None:
-            return self.__return("false", "文档打开失败")
+            self.__return("false", "文档打开失败")
 
     # 定义返回
     def __return(self, status, content):
@@ -27,14 +27,16 @@ class CDR():
         }
 
     # 预处理
-    def __preprocess(self, allLayers, pageIndex):
+    def __preprocess(self, determine, allLayers, pageIndex):
         for layer in allLayers:
-            print(layer.Name)
+            determine.initField(layer.Name, layer.Shapes, pageIndex)
 
     # 获取文档所有页面、所有图层、所有图形对象
     def __accessExtractTextData(self, pageObj, pageIndex):
         allLayers = pageObj.AllLayers
-        self.__preprocess(allLayers, pageIndex)
+        determine = Determine()
+        print(determine)
+        self.__preprocess(determine, allLayers, pageIndex)
 
     # 获取所有内容
     # page指定页码
