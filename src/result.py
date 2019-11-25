@@ -106,4 +106,4 @@ def saveValue(pageIndex, key, tempShape, determine, onlyFill):
 
 # 生成返回数据
 def retrunData():
-    print(inputData)
+    return inputData
