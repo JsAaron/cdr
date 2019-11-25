@@ -11,9 +11,9 @@ def getImage(tempShape, pageIndex, determine):
 
 # 获取文本
 def getText(tempShape, pageIndex, determine):
-    print(123,tempShape.Text.Story.Text)
     if tempShape.Text.Story.Text:
         key = utils.getKeyEnglish(tempShape.Name)
+        print(key)
         if key:
             result.saveValue(pageIndex, key, tempShape, determine, False)
         else:

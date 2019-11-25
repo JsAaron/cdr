@@ -8,7 +8,7 @@ import win32com.client
 from win32com.client import Dispatch, constants
 from determine import Determine
 from input import accesstShape
-
+from result import retrunData
 
 class CDR():
     def __init__(self, path=""):
@@ -49,3 +49,5 @@ class CDR():
         if pageIndex:
             self.__accessExtractTextData(
                 self.doc.Pages.Item(pageIndex), pageIndex)
+
+        return retrunData()

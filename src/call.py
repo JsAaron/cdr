@@ -1,4 +1,9 @@
 from cdr import CDR
+test = {
+    "aaa":1
+}
+
+
 
 #打开文档
 def open():
@@ -11,5 +16,7 @@ def getPageContent():
 
 
 if __name__ == '__main__':
+    # print( test.get("aaaa") ==None)
+
     getPageContent()
     # open()
