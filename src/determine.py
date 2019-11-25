@@ -104,12 +104,12 @@ class Determine():
         newValue = prarm.getExternalValue(key)
 
         if key == "url":
-            #url + bjnews
+            # url + bjnews
             if prarm.hasValue("bjnews") and self.cdr_bjnews == False:
                 user_bjnews = prarm.getExternalValue("bjnews")
                 newValue = newValue + '\n' + user_bjnews
         elif key == "bjnews":
-             #url + bjnews
+             # url + bjnews
             if prarm.hasValue("url") and self.cdr_url == False:
                 user_url = prarm.getExternalValue("url")
                 newValue = user_url + '\n' + newValue
@@ -129,9 +129,26 @@ class Determine():
                 user_qq = prarm.getExternalValue("qq")
                 newValue = newValue + '\n' + user_qq
         elif key == "qq":
-             #email + qq
+             # email + qq
             if prarm.hasValue("email") and self.cdr_email == False:
                 user_email = prarm.getExternalValue("email")
                 newValue = user_email + '\n' + newValue
 
         return newValue
+
+    def __setVisible(activeLayer, name, visibleLayerName)
+       if name == visibleLayerName:
+            activeLayer.Visible = True
+        else:
+            activeLayer.Visible = False
+
+    # 设置层级的可见性
+    # 如果网址/公众号，都没有，那么要隐藏“4 字段”图层，显示“3 字段”图层。如果邮箱/QQ 号，也没有，那么就显示“2 字段图层
+    def setLayerVisible(activeLayer, visibleLayerName ):
+        name = activeLayer.Name
+        if name == "2字段":
+            __setVisible(activeLayer, name, visibleLayerName)
+        if name == "3字段":
+            __setVisible(activeLayer, name, visibleLayerName)
+        if name == "4字段":
+            __setVisible(activeLayer, name, visibleLayerName)

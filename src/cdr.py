@@ -37,6 +37,8 @@ class CDR():
         for curLayer in allLayers:
             # 设置图片
             Input.accessImage(self.doc,  curLayer.Shapes)
+            # 设置状态，处理层级可见性
+            determine.setLayerVisible(curLayer, visibleLayerName)
 
     def __accessExtractTextData(self, pageObj, pageIndex):
         allLayers = pageObj.AllLayers
