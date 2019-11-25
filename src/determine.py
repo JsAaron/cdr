@@ -1,6 +1,6 @@
 import utils
 import result
-import globalData
+import prarm
 
 # 数据判断类，是否分行
 
@@ -30,11 +30,6 @@ class Determine():
         elif key == "4字段":
             self.field_4 = True
 
-    def __setAllField(self, shape):
-        key = utils.getKeyEnglish(shape.Name)
-        if key:
-            result.saveInputFiled(key)
-
     # 初始化字段的状态
     # 涉及到状态合并的问题处理
 
@@ -52,14 +47,21 @@ class Determine():
         elif key == "qq":
             self.cdr_qq = True
 
-    # 文本预处理
+    # 默认保存所有字段
+    def __setAllField(self, shape):
+        key = utils.getKeyEnglish(shape.Name)
+        if key:
+            result.saveInputFiled(key)
 
+    # 文本预处理
     def __proccessText(self, shapes, pageIndex):
         cdrTextShape = 6
         cdrGroupShape = 7
         for tempShape in shapes:
+
             # 保存所有字段
             self.__setAllField(tempShape)
+
             # 组
             if tempShape.Type == cdrGroupShape:
                 self.__proccessText(tempShape.Shapes, pageIndex)
@@ -69,29 +71,64 @@ class Determine():
                 self.__setState(utils.getKeyEnglish(tempShape.Name))
 
     # 设置使用层级模板
-
     def __setVisibleField(self):
         # 如果有4字段 显示层级4
-        if self.field_4 == True:
-            if globalData.hasValue("bjnews") or globalData.hasValue("url"):
+        if self.field_4:
+            if prarm.hasValue("bjnews") or prarm.hasValue("url"):
                 self.visibleField = "4字段"
 
         # 如果有3字段
-        if self.field_3 == True:
-            if globalData.hasValue("email") or globalData.hasValue("qq"):
+        if self.field_3:
+            if prarm.hasValue("email") or prarm.hasValue("qq"):
                 self.visibleField = "3字段"
 
-    # 初始化
+    # =======================对外接口=======================
 
+    # 初始化
     def initField(self, key, shapes, pageIndex):
         self.__setField(key)
         self.__setVisibleField()
         self.__proccessText(shapes, pageIndex)
 
-    # '判断是否需要合并的数据
-
-    def getRangeScope(self,key):
+    # 判断是否需要合并的数据
+    def getRangeScope(self, key):
         if key == "url" or key == "bjnews" or key == "mobile" or key == "phone" or key == "email" or key == "qq":
             return True
         else:
             return False
+
+    def getMergeValue(self, key):
+        newValue = prarm.getExternalValue(key)
+
+        if key == "url":
+            #url + bjnews
+            if prarm.hasValue("bjnews") and self.cdr_bjnews == False:
+                user_bjnews = prarm.getExternalValue("bjnews")
+                newValue = newValue + '\n' + user_bjnews
+        elif key == "bjnews":
+             #url + bjnews
+            if prarm.hasValue("url") and self.cdr_url == False:
+                user_url = prarm.getExternalValue("url")
+                newValue = user_url + '\n' + newValue
+        elif key == "mobile":
+             # 没有电话字段，但是用户设置了手机
+            if prarm.hasValue("phone") and self.cdr_phone == False:
+                user_phone = prarm.getExternalValue("phone")
+                newValue = newValue + '\n' + user_phone
+        elif key == "phone":
+             # 没有手机字段，但是用户设置了电话
+            if prarm.hasValue("mobile") and self.cdr_mobile == False:
+                user_mobile = prarm.getExternalValue("mobile")
+                newValue = user_mobile + '\n' + newValue
+        elif key == "email":
+             # 邮箱/QQ
+            if prarm.hasValue("qq") and self.cdr_qq == False:
+                user_qq = prarm.getExternalValue("qq")
+                newValue = newValue + '\n' + user_qq
+        elif key == "qq":
+             #email + qq
+            if prarm.hasValue("email") and self.cdr_email == False:
+                user_email = prarm.getExternalValue("email")
+                newValue = user_email + '\n' + newValue
+
+        return newValue

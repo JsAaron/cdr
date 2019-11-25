@@ -7,8 +7,9 @@ import win32con
 import win32com.client
 from win32com.client import Dispatch, constants
 from determine import Determine
-from input import accessShape
+import input as Input
 from result import retrunData, setPageTotal
+from prarm import setExternalData, setCommand
 
 
 class CDR():
@@ -18,19 +19,10 @@ class CDR():
 
         if path:
             self.app.OpenDocument(path)
+
         self.doc = self.app.ActiveDocument
 
-        if self.doc == None:
-            self.__return("false", "文档打开失败")
-
         setPageTotal(self.doc.Pages.Count)
-
-    # 定义返回
-    def __return(self, status, content):
-        return {
-            "status ": status,
-            "content": content
-        }
 
     # 预处理
     def __preprocess(self, determine, allLayers, pageIndex):
@@ -40,7 +32,7 @@ class CDR():
     # 读/取操作
     def __accessInput(self, allLayers, determine, pageIndex):
         for curLayer in allLayers:
-            accessShape(self.doc,  curLayer.Shapes, determine, pageIndex)
+            Input.accessShape(self.doc,  curLayer.Shapes, determine, pageIndex)
 
     # 获取文档所有页面、所有图层、所有图形对象
     def __accessExtractTextData(self, pageObj, pageIndex):
@@ -49,9 +41,7 @@ class CDR():
         self.__preprocess(determine, allLayers, pageIndex)
         self.__accessInput(allLayers, determine, pageIndex)
 
-    # 获取所有内容
-    # page指定页码
-    def getPageContent(self, pageIndex=""):
+    def __accessData(self, pageIndex):
         if pageIndex:
             self.__accessExtractTextData(
                 self.doc.Pages.Item(pageIndex), pageIndex)
@@ -61,4 +51,14 @@ class CDR():
                 self.__accessExtractTextData(page, count)
                 count += 1
 
+    # 获取所有内容
+    # page指定页码
+    def get(self, pageIndex=""):
+        setCommand("get:text")
+        self.__accessData(pageIndex)
         return retrunData()
+
+    def set(self, newData, pageIndex=""):
+        setCommand("set:text")
+        setExternalData(newData)
+        self.__accessData(pageIndex)
