@@ -9,7 +9,7 @@ from win32com.client import Dispatch, constants
 from determine import Determine
 import input as Input
 from result import retrunData, setPageTotal
-from prarm import setExternalData, setCommand
+import prarm
 
 
 class CDR():
@@ -24,22 +24,28 @@ class CDR():
 
         setPageTotal(self.doc.Pages.Count)
 
-    # 预处理
     def __preprocess(self, determine, allLayers, pageIndex):
         for curLayer in allLayers:
             determine.initField(curLayer.Name, curLayer.Shapes, pageIndex)
 
-    # 读/取操作
-    def __accessInput(self, allLayers, determine, pageIndex):
+    def __accessInput(self,  determine, allLayers, pageIndex):
         for curLayer in allLayers:
             Input.accessShape(self.doc,  curLayer.Shapes, determine, pageIndex)
 
-    # 获取文档所有页面、所有图层、所有图形对象
+    def __setImage(self, determine, allLayers):
+        visibleLayerName = determine.getVisibleField()
+        for curLayer in allLayers:
+            # 设置图片
+            Input.accessImage(self.doc,  curLayer.Shapes)
+
     def __accessExtractTextData(self, pageObj, pageIndex):
         allLayers = pageObj.AllLayers
         determine = Determine()
         self.__preprocess(determine, allLayers, pageIndex)
-        self.__accessInput(allLayers, determine, pageIndex)
+        self.__accessInput(determine, allLayers, pageIndex)
+        # 设置图片/层的可见性
+        if prarm.cmdCommand == "set:text":
+            self.__setImage(determine, allLayers)
 
     def __accessData(self, pageIndex):
         if pageIndex:
@@ -51,14 +57,14 @@ class CDR():
                 self.__accessExtractTextData(page, count)
                 count += 1
 
-    # 获取所有内容
-    # page指定页码
+    # =================================== 对外 ===================================
+
     def get(self, pageIndex=""):
-        setCommand("get:text")
+        prarm.setCommand("get:text")
         self.__accessData(pageIndex)
         return retrunData()
 
     def set(self, newData, pageIndex=""):
-        setCommand("set:text")
-        setExternalData(newData)
+        prarm.setCommand("set:text")
+        prarm.setExternalData(newData)
         self.__accessData(pageIndex)

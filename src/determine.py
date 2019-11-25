@@ -97,6 +97,9 @@ class Determine():
         else:
             return False
 
+    def getVisibleField(self):
+        return self.visibleField
+
     def getMergeValue(self, key):
         newValue = prarm.getExternalValue(key)
 
