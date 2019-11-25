@@ -4,9 +4,6 @@ fnreturn = {}
 inputData = {}
 inputFiled = {}
 
-inputFiled["bjnews"] = "url+bjnews"
-
-
 # 保存input数组显示的字段
 def saveInputFiled(key):
     if key == "url":
@@ -25,9 +22,9 @@ def saveInputFiled(key):
     inputFiled[key] = True
 
 
-def saveData(pageIndex, key, value, overflow):
+def saveData(pageIndex, key, value, overflow=False):
     json = {}
-    
+
     # 溢出了
     if overflow == True:
         json["overflow"] = True
@@ -35,6 +32,7 @@ def saveData(pageIndex, key, value, overflow):
     json["pageIndex"] = pageIndex
     json["value"] = value
     inputData[key] = json
+
 
 # 通过段落去匹配出key来
 def valueTokey(pageIndex, name, tempShape):
@@ -44,50 +42,50 @@ def valueTokey(pageIndex, name, tempShape):
 
     # '电话手机一组
     if name == "mobile" or name == "phone":
-        saveData(pageIndex, "mobile", v1, False)
-        saveData(pageIndex, "phone", v2, False)
+        saveData(pageIndex, "mobile", v1)
+        saveData(pageIndex, "phone", v2)
 
     if name == "email" or name == "qq":
-        saveData(pageIndex, "email", v1, False)
-        saveData(pageIndex, "qq", v2, False)
+        saveData(pageIndex, "email", v1)
+        saveData(pageIndex, "qq", v2)
 
     if name == "url" or name == "bjnews":
-        saveData(pageIndex, "url", v1, False)
-        saveData(pageIndex, "bjnews", v2, False)
+        saveData(pageIndex, "url", v1)
+        saveData(pageIndex, "bjnews", v2)
 
 
 # 填充默认值给外部
 def fillDefault(pageIndex, key, tempShape):
     # 保存当前值
-    saveData(pageIndex, key, tempShape.Text.Story.Text, False)
+    saveData(pageIndex, key, tempShape.Text.Story.Text)
     # 填充默认值
     if key == "url":
-         saveData(pageIndex, "bjnews", "", False)
+        saveData(pageIndex, "bjnews", "")
     elif key == "bjnews":
-         saveData(pageIndex, "url", "", False)
+        saveData(pageIndex, "url", "")
     elif key == "mobile":
-         saveData(pageIndex, "phone", "", False)
+        saveData(pageIndex, "phone", "")
     elif key == "phone":
-         saveData(pageIndex, "mobile", "", False)
+        saveData(pageIndex, "mobile", "")
     elif key == "email":
-         saveData(pageIndex, "qq", "", False)
+        saveData(pageIndex, "qq", "")
     elif key == "qq":
-         saveData(pageIndex, "email", "", False)
+        saveData(pageIndex, "email", "")
 
 
 # 保存获取的值
 # 可能有分组组合的情况，所以需要找到字段合计，然后找到分组的数组
 def saveValue(pageIndex, key, tempShape, determine, onlyFill):
 
-    #去重
+    # 去重
     if inputData.get(key):
-       print("重复保存",key)
-       return
-        
-    #如果只是填充默认值,仅针对图片的读
+        #print("重复保存",key)
+        return
+
+    # 如果只是填充默认值,仅针对图片的读
     if onlyFill:
-        saveData(pageIndex, key, "", False)
-        print("填充默认图片",key)
+        saveData(pageIndex, key, "")
+        print("填充默认图片", key)
         return
 
     # 是否存在需要分解的数据
@@ -101,9 +99,18 @@ def saveValue(pageIndex, key, tempShape, determine, onlyFill):
             fillDefault(pageIndex, key, tempShape)
     else:
         # 直接保存
-        saveData(pageIndex, key, tempShape.Text.Story.Text, tempShape.Text.Overflow)
-        
+        saveData(pageIndex, key, tempShape.Text.Story.Text,
+                 tempShape.Text.Overflow)
+
+
+# 页码总数
+def setPageTotal(count):
+    totalPages = count
+
 
 # 生成返回数据
 def retrunData():
-    return inputData
+    return {
+        "total": totalPages,
+        "data": inputData
+    }

@@ -13,7 +13,6 @@ def getImage(tempShape, pageIndex, determine):
 def getText(tempShape, pageIndex, determine):
     if tempShape.Text.Story.Text:
         key = utils.getKeyEnglish(tempShape.Name)
-        print(key)
         if key:
             result.saveValue(pageIndex, key, tempShape, determine, False)
         else:
@@ -38,7 +37,7 @@ def setText(tempShape, pageIndex, determine):
 
 
 # 递归检测形状
-def accesstShape(doc, allShapes, determine, pageIndex):
+def accessShape(doc, allShapes, determine, pageIndex):
     for tempShape in allShapes:
         cdrTextShape = 6
         cdrGroupShape = 7
@@ -46,7 +45,7 @@ def accesstShape(doc, allShapes, determine, pageIndex):
 
         # 组
         if tempShape.Type == cdrGroupShape:
-            accesstShape(doc, tempShape.Shapes, determine, pageIndex)
+            accessShape(doc, tempShape.Shapes, determine, pageIndex)
 
         # 图片的读
         if tempShape.Type == cdrBitmapShape:
@@ -55,10 +54,10 @@ def accesstShape(doc, allShapes, determine, pageIndex):
 
         # 文字读写
         if tempShape.Type == cdrTextShape:
-            #读数据
+            # 读数据
             if globalData.cmdCommand == "get:text":
                 getText(tempShape, pageIndex, determine)
 
-            # # 写数据
+            # 写数据
             # if globalData.cmdCommand == "set:text":
             #     setText(tempShape, pageIndex, determine)

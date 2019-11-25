@@ -7,17 +7,21 @@ import win32con
 import win32com.client
 from win32com.client import Dispatch, constants
 from determine import Determine
-from input import accesstShape
-from result import retrunData
+from input import accessShape
+from result import retrunData,setPageTotal
 
 class CDR():
     def __init__(self, path=""):
         self.app = Dispatch('CorelDraw.Application')
+
         if path:
             self.app.OpenDocument(path)
         self.doc = self.app.ActiveDocument
+
         if self.doc == None:
             self.__return("false", "文档打开失败")
+
+        setPageTotal(self.doc.Pages.Count)
 
     # 定义返回
     def __return(self, status, content):
@@ -34,7 +38,7 @@ class CDR():
     # 读/取操作
     def __accessInput(self, allLayers, determine, pageIndex):
         for curLayer in allLayers:
-            accesstShape(self.doc,  curLayer.Shapes, determine, pageIndex)
+            accessShape(self.doc,  curLayer.Shapes, determine, pageIndex)
 
     # 获取文档所有页面、所有图层、所有图形对象
     def __accessExtractTextData(self, pageObj, pageIndex):
