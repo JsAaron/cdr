@@ -8,9 +8,11 @@ import win32com.client
 from win32com.client import Dispatch, constants
 from determine import Determine
 from input import accessShape
-from result import retrunData,setPageTotal
+from result import retrunData, setPageTotal
+
 
 class CDR():
+
     def __init__(self, path=""):
         self.app = Dispatch('CorelDraw.Application')
 
@@ -53,5 +55,10 @@ class CDR():
         if pageIndex:
             self.__accessExtractTextData(
                 self.doc.Pages.Item(pageIndex), pageIndex)
+        else:
+            count = 1
+            for page in self.doc.Pages:
+                self.__accessExtractTextData(page, count)
+                count += 1
 
         return retrunData()

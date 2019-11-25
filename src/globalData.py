@@ -2,7 +2,6 @@
 cmdCommand = "get:text"
 cmdExternalData = {}
 
-# 探测是是否存在值
 def hasValue(key):
     # 如果没数据
     if len(cmdExternalData) == 0:

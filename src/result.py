@@ -1,5 +1,5 @@
 state = False
-totalPages = 0
+totalpages = 0
 fnreturn = {}
 inputData = {}
 inputFiled = {}
@@ -85,7 +85,7 @@ def saveValue(pageIndex, key, tempShape, determine, onlyFill):
     # 如果只是填充默认值,仅针对图片的读
     if onlyFill:
         saveData(pageIndex, key, "")
-        print("填充默认图片", key)
+        # print("填充默认图片", key)
         return
 
     # 是否存在需要分解的数据
@@ -105,12 +105,13 @@ def saveValue(pageIndex, key, tempShape, determine, onlyFill):
 
 # 页码总数
 def setPageTotal(count):
-    totalPages = count
-
+    global totalpages 
+    totalpages = count
 
 # 生成返回数据
 def retrunData():
     return {
-        "total": totalPages,
+        "totalpages":totalpages,
+        "fileds": inputFiled,
         "data": inputData
     }

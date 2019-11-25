@@ -3,6 +3,8 @@ import utils
 import result
 
 # 图片的读，创建基本结构
+
+
 def getImage(tempShape, pageIndex, determine):
     key = utils.getKeyEnglish(tempShape.Name)
     if key:
@@ -15,15 +17,12 @@ def getText(tempShape, pageIndex, determine):
         key = utils.getKeyEnglish(tempShape.Name)
         if key:
             result.saveValue(pageIndex, key, tempShape, determine, False)
-        else:
-            print("找不到对应的命名:"+tempShape.Name)
-
 
 
 # 设置文本
-def setText(tempShape, pageIndex, determine):
-    key = utils.getKeyEnglish(tempShape.Name)
-    value = ""
+# def setText(tempShape, pageIndex, determine):
+#     key = utils.getKeyEnglish(tempShape.Name)
+#     value = ""
     # if key:
     #     #是否是处理范围
     #     if determine.getRangeScope(key):
@@ -32,8 +31,6 @@ def setText(tempShape, pageIndex, determine):
     #     else:
     #         # 单独字段
     #         value = Param.getExternalValue(key)
-            
-        
 
 
 # 递归检测形状
