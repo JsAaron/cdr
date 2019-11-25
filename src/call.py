@@ -7,7 +7,7 @@ def open():
 
 #获页面内容
 def getPageContent():
-    print(CDR().getPageContent(1))
+    print('返回',CDR().getPageContent(2))
 
 
 if __name__ == '__main__':
