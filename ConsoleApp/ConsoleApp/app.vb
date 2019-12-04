@@ -31,33 +31,44 @@ Module App
         Dim allLayers As Layers = page.AllLayers
         Dim pageIndex = page.Index
 
-        '预处理
-        globalData.steps = "预处理"
-        For k = 1 To allLayers.Count
-            curLayer = allLayers.Item(k)
-            '初始化预处理
-            determine.init(curLayer.Name, curLayer.Shapes, pageIndex)
-        Next k
-
-        '读/取操作
-        globalData.steps = "文本/图像读取操作"
-        For k = 1 To allLayers.Count
-            curLayer = allLayers.Item(k)
-            Inputs.accesstShape(doc, curLayer.Shapes, determine, pageIndex)
-        Next k
-
-        '设置图片/层的可见性
-        globalData.steps = "设置图片/层级可见性"
-        If Param.cmdCommand = "set:text" Then
-            Dim visibleLayerName = determine.getVisibleField()
+        If Param.cmdCommand = "set:image" Then
             For m = 1 To allLayers.Count
                 curLayer = allLayers.Item(m)
                 '设置图片
                 Inputs.accessImage(doc, curLayer.Shapes)
-                '设置状态，处理层级可见性
-                determine.setLayerVisible(curLayer, visibleLayerName)
             Next m
+        Else
+
+            '预处理
+            globalData.steps = "预处理"
+            For k = 1 To allLayers.Count
+                curLayer = allLayers.Item(k)
+                '初始化预处理
+                determine.init(curLayer.Name, curLayer.Shapes, pageIndex)
+            Next k
+
+            '读/取操作
+            globalData.steps = "文本/图像读取操作"
+            For k = 1 To allLayers.Count
+                curLayer = allLayers.Item(k)
+                Inputs.accesstShape(doc, curLayer.Shapes, determine, pageIndex)
+            Next k
+
+            '设置图片/层的可见性
+            globalData.steps = "设置图片/层级可见性"
+            If Param.cmdCommand = "set:text" Then
+                Dim visibleLayerName = determine.getVisibleField()
+                For m = 1 To allLayers.Count
+                    curLayer = allLayers.Item(m)
+                    '设置图片
+                    Inputs.accessImage(doc, curLayer.Shapes)
+                    '设置状态，处理层级可见性
+                    determine.setLayerVisible(curLayer, visibleLayerName)
+                Next m
+            End If
+
         End If
+
 
         globalData.steps = "处理结束"
         globalData.state = "True"
@@ -71,7 +82,7 @@ Module App
 
     '文本处理
     Function fn_accessText(doc, page, determine)
-        If Param.cmdCommand = "get:text" Or Param.cmdCommand = "set:text" Then
+        If Param.cmdCommand = "get:text" Or Param.cmdCommand = "set:text" Or Param.cmdCommand = "set:image" Then
             accessExtractTextData(doc, page, determine)
             globalData.state = "True"
             Return True
@@ -172,7 +183,6 @@ Module App
 
     '建立链接
     Sub openLink(app As Application)
-        Console.WriteLine(Param.cmdPath)
         Try
             If Len(Param.cmdPath) > 2 Then
                 globalData.steps = "开始打开文档"
@@ -207,7 +217,6 @@ Module App
             End If
 
             globalData.totalPages = pages.Count
-
 
             '单独设置字体
             If Param.cmdCommand = "set:font" Then
@@ -280,38 +289,6 @@ Module App
     End Function
 
 
-    '设置形状尺寸
-    Function setShareSize(activeShape As Shape, width As Integer, height As Integer)
-
-    End Function
-
-
-
-
-    Sub test(app As Application)
-
-        Dim doc As Document = app.ActiveDocument
-
-        '如果没有创建文档
-        If TypeName(doc) = "Nothing" Then
-            doc = app.CreateDocument()
-        End If
-
-        '毫米单位
-        doc.Unit = 3
-
-        'setFontSize(app.ActiveShape, 10)
-
-        Dim pages = doc.Pages
-        For i = 1 To pages.Count
-            'Dim layer As Layer = getLayerSet(pages.Item(i))
-
-            'layer.CreateParagraphText(100, 200, 0, 190, "这是段落文本的内容",,,, 24, -1,, 3)
-            'layer.CreateCustomShape("Table", 1, 10, 5, 7, 7, 6)
-        Next
-    End Sub
-
-
     Sub Main()
 
         Console.OutputEncoding = Encoding.UTF8
@@ -326,7 +303,7 @@ Module App
 
         End If
 
-        ' Console.WriteLine(cmdExternalData)
+        'Console.WriteLine(cmdExternalData)
 
         '没有解析错误的情况
         If Len(globalData.errorlog) = 0 Then
@@ -335,13 +312,12 @@ Module App
             Dim app As Application = Activator.CreateInstance(pia_type)
             app.Visible = True
             globalData.steps = "连接CorelDRAW成功"
-            test(app)
-            'openLink(app)
+            openLink(app)
         End If
 
         Console.WriteLine(globalData.retrunData())
 
-        MsgBox(1)
+        'MsgBox(1)
 
     End Sub
 

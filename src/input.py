@@ -1,7 +1,10 @@
 import prarm
 import utils
 import result
+import json
 import prarm
+import subprocess
+import urllib.parse
 
 # 图片的读，创建基本结构
 
@@ -45,46 +48,14 @@ def setText(tempShape, pageIndex, determine):
 
 # 替换图片
 def __replaceImage(doc, tempShape, key, typeName):
-    # 中心点
-    doc.ReferencePoint = 9
-    centerX = tempShape.CenterX
-    centerY = tempShape.CenterY
-    SizeWidth = tempShape.SizeWidth
-    SizeHeight = tempShape.SizeHeight
-
-    # 返回或设置形状所在的图层
-    parentLayer = tempShape.Layer
-    imageType = 802
+    print(key)
     imagePath = prarm.getExternalValue(key)
-    parentLayer.Activate()
-
-    # jpg类型
-    args = imagePath.split(".jpg")
-
-    if args.Count == 2:
-        imageType = 774
-
-    # 修改图片必须是显示状态才可以
-    fixVisible = False
-    if parentLayer.Visible == False:
-        fixVisible = True
-        parentLayer.Visible = True
-
-    parentLayer.Import(imagePath, imageType)
-    # 重新设置图片
-    dfShapes = doc.Selection.Shapes
-    # 插入成功才删除图片
-    if dfShapes.Count > 0:
-        for item in dfShapes:
-            item.Name = typeName
-            item.SetSize(SizeWidth, SizeHeight)
-            item.SetPositionEx(9, centerX, centerY)
-    tempShape.Delete()
-
-    # 如果修改了图片状态
-    if fixVisible:
-        parentLayer.Visible = False
-
+    data = "{'"+ key +"':{'pageIndex':'1','value':'"+ urllib.parse.quote(imagePath) +"'}}"
+    cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe", 'set:image', data]
+    child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+    for line in child.stdout.readlines():
+        output = line.decode('UTF-8')
+        print("output",output)
 
 # 递归检测形状
 def accessShape(doc, allShapes, determine, pageIndex):

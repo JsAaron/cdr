@@ -70,3 +70,14 @@ class CDR():
         prarm.setCommand("set:text")
         prarm.setExternalData(newData)
         self.__accessData(pageIndex)
+
+    def drawDecorationTriangle(self):
+        self.doc.Unit = 5
+        ActiveLayer = self.doc.ActiveLayer
+        # s1 = ActiveLayer.CreateRectangle2(0, 0, 3, 1)
+        # s1.Fill.UniformColor.RGBAssign(255, 0, 0)
+        # ActiveLayer.CreateCustomShape("Table", 1, 10, 5, 7, 7, 6)
+        s1 = ActiveLayer.CreatePolygon(0, 100, 300, 0, 3, 1)
+        s1.Fill.UniformColor.RGBAssign(255, 0, 0)
+        s1.PositionX = 0
+        s1.PositionY = 0

@@ -5,7 +5,7 @@ Imports Newtonsoft.Json
 
 '定义参数
 Module Param
-
+    Public cmdImageUrl As String
     Public cmdCommand As String = "get:text"
     Public cmdPath As String
     Public cmdStylePath As String
@@ -76,6 +76,13 @@ Module Param
         ElseIf cmdCommand = "get:pageSize" Then
             If count = 2 Then
                 cmdPath = decodePath(args(1))
+            End If
+        ElseIf cmdCommand = "set:image" Then
+            If count = 2 Then
+                cmdExternalData = JsonConvert.DeserializeObject(args(1))
+                decodeURI("logo")
+                decodeURI("logo2")
+                decodeURI("qrcode")
             End If
         ElseIf cmdCommand = "get:fontJson" Then
             If count = 2 Then

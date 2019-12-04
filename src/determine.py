@@ -136,19 +136,19 @@ class Determine():
 
         return newValue
 
-    def __setVisible(activeLayer, name, visibleLayerName)
-       if name == visibleLayerName:
+    def __setVisible(self,activeLayer, name, visibleLayerName):
+        if name == visibleLayerName:
             activeLayer.Visible = True
         else:
             activeLayer.Visible = False
 
     # 设置层级的可见性
     # 如果网址/公众号，都没有，那么要隐藏“4 字段”图层，显示“3 字段”图层。如果邮箱/QQ 号，也没有，那么就显示“2 字段图层
-    def setLayerVisible(activeLayer, visibleLayerName ):
+    def setLayerVisible(self,activeLayer, visibleLayerName):
         name = activeLayer.Name
         if name == "2字段":
-            __setVisible(activeLayer, name, visibleLayerName)
-        if name == "3字段":
-            __setVisible(activeLayer, name, visibleLayerName)
-        if name == "4字段":
-            __setVisible(activeLayer, name, visibleLayerName)
+            self.__setVisible(activeLayer, name, visibleLayerName)
+        elif name == "3字段":
+            self.__setVisible(activeLayer, name, visibleLayerName)
+        elif name == "4字段":
+            self.__setVisible(activeLayer, name, visibleLayerName)
