@@ -241,6 +241,7 @@ Module App
                 Exit Sub
             End If
 
+
             '遍历页面
             If cmdActivePagte <> "" Then
                 Dim determine As Determine = New Determine()

@@ -47,15 +47,14 @@ def setText(tempShape, pageIndex, determine):
 
 
 # 替换图片
-def __replaceImage(doc, tempShape, key, typeName):
-    print(key)
+def __replaceImage(doc, tempShape, key, typeName, pageIndex):
     imagePath = prarm.getExternalValue(key)
-    data = "{'"+ key +"':{'pageIndex':'1','value':'"+ urllib.parse.quote(imagePath) +"'}}"
-    cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe", 'set:image', data]
+    data = "{'"+ key +"':{'pageIndex':'"+ str(pageIndex) +"','value':'"+ urllib.parse.quote(imagePath) +"'}}"
+    cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe", 'set:image', data, str(pageIndex)]
     child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-    for line in child.stdout.readlines():
-        output = line.decode('UTF-8')
-        print("output",output)
+    lines = child.stdout.readlines()
+    value = lines[0].decode("UTF8");
+    # print("value",value)
 
 # 递归检测形状
 def accessShape(doc, allShapes, determine, pageIndex):
@@ -84,7 +83,7 @@ def accessShape(doc, allShapes, determine, pageIndex):
                 setText(tempShape, pageIndex, determine)
 
 
-def accessImage(doc, allShapes):
+def accessImage(doc, allShapes, pageIndex):
     # '递归检测形状,并替换图片
     for tempShape in allShapes:
         cdrGroupShape = 7
@@ -92,12 +91,12 @@ def accessImage(doc, allShapes):
 
         # 组
         if tempShape.Type == cdrGroupShape:
-            accessImage(doc, tempShape.Shapes)
+            accessImage(doc, tempShape.Shapes, pageIndex)
 
         if tempShape.Type == cdrBitmapShape:
             if tempShape.Name == "二维码" and prarm.hasValue("qrcode"):
-                __replaceImage(doc, tempShape, "qrcode", "二维码")
+                __replaceImage(doc, tempShape, "qrcode", "二维码",pageIndex)
             elif tempShape.Name == "Logo" and prarm.hasValue("logo"):
-                __replaceImage(doc, tempShape, "logo", "Logo")
+                __replaceImage(doc, tempShape, "logo", "Logo",pageIndex)
             elif tempShape.Name == "Logo2" and prarm.hasValue("logo2"):
-                __replaceImage(doc, tempShape, "logo2", "Logo2")
+                __replaceImage(doc, tempShape, "logo2", "Logo2",pageIndex)

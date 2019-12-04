@@ -74,15 +74,16 @@ Module Param
                 cmdPath = decodePath(args(1))
             End If
         ElseIf cmdCommand = "get:pageSize" Then
-            If count = 2 Then
+            If count = 3 Then
                 cmdPath = decodePath(args(1))
             End If
         ElseIf cmdCommand = "set:image" Then
-            If count = 2 Then
+            If count = 3 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))
                 decodeURI("logo")
                 decodeURI("logo2")
                 decodeURI("qrcode")
+                cmdActivePagte = args(2)
             End If
         ElseIf cmdCommand = "get:fontJson" Then
             If count = 2 Then

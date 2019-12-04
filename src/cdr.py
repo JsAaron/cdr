@@ -32,11 +32,11 @@ class CDR():
         for curLayer in allLayers:
             Input.accessShape(self.doc,  curLayer.Shapes, determine, pageIndex)
 
-    def __setImage(self, determine, allLayers):
+    def __setImage(self, determine, allLayers, pageIndex):
         visibleLayerName = determine.getVisibleField()
         for curLayer in allLayers:
             # 设置图片
-            Input.accessImage(self.doc,  curLayer.Shapes)
+            Input.accessImage(self.doc, curLayer.Shapes, pageIndex)
             # 设置状态，处理层级可见性
             determine.setLayerVisible(curLayer, visibleLayerName)
 
@@ -47,7 +47,7 @@ class CDR():
         self.__accessInput(determine, allLayers, pageIndex)
         # 设置图片/层的可见性
         if prarm.cmdCommand == "set:text":
-            self.__setImage(determine, allLayers)
+            self.__setImage(determine, allLayers, pageIndex)
 
     def __accessData(self, pageIndex):
         if pageIndex:
