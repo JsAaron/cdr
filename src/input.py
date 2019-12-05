@@ -5,6 +5,7 @@ import json
 import prarm
 import subprocess
 import urllib.parse
+import os
 
 # 图片的读，创建基本结构
 
@@ -50,11 +51,15 @@ def setText(tempShape, pageIndex, determine):
 def __replaceImage(doc, tempShape, key, typeName, pageIndex):
     imagePath = prarm.getExternalValue(key)
     data = "{'"+ key +"':{'pageIndex':'"+ str(pageIndex) +"','value':'"+ urllib.parse.quote(imagePath) +"'}}"
-    cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe", 'set:image', data, str(pageIndex)]
+    parent = os.path.dirname(os.path.realpath(__file__))
+    vbPath = parent + '\\vb\\ConsoleApp.exe'
+    cmdStr = [vbPath, 'set:image', data, str(pageIndex)]
+    # cmdStr = ["D:\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\ConsoleApp.exe", 'set:image', data, str(pageIndex)]
     child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     lines = child.stdout.readlines()
     value = lines[0].decode("UTF8");
-    # print("value",value)
+    print("vb",value)
+
 
 # 递归检测形状
 def accessShape(doc, allShapes, determine, pageIndex):
