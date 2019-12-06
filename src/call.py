@@ -10,13 +10,21 @@ def open():
 def getContent(pageIndex=""):
     print('返回', CDR().get(pageIndex))
 
+
 def setContent(pageIndex="",path=""):
     data = {'logo': {'pageIndex': 1, 'value': 'C:\\Users\\Administrator\\Desktop\\111\\1.png'}}
     CDR().set(data)
 
+
+def togglePage():
+    print(CDR().togglePage(2))
+    
+
+
 if __name__ == '__main__':
+    # togglePage()
     # print( test.get("aaaa") ==None)
     # getContent()
     # open()
-    setContent()
-    # CDR().drawDecorationTriangle()
+    # setContent()
+    CDR().drawDecorationTriangle()
