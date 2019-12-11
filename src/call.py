@@ -27,4 +27,5 @@ if __name__ == '__main__':
     # getContent()
     # open()
     # setContent()
-    CDR().drawDecorationTriangle()
+    CDR().drawDecorationTriangle("test","255, 0, 0",{"top":100,"left":200},'lefttop')
+

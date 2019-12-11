@@ -90,13 +90,39 @@ class CDR():
         self.__accessData(pageIndex)
 
 
-    def drawDecorationTriangle(self):
+    def drawDecorationTriangle(self, name, style, points, position):
+
         self.doc.Unit = 5
-        ActiveLayer = self.doc.ActiveLayer
-        # s1 = ActiveLayer.CreateRectangle2(0, 0, 3, 1)
-        # s1.Fill.UniformColor.RGBAssign(255, 0, 0)
-        # ActiveLayer.CreateCustomShape("Table", 1, 10, 5, 7, 7, 6)
-        s1 = ActiveLayer.CreatePolygon(0, 100, 300, 0, 3, 1)
-        s1.Fill.UniformColor.RGBAssign(255, 0, 0)
-        s1.PositionX = 0
-        s1.PositionY = 0
+
+        ActivePage = self.doc.ActivePage
+        sizeheight = ActivePage.sizeheight
+        sizewidth = ActivePage.sizewidth
+     
+        crv = self.app.CreateCurve(self.doc)
+        spath = crv.CreateSubPath(0, 0)
+        spath.AppendLineSegment(0, -300)
+        spath.AppendLineSegment(300, 0)
+        spath.Closed = True
+
+
+        layer = ActivePage.CreateLayer("三角形")
+        sh = layer.CreateCurve(crv)
+        sh.Fill.UniformColor.RGBAssign(255, 0, 0)
+        
+        self.doc.ReferencePoint = 3
+        sh.PositionX = 0 
+        sh.PositionY = sizeheight
+
+        # # 左上角
+        # if position == 'lefttop':
+    
+        #     spath = crv.CreateSubPath(0, 0)
+        #     spath.AppendLineSegment(0, 300)
+        #     spath.AppendLineSegment(300, 0)
+
+    
+  
+
+        # spath.Closed = True
+   
+
