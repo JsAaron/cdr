@@ -20,12 +20,18 @@ def togglePage():
     print(CDR().togglePage(2))
     
 
+def drawDecorationTriangle():
+    # CDR().drawDecorationTriangle("test","255, 0, 0",{"bottom":300,"left":600},'lefttop')   
+    # CDR().drawDecorationTriangle("test","255, 0, 0",{"bottom":300,"right":600},'righttop')   
+    # CDR().drawDecorationTriangle("test","255, 0, 0",{"top":300,"left":600},'leftbottom')   
+    # CDR().drawDecorationTriangle("test","255, 0, 0",{"top":300,"right":600},'rightbottom')   
 
 if __name__ == '__main__':
+    drawDecorationTriangle()
     # togglePage()
     # print( test.get("aaaa") ==None)
     # getContent()
     # open()
     # setContent()
-    CDR().drawDecorationTriangle("test","255, 0, 0",{"top":100,"left":200},'lefttop')
+    
 

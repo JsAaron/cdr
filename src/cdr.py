@@ -61,6 +61,13 @@ class CDR():
                 self.__accessExtractTextData(page, count)
                 count += 1
 
+
+    # 根据名称找到图层
+    def __findLayer(self,name):
+        ActivePage = self.doc.ActivePage
+  
+    
+
     # =================================== 对外 ===================================
 
     # 切换页面
@@ -90,9 +97,15 @@ class CDR():
         self.__accessData(pageIndex)
 
 
+    def drawDecorationTriangle1(self, name, style, points, position):
+        self.__findLayer(name)
+
+
     def drawDecorationTriangle(self, name, style, points, position):
 
         self.doc.Unit = 5
+
+        print(1,position)
 
         ActivePage = self.doc.ActivePage
         sizeheight = ActivePage.sizeheight
@@ -100,25 +113,50 @@ class CDR():
      
         crv = self.app.CreateCurve(self.doc)
         spath = crv.CreateSubPath(0, 0)
-        spath.AppendLineSegment(0, -300)
-        spath.AppendLineSegment(300, 0)
-        spath.Closed = True
 
+        x = 0
+        y = 0
+        positionX = 0
+        positionY = 0 
+
+       # 左上角
+        if position == 'lefttop':
+            self.doc.ReferencePoint = 3
+            x = -points['bottom']
+            y = points['left']
+            positionX = 0 
+            positionY = sizeheight
+        
+        if position == 'righttop':
+            self.doc.ReferencePoint = 1
+            x = -points['bottom']
+            y = -points['right']
+            positionX = sizewidth 
+            positionY = sizeheight
+
+        if position == 'leftbottom':
+            self.doc.ReferencePoint = 5
+            x = points['top']
+            y = points['left']
+
+        if position == 'rightbottom':
+            self.doc.ReferencePoint = 7
+            x = points['top']
+            y = -points['right']
+            positionX = sizewidth 
+
+        spath.AppendLineSegment(0, x)
+        spath.AppendLineSegment(y, 0)
+        spath.Closed = True
 
         layer = ActivePage.CreateLayer("三角形")
         sh = layer.CreateCurve(crv)
         sh.Fill.UniformColor.RGBAssign(255, 0, 0)
-        
-        self.doc.ReferencePoint = 3
-        sh.PositionX = 0 
-        sh.PositionY = sizeheight
 
-        # # 左上角
-        # if position == 'lefttop':
-    
-        #     spath = crv.CreateSubPath(0, 0)
-        #     spath.AppendLineSegment(0, 300)
-        #     spath.AppendLineSegment(300, 0)
+        sh.PositionX = positionX 
+        sh.PositionY = positionY
+
+ 
 
     
   
