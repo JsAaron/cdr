@@ -31,8 +31,12 @@ def drawDecorationTriangle():
     CDR().drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')   
 
 
+def insertColumnText():
+    CDR().insertColumnText()
+
 if __name__ == '__main__':
-    drawDecorationTriangle()
+    insertColumnText()
+    # drawDecorationTriangle()
     # drawDecorationTriangle()
     # drawDecorationTriangle()
     # togglePage()

@@ -24,26 +24,35 @@ class CDR():
 
     # 初始默认图层
     def __initDefalutLayer(self):
-        pageConfig = []
+        pagesConfig = []
         for page in self.doc.Pages:
             dictName = {
-                "秒秒学板块":True,
-                "秒秒学装饰":True,
-                "秒秒学结构":True,
-                "秒秒学背景":True,
-                "秒秒学全局参数":True,
+                "秒秒学板块": True,
+                "秒秒学装饰": True,
+                "秒秒学结构": True,
+                "秒秒学背景": True,
+                "秒秒学全局参数": True,
             }
+
             for curLayer in page.AllLayers:
                 if dictName.get(curLayer.Name) == True:
                     dictName[curLayer.Name] = False
-            
-            pageConfig.append(dictName)
 
-        for index in range(len(pageConfig)):
-            for key in pageConfig[index]:
-                if pageConfig[index][key] == True: 
+            pagesConfig.append(dictName)
+
+        for index in range(len(pagesConfig)):
+            pageCfg = pagesConfig[index]
+            for key in pageCfg:
+                if pageCfg[key] == True:
+                   has = False
+                   cpage = self.doc.Pages.Item(index+1)
+                    # 多页面第二次去重
+                   for curLayer in cpage.AllLayers:
+                        if curLayer.Name == key:
+                            has = True
+
+                   if has == False:
                     self.doc.Pages.Item(index+1).CreateLayer(key)
-
 
     def __preprocess(self, determine, allLayers, pageIndex):
         for curLayer in allLayers:
