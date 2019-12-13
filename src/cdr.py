@@ -19,8 +19,19 @@ class CDR():
         if path:
             self.app.OpenDocument(path)
         self.doc = self.app.ActiveDocument
+        self.__initDefalutLayer()
         setPageTotal(self.doc.Pages.Count)
 
+    # 初始默认图层
+    def __initDefalutLayer(self):
+        count = 1
+        # for page in self.doc.Pages:
+            
+            # print(page.AllLayers.Count)
+            # for curLayer in page.AllLayers:
+            #     print(curLayer.Name,count)
+        
+            # count += 1
 
     def __preprocess(self, determine, allLayers, pageIndex):
         for curLayer in allLayers:
@@ -66,7 +77,6 @@ class CDR():
     def __findLayer(self,name):
         ActivePage = self.doc.ActivePage
   
-    
 
     # =================================== 对外 ===================================
 
@@ -97,15 +107,8 @@ class CDR():
         self.__accessData(pageIndex)
 
 
-    def drawDecorationTriangle1(self, name, style, points, position):
-        self.__findLayer(name)
-
-
     def drawDecorationTriangle(self, name, style, points, position):
-
         self.doc.Unit = 5
-
-        print(1,position)
 
         ActivePage = self.doc.ActivePage
         sizeheight = ActivePage.sizeheight
@@ -155,12 +158,4 @@ class CDR():
 
         sh.PositionX = positionX 
         sh.PositionY = positionY
-
- 
-
-    
-  
-
-        # spath.Closed = True
-   
 
