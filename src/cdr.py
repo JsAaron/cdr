@@ -154,8 +154,7 @@ class CDR():
 
         layer = ActivePage.CreateLayer("三角形")
         sh = layer.CreateCurve(crv)
-        sh.Fill.UniformColor.RGBAssign(255, 0, 0)
-
+        sh.Fill.UniformColor.RGBAssign(style['background-color'][0],style['background-color'][1],style['background-color'][2])
         sh.PositionX = positionX 
         sh.PositionY = positionY
 

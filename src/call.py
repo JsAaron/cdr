@@ -21,10 +21,10 @@ def togglePage():
     
 
 def drawDecorationTriangle():
-    CDR().drawDecorationTriangle("test","255, 0, 0",{"bottom":300,"left":600},'lefttop')   
-    CDR().drawDecorationTriangle("test","255, 0, 0",{"bottom":300,"right":600},'righttop')   
-    CDR().drawDecorationTriangle("test","255, 0, 0",{"top":300,"left":600},'leftbottom')   
-    CDR().drawDecorationTriangle("test","255, 0, 0",{"top":300,"right":600},'rightbottom')   
+    CDR().drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
+    CDR().drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"bottom":300,"right":600},'righttop')   
+    CDR().drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"top":300,"left":600},'leftbottom')   
+    CDR().drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')   
 
 if __name__ == '__main__':
     drawDecorationTriangle()
