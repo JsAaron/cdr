@@ -24,14 +24,26 @@ class CDR():
 
     # 初始默认图层
     def __initDefalutLayer(self):
-        count = 1
-        # for page in self.doc.Pages:
+        pageConfig = []
+        for page in self.doc.Pages:
+            dictName = {
+                "秒秒学板块":True,
+                "秒秒学装饰":True,
+                "秒秒学结构":True,
+                "秒秒学背景":True,
+                "秒秒学全局参数":True,
+            }
+            for curLayer in page.AllLayers:
+                if dictName.get(curLayer.Name) == True:
+                    dictName[curLayer.Name] = False
             
-            # print(page.AllLayers.Count)
-            # for curLayer in page.AllLayers:
-            #     print(curLayer.Name,count)
-        
-            # count += 1
+            pageConfig.append(dictName)
+
+        for index in range(len(pageConfig)):
+            for key in pageConfig[index]:
+                if pageConfig[index][key] == True: 
+                    self.doc.Pages.Item(index+1).CreateLayer(key)
+
 
     def __preprocess(self, determine, allLayers, pageIndex):
         for curLayer in allLayers:
@@ -74,9 +86,11 @@ class CDR():
 
 
     # 根据名称找到图层
-    def __findLayer(self,name):
-        ActivePage = self.doc.ActivePage
-  
+    def __getAssignLayer(self,name):
+       for curLayer in self.doc.ActivePage.AllLayers:
+            if curLayer.Name == name:
+                return curLayer
+
 
     # =================================== 对外 ===================================
 
@@ -152,7 +166,7 @@ class CDR():
         spath.AppendLineSegment(y, 0)
         spath.Closed = True
 
-        layer = ActivePage.CreateLayer("三角形")
+        layer = self.__getAssignLayer("秒秒学装饰")
         sh = layer.CreateCurve(crv)
         sh.Fill.UniformColor.RGBAssign(style['background-color'][0],style['background-color'][1],style['background-color'][2])
         sh.PositionX = positionX 
