@@ -121,6 +121,16 @@ class CDR():
         self.__accessData(pageIndex)
 
 
+    def groupDecorationTriangle(self):
+        sh1 = self.drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
+        sh2 = self.drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"bottom":300,"right":600},'righttop') 
+        sr = self.app.ActiveSelection.Shapes
+        for key in sr:
+            key.Layer = self.doc.ActiveLayer
+            key.Group(sh1)
+
+
+    # 创建边界三角形
     def drawDecorationTriangle(self, name, style, points, position):
         self.doc.Unit = 5
 
@@ -168,7 +178,13 @@ class CDR():
 
         layer = self.__getAssignLayer("秒秒学装饰")
         sh = layer.CreateCurve(crv)
+        sh.Name = '三角形' + position
         sh.Fill.UniformColor.RGBAssign(style['background-color'][0],style['background-color'][1],style['background-color'][2])
         sh.PositionX = positionX 
         sh.PositionY = positionY
+        return sh
 
+    
+    # 分栏文本
+    def insertColumnText(self):
+        print(1)

@@ -24,6 +24,7 @@ def togglePage():
 
 # 创建边界三角形
 def drawDecorationTriangle():
+    # CDR().groupDecorationTriangle()
     CDR().drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
     CDR().drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"bottom":300,"right":600},'righttop')   
     CDR().drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"top":300,"left":600},'leftbottom')   
@@ -31,8 +32,8 @@ def drawDecorationTriangle():
 
 
 if __name__ == '__main__':
-    # CDR()
     drawDecorationTriangle()
+    # drawDecorationTriangle()
     # drawDecorationTriangle()
     # togglePage()
     # print( test.get("aaaa") ==None)
