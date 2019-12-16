@@ -187,13 +187,66 @@ class CDR():
 
         layer = self.__getAssignLayer("秒秒学装饰")
         sh = layer.CreateCurve(crv)
-        sh.Name = '三角形' + position
+        sh.Name = name
         sh.Fill.UniformColor.RGBAssign(style['background-color'][0],style['background-color'][1],style['background-color'][2])
         sh.PositionX = positionX 
         sh.PositionY = positionY
         return sh
 
-    
+
+    #合并多个形状分组
+    # layer 指定层
+    # name 新的分组名字
+    # [s1,s2,s3...] 需要合并的对象明数组
+    def groupShape(self,layer,name,shapeNames):
+        parents = layer.FindShape(name)
+        if parents != None:
+           return parents
+
+        groupIndex = []
+        for index in range(len(layer.Shapes)):
+            itemIndex = index+1
+            item = layer.Shapes.Item(itemIndex)
+            if item.Name in shapeNames:
+                groupIndex.append(itemIndex)
+                
+        rs = layer.Shapes.Range(groupIndex)
+        g = rs.Group()
+        g.Name = name
+        return g
+
+    # def addGroupShape(self,original,target):
+
+
+
+
+
     # 分栏文本
     def insertColumnText(self):
-        print(1)
+        layer = self.__getAssignLayer("秒秒学装饰")
+        s1 =  layer.FindShape("test1")
+        s2 =  layer.FindShape("test2")
+        s3 =  layer.FindShape("test3")
+        s4 =  layer.FindShape("test4")
+
+        #  Shape.Group
+        if s1 == None:
+            s1 = self.drawDecorationTriangle("test1",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
+        
+        if s2 == None:
+            s2 = self.drawDecorationTriangle("test2",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')   
+     
+        if s3 == None:
+            s3 = self.drawDecorationTriangle("test3",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')   
+
+        if s4 == None:
+            s4 = self.drawDecorationTriangle("test4",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')   
+
+
+        groups = self.groupShape(layer,"测试群1",['test2','test3'])
+
+        # groups.Ungroup()
+        # s4.AddToPowerClip(groups)
+        # s1.AddToSelection (groups)
+        # self.addShapeToGroup(groups,'test4')
+ 
