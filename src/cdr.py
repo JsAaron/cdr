@@ -9,7 +9,6 @@ import prarm
 
 import urllib.parse
 import os
-from os import path
 import time
 
 class CDR():
@@ -94,11 +93,15 @@ class CDR():
                 count += 1
 
 
+
+    # =================================== 对外 ===================================
+
     # 根据名称找到图层
     def getAssignLayer(self,name):
        for curLayer in self.doc.ActivePage.AllLayers:
             if curLayer.Name == name:
                 return curLayer
+
 
     # 找到对应形状
     def getShape(self,name):
@@ -107,7 +110,6 @@ class CDR():
            return self.getAssignLayer(name)
         return s1
 
-    # =================================== 对外 ===================================
 
     # 切换页面
     def togglePage(self,pageIndex=1):
@@ -267,5 +269,5 @@ class CDR():
         # data = "{'path':'C%3A%5CUsers%5CAdministrator%5CDesktop%5C111%5C1.png'}"
         cmdStr = [vbPath, 'add:image', data]
         subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-        return self.__detectionImage(layer,path.basename(imagePath))
+        return self.__detectionImage(layer,os.path.basename(imagePath))
 
