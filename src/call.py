@@ -31,11 +31,22 @@ def drawDecorationTriangle():
     CDR().drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')   
 
 
-def insertColumnText():
-    CDR().insertColumnText()
+#测试图片裁剪
+def testPowerClip():
+    d1 = CDR()
+    layer = d1.getShape("秒秒学装饰")
+    # 必须设置活动的layer，这样调用vb.exe才会在这个layer的内部
+    layer.Activate()
+    imgShape = d1.addImage(layer,"C:\\Users\\Administrator\\Desktop\\111\\1.png")
+    #设置单位像素
+    d1.doc.Unit = 5
+    ellipse = layer.CreateEllipse(100, 100, 500, 500)
+    imgShape.AddToSelection()
+    imgShape.AddToPowerClip(ellipse)
+
 
 if __name__ == '__main__':
-    insertColumnText()
+    testPowerClip()
     # drawDecorationTriangle()
     # drawDecorationTriangle()
     # drawDecorationTriangle()

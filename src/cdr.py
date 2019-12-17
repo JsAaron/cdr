@@ -10,7 +10,7 @@ import prarm
 import urllib.parse
 import os
 from os import path
-
+import time
 
 class CDR():
 
@@ -100,6 +100,12 @@ class CDR():
             if curLayer.Name == name:
                 return curLayer
 
+    # 找到对应形状
+    def getShape(self,name):
+        s1 = self.doc.ActiveLayer.FindShape(name)
+        if s1 == None:
+           return self.getAssignLayer(name)
+        return s1
 
     # =================================== 对外 ===================================
 
@@ -240,6 +246,16 @@ class CDR():
             return groupObj
 
 
+    # 探测图片是否已经创建
+    def __detectionImage(self,layer,imageName):
+        obj = layer.FindShape(imageName)
+        if obj == None:
+            time.sleep(0.5)
+            return self.__detectionImage(layer,imageName)
+        else:
+            return obj
+         
+
     # 添加图片
     # imagePath："C:\\Users\\Administrator\\Desktop\\111\\1.png"
     def addImage(self,layer,imagePath):
@@ -251,53 +267,5 @@ class CDR():
         # data = "{'path':'C%3A%5CUsers%5CAdministrator%5CDesktop%5C111%5C1.png'}"
         cmdStr = [vbPath, 'add:image', data]
         subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-        # 强制读取一次
-        CDR()
-        return layer.FindShape(path.basename(imagePath))
-
-
-    # 分栏文本
-    def insertColumnText(self):
-        layer = self.getAssignLayer("秒秒学装饰")
-        s1 =  layer.FindShape("test1")
-        s2 =  layer.FindShape("test2")
-        s3 =  layer.FindShape("test3")
-        s4 =  layer.FindShape("test4")
-
-        #  Shape.Group
-        # if s1 == None:
-        #     s1 = self.drawDecorationTriangle("test1",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
-        
-        # if s2 == None:
-        #     s2 = self.drawDecorationTriangle("test2",{"background-color":[255, 0, 0]},{"bottom":300,"right":600},'righttop')   
-     
-        # if s3 == None:
-        #     s3 = self.drawDecorationTriangle("test3",{"background-color":[255, 0, 0]},{"top":300,"left":600},'leftbottom')   
-
-        # if s4 == None:
-        #     s4 = self.drawDecorationTriangle("test4",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')   
-
-        # # 创建一个组对象
-        # newGroups = self.groupShape(layer,"测试群1",['test1','test2'])
-
-       # 必须设置活动的layer，这样调用vb.exe才会在这个layer的内部
-        layer.Activate()
-
-        imgShape = self.addImage(layer,"C:\\Users\\Administrator\\Desktop\\111\\1.png")
-        print(imgShape)
-
-        self.doc.Unit = 5
-        ellipse = layer.CreateEllipse(100, 100, 500, 500)
-        imgShape.AddToSelection()
-        imgShape.AddToPowerClip(ellipse)
-        # ActivePage = self.doc.ActivePage
-        # sizeheight = ActivePage.sizeheight
-        # sizewidth = ActivePage.sizewidth
-
-        # self.doc.ReferencePoint = 1
-        # s2.positionX = sizewidth
-        # s2.PositionY = sizeheight
-
-        # 往组对象，添加2个新的对象
-        # self.addShapeToGroup(newGroups,['test1','test4'])
+        return self.__detectionImage(layer,path.basename(imagePath))
 
