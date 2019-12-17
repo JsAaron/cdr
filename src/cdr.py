@@ -249,11 +249,16 @@ class CDR():
 
 
     # 探测图片是否已经创建
-    def __detectionImage(self,layer,imageName):
+    # 默认探测5次
+    def __detectionImage(self,layer,imageName,count = 5):
         obj = layer.FindShape(imageName)
+        # 探测结束
+        if count == 0:
+            return obj
         if obj == None:
             time.sleep(0.5)
-            return self.__detectionImage(layer,imageName)
+            count = count-1
+            return self.__detectionImage(layer,imageName,count)
         else:
             return obj
          
