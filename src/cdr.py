@@ -20,6 +20,7 @@ class CDR():
         self.doc = self.app.ActiveDocument
         self.__initDefalutLayer()
         setPageTotal(self.doc.Pages.Count)
+        self.togglePage(1)
 
     # 初始默认图层
     def __initDefalutLayer(self):
@@ -92,23 +93,26 @@ class CDR():
                 self.__accessExtractTextData(page, count)
                 count += 1
 
-
-
     # =================================== 对外 ===================================
 
-    # 根据名称找到图层
-    def getAssignLayer(self,name):
-       for curLayer in self.doc.ActivePage.AllLayers:
-            if curLayer.Name == name:
-                return curLayer
+    # name 根据名称找到图层
+    # page 指定页面搜索layer
+    def getLayer(self,name):
+        s1 = self.doc.ActiveLayer.FindShape(name)
+        if s1 == None:
+            for curLayer in self.doc.ActivePage.AllLayers:
+                    if curLayer.Name == name:
+                        return curLayer
+        return s1
 
 
     # 找到对应形状
-    def getShape(self,name):
-        s1 = self.doc.ActiveLayer.FindShape(name)
-        if s1 == None:
-           return self.getAssignLayer(name)
-        return s1
+    # name 形状名
+    # layer 指定层
+    def getShape(self,name,layer = None):
+        if layer != None:
+           return layer.FindShape(name)
+        return  self.doc.ActiveLayer.FindShape(name)
 
 
     # 切换页面
@@ -120,8 +124,13 @@ class CDR():
         if pageIndex > self.doc.Pages.Count:
            print("设置页码数大于总页数")
            return
-        self.doc.Pages.Item(pageIndex).Activate()
-        return self.get(pageIndex)
+
+        if self.app.ActivePage.Index == pageIndex:
+           return
+
+        page = self.doc.Pages.Item(pageIndex)
+        page.Activate()
+        return page
 
 
     # 获取所有数据段
@@ -193,7 +202,7 @@ class CDR():
         spath.AppendLineSegment(y, 0)
         spath.Closed = True
 
-        layer = self.getAssignLayer("秒秒学装饰")
+        layer = self.getLayer("秒秒学装饰")
         sh = layer.CreateCurve(crv)
         sh.Name = name
         sh.Fill.UniformColor.RGBAssign(style['background-color'][0],style['background-color'][1],style['background-color'][2])
@@ -206,10 +215,10 @@ class CDR():
     # layer 指定层
     # name 新的分组名字
     # [s1,s2,s3...] 需要合并的对象名称数组
-    def groupShape(self,layer,name,shapeNames):
-        parents = layer.FindShape(name)
-        if parents != None:
-           return parents
+    def groupShape(self,layer,groupName,shapeNames):
+        existShape = layer.FindShape(groupName)
+        if existShape != None:
+           return existShape
 
         groupIndex = []
         for index in range(len(layer.Shapes)):
@@ -217,11 +226,12 @@ class CDR():
             item = layer.Shapes.Item(itemIndex)
             if item.Name in shapeNames:
                 groupIndex.append(itemIndex)
-                
+
         rs = layer.Shapes.Range(groupIndex)
-        g = rs.Group()
-        g.Name = name
-        return g
+        newGroup = rs.Group()
+        newGroup.Name = groupName
+        return newGroup
+
 
     # 增加形状对象到组对象
     # 组对象groupObj
@@ -276,3 +286,26 @@ class CDR():
         subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         return self.__detectionImage(layer,os.path.basename(imagePath))
 
+
+    #复制对象
+    def cloneShape(self,obj, newname):
+        newObj = obj.Clone()
+        newObj.Name = newname
+        return 
+
+
+    # 创建或者读取组对象
+    # groupName 组的名字
+    # layerName 层名字
+    def accessGroup(self,groupName,layerName = None):
+        layer = self.doc.ActiveLayer
+        if layerName != None:
+            layer = self.getLayer(layerName)
+        groupObj = layer.FindShape(groupName)
+        if groupObj != None:
+            return groupObj
+        self.doc.Unit = 5
+        self.doc.ReferencePoint = 3
+        layer.CreateLineSegment(0,0,1,1).Name = "placeholder1"
+        layer.CreateLineSegment(0,0,1,1).Name = "placeholder2"
+        return self.groupShape(layer,groupName,['placeholder1','placeholder2'])

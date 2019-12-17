@@ -34,7 +34,7 @@ def drawDecorationTriangle():
 #测试图片裁剪
 def testPowerClip():
     d1 = CDR()
-    layer = d1.getShape("秒秒学装饰")
+    layer = d1.getLayer("秒秒学装饰")
     # 必须设置活动的layer，这样调用vb.exe才会在这个layer的内部
     layer.Activate()
     imgShape = d1.addImage(layer,"C:\\Users\\Administrator\\Desktop\\111\\1.png")
@@ -45,8 +45,41 @@ def testPowerClip():
     imgShape.AddToPowerClip(ellipse)
 
 
+# 测试分组
+def testGroup():
+    cdrObj = CDR()
+    layer = cdrObj.getLayer("秒秒学装饰")
+    s1 =  layer.FindShape("test1")
+    s2 =  layer.FindShape("test2")
+    s3 =  layer.FindShape("test3")
+    s4 =  layer.FindShape("test4")
+
+    # 创建4个边界三角形
+    if s1 == None:
+        s1 = cdrObj.drawDecorationTriangle("test1",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
+    if s2 == None:
+        s2 = cdrObj.drawDecorationTriangle("test2",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')   
+    if s3 == None:
+        s3 = cdrObj.drawDecorationTriangle("test3",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')  
+    if s4 == None:
+        s4 = cdrObj.drawDecorationTriangle("test4",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')   
+
+
+    # # 创建一个组对象
+    # cdrObj.groupShape(layer,"组1",['test1','test2'])
+
+    # 在秒秒学结构层下 创建占位组名占位组
+    # cdrObj.accessGroup("占位组",'秒秒学结构')
+
+
+    # 往组对象，添加2个新的对象
+    # cdrObj.addShapeToGroup(newGroups,['test1','test4'])
+
+
+
 if __name__ == '__main__':
-    testPowerClip()
+    # testPowerClip()
+    testGroup()
     # drawDecorationTriangle()
     # drawDecorationTriangle()
     # drawDecorationTriangle()
