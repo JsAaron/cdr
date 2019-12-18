@@ -80,8 +80,11 @@ def testGroup():
 # 测试组对象占位
 def testAccessGroup():
     cdrObj = CDR()
-    cdrObj.accessGroup("占位组",'秒秒学装饰')
-
+    layerObj = cdrObj.getLayer('秒秒学装饰')
+    g1 = cdrObj.accessGroup("占位组",layerObj)
+    g2 = cdrObj.accessGroup("子组占位组1",g1,layerObj)
+    # cdrObj.accessGroup("子组占位组2",g2,layerObj)
+    # cdrObj.accessGroup("子组占位组2",g2,layerObj)
 
 
 if __name__ == '__main__':

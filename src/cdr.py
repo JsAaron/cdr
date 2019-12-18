@@ -14,6 +14,7 @@ import time
 
 DEFAULTLINEHEIGHT = 5.5  # mm
 
+
 class CDR():
 
     def __init__(self, path=""):
@@ -29,11 +30,11 @@ class CDR():
         self.togglePage(1)
         setPageTotal(self.doc.Pages.Count)
         # adjust original point to top for double-page
-        if self.doc.ActivePage.TOPY > 0 :
+        if self.doc.ActivePage.TOPY > 0:
             self.doc.DrawingOriginY = self.doc.ActivePage.TOPY / 2
 
-
     # 初始默认图层
+
     def __initDefalutLayer(self):
         pagesConfig = []
         for page in self.doc.Pages:
@@ -65,16 +66,13 @@ class CDR():
                    if has == False:
                     self.doc.Pages.Item(index+1).CreateLayer(key)
 
-
     def __preprocess(self, determine, allLayers, pageIndex):
         for curLayer in allLayers:
             determine.initField(curLayer.Name, curLayer.Shapes, pageIndex)
 
-
     def __accessInput(self,  determine, allLayers, pageIndex):
         for curLayer in allLayers:
             Input.accessShape(self.doc,  curLayer.Shapes, determine, pageIndex)
-
 
     def __setImage(self, determine, allLayers, pageIndex):
         visibleLayerName = determine.getVisibleField()
@@ -84,7 +82,6 @@ class CDR():
             # 设置状态，处理层级可见性
             determine.setLayerVisible(curLayer, visibleLayerName)
 
-
     def __accessExtractTextData(self, pageObj, pageIndex):
         allLayers = pageObj.AllLayers
         determine = Determine()
@@ -93,7 +90,6 @@ class CDR():
         # 设置图片/层的可见性
         if prarm.cmdCommand == "set:text":
             self.__setImage(determine, allLayers, pageIndex)
-
 
     def __accessData(self, pageIndex):
         if pageIndex:
@@ -105,10 +101,9 @@ class CDR():
                 self.__accessExtractTextData(page, count)
                 count += 1
 
-
      # 探测图片是否已经创建
     # 默认探测5次
-    def __detectionImage(self,layer,imageName,count = 10):
+    def __detectionImage(self, layer, imageName, count=10):
         obj = layer.FindShape(imageName)
         # 探测结束
         if count == 0:
@@ -116,10 +111,12 @@ class CDR():
         if obj == None:
             time.sleep(0.1)
             count = count-1
-            return self.__detectionImage(layer,imageName,count)
+            return self.__detectionImage(layer, imageName, count)
         else:
             return obj
-         
+
+
+
     # =================================== 基础方法 ===================================
 
     # 获取所有数据段
@@ -138,7 +135,7 @@ class CDR():
 
     # name 根据名称找到图层
     # page 指定页面搜索layer
-    def getLayer(self,name):
+    def getLayer(self, name):
         s1 = self.doc.ActiveLayer.FindShape(name)
         if s1 == None:
             for curLayer in self.doc.ActivePage.AllLayers:
@@ -148,16 +145,21 @@ class CDR():
 
 
     # 找到对应形状
-    # name 形状名
-    # layer 指定层
-    def getShape(self,name,layer = None):
-        if layer != None:
-           return layer.FindShape(name)
-        return  self.doc.ActiveLayer.FindShape(name)
+    # range layer/shape 查找形状的返回，
+    # name  形状名
+    # 查询的返回对应
+    def getShape(self, queryType, obj ,name):
+        if queryType == "layer":
+            if obj != None:
+                return obj.FindShape(name)
+            return self.doc.ActiveLayer.FindShape(name)
+
+        if queryType == "group":
+            return obj.Shapes.FindShape(name)
 
 
     # 切换页面
-    def togglePage(self,pageIndex=1):
+    def togglePage(self, pageIndex=1):
         if pageIndex == 0:
            print("pageIndex不能为0")
            return
@@ -181,23 +183,24 @@ class CDR():
 
     # 添加图片
     # imagePath："C:\\Users\\Administrator\\Desktop\\111\\1.png"
-    def addImage(self,layer,imagePath):
+    def addImage(self, layer, imagePath):
         # 路径转码
-        data = "{'path':'"+ urllib.parse.quote(imagePath)  +"'}"
+        data = "{'path':'" + urllib.parse.quote(imagePath) + "'}"
         parent = os.path.dirname(os.path.realpath(__file__))
         vbPath = parent + '\\vb\\ConsoleApp.exe'
         # 参数只有一个路径
         # data = "{'path':'C%3A%5CUsers%5CAdministrator%5CDesktop%5C111%5C1.png'}"
         cmdStr = [vbPath, 'add:image', data]
-        subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-        return self.__detectionImage(layer,os.path.basename(imagePath))
+        subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
+                         stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        return self.__detectionImage(layer, os.path.basename(imagePath))
 
 
-    #合并多个形状分组
+    # 合并多个形状分组
     # layer 指定层
     # name 新的分组名字
     # [s1,s2,s3...] 需要合并的对象名称数组
-    def groupShape(self,layer,groupName,shapeNames):
+    def groupShape(self, layer, groupName, shapeNames):
         existShape = layer.FindShape(groupName)
         if existShape != None:
            return existShape
@@ -218,10 +221,16 @@ class CDR():
     # 增加形状对象到组对象
     # 组对象groupObj
     # 加入的形状名 newShapeName [name1,name2,name3....]
-    def addShapeToGroup(self,groupObj,newShapeName):
+    # 定义返回子对象
+    def addShapeToGroup(self, groupObj, newShapeName,rSubObj=None):
+
+        if isinstance(newShapeName, str) == True:
+            newShapeName = [newShapeName]
+
         groupName = groupObj.Name
         createNames = []
         parentLayer = groupObj.Layer
+
         for key in groupObj.Shapes:
             createNames.append(key.Name)
 
@@ -232,47 +241,96 @@ class CDR():
             if has == False:
                newAdd = True
                createNames.append(newShapeName[index])
-               
+
         if newAdd == True:
             groupObj.Ungroup()
-            return self.groupShape(parentLayer,groupName,createNames)
+            newObj = self.groupShape(parentLayer, groupName, createNames)
+            if rSubObj == True:
+                #指定返回子对象
+                return self.getShape('group',newObj, newShapeName[0])
+            else:
+               return newObj
         else:
             return groupObj
 
 
-    #复制对象
+    # 复制对象
     # obj是一个对象，也可以是一个组
     # newname是复制后对象的名字
-    def cloneShape(self,obj,newname):
+    def cloneShape(self, obj, newname):
         newObj = obj.Duplicate()
         newObj.Name = newname
         return newObj
 
 
-    # 创建或者读取组对象
-    # groupName 组的名字
-    # layerName 层名字
-    def accessGroup(self,groupName,layerName = None):
-        layer = self.doc.ActiveLayer
-        if layerName != None:
-            layer = self.getLayer(layerName)
-        groupObj = layer.FindShape(groupName)
-        if groupObj != None:
-            return groupObj
+    # 判断变量类型
+    def getType(self,variate):
+        type = None
+        if isinstance(variate, int):
+            type = "int"
+        elif isinstance(variate, str):
+            type = "str"
+        elif isinstance(variate, float):
+            type = "float"
+        elif isinstance(variate, list):
+            type = "list"
+        elif isinstance(variate, tuple):
+            type = "tuple"
+        elif isinstance(variate, dict):
+            type = "dict"
+        return type
+
+
+    # 创建占位对象
+    def createPlaceholder(self, layerObj):
         self.doc.Unit = 5
         self.doc.ReferencePoint = 3
-        placeholder = layer.CreateLineSegment(10,10,11,11)
-        placeholder.Name = "placeholder1"
-        placeholder.Outline.Type = 0
-        placeholder = layer.CreateLineSegment(10,10,11,11)
-        placeholder.Name = "placeholder2"
-        placeholder.Outline.Type = 0
-        return self.groupShape(layer,groupName,['placeholder1','placeholder2'])
+        placeholderObj1 = layerObj.CreateLineSegment(10, 10, 11, 11)
+        placeholderObj1.Name = "placeholder1"
+        placeholderObj1.Outline.Type = 0
+        placeholderObj1.AddToSelection()
+
+        placeholderObj2 = layerObj.CreateLineSegment(10, 10, 11, 11)
+        placeholderObj2.Name = "placeholder2"
+        placeholderObj2.Outline.Type = 0
+        placeholderObj2.AddToSelection()
+  
+
+    # 创建或者读取组对象
+    # createGroupName 需要创建的组的名字
+    # parentLayerName 搜索的层名字
+    # parentGroupName 在指定的组里面继续创建
+
+    # 创建组 accessGroup(createGroupName,layerObj)
+    # 创建嵌套组 accessGroup(createGroupName, parentGroupObj ,layerObj)
+    def accessGroup(self,createGroupName, layerObj = None, parentGroupObj = None):
+        # 提供父组
+        if parentGroupObj != None:
+            swop = layerObj
+            layerObj = parentGroupObj
+            parentGroupObj = swop
+
+        newGroupObj = None
+        if parentGroupObj == None:  
+            newGroupObj = self.getShape('layer',layerObj, createGroupName)
+            if newGroupObj == None:
+                self.createPlaceholder(layerObj)
+                newGroupObj = self.groupShape(layerObj,createGroupName,['placeholder1','placeholder2'])
+                return newGroupObj
+            else:
+                return newGroupObj
+        else:
+            newGroupObj = self.getShape('group',parentGroupObj, createGroupName)
+            if newGroupObj == None:
+                self.createPlaceholder(layerObj)
+                newGroupObj = self.groupShape(layerObj,createGroupName,['placeholder1','placeholder2'])
+                newGroupObj.AddToPowerClip(parentGroupObj)
+                return newGroupObj
+            else:
+                return newGroupObj
 
 
-
-
-    #=========================================== 扩展 =======================================================
+    # =========================================== 扩展 =======================================================
 
 
     def groupDecorationTriangle(self):
@@ -355,6 +413,7 @@ class CDR():
                             break
         pass
     
+
     # convert coordinates
     # in common sense, the coordinate should start at left top and y axis is down, so is is the think of people
     # which write from left to right, from top to bottom
@@ -369,10 +428,12 @@ class CDR():
             bound[2] += lx
         return bound
 
+
     # revert clac
     def revertCood(self, xvalue):
         lx = self.doc.ActivePage.LeftX
         return xvalue - lx
+
 
     # insert paragraph text
     # bound: text bound, height will be auto calc, maybe not in bound
@@ -387,7 +448,7 @@ class CDR():
             # adjust it's bound
             story = theobj.Text.Story.Text
             # for unknown, can't simple replace content, or there will be font error
-            #if story != content:
+            # if story != content:
             #    theobj.Text.Replace(story, content, True)
             #    # now the height changes, we should totaly reassign the height
             #    newHeight = DEFAULTLINEHEIGHT
@@ -419,7 +480,7 @@ class CDR():
             # adjust it's bound
             story = theobj.Text.Story.Text
             # for unknown, can't simple replace content
-            #if story != content:
+            # if story != content:
             #    theobj.Text.Replace(story, content, True)
             self.moveObj(theobj, oribound)
             return theobj
@@ -448,6 +509,7 @@ class CDR():
             theobj.ApplyStyle('无轮廓')
         theobj.Name = name
         return theobj
+
 
     # insert powerclip from rectangle
     def insertPowerclip(self, oribound, name='图片', round = 0, style = '图文框'):
