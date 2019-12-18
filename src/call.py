@@ -77,9 +77,17 @@ def testGroup():
 
 
 
+# 测试组对象占位
+def testAccessGroup():
+    cdrObj = CDR()
+    cdrObj.accessGroup("占位组",'秒秒学装饰')
+
+
+
 if __name__ == '__main__':
     # testPowerClip()
-    testGroup()
+    testAccessGroup()
+    # testGroup()
     # drawDecorationTriangle()
     # drawDecorationTriangle()
     # drawDecorationTriangle()
