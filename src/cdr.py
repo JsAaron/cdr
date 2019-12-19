@@ -12,6 +12,7 @@ import os
 import time
 
 
+
 DEFAULTLINEHEIGHT = 5.5  # mm
 
 
@@ -179,7 +180,7 @@ class CDR():
         layer = self.getLayer(layername)
         if layer != None:
             layer.Activate()
-
+        return layer
 
     # 添加图片
     # imagePath："C:\\Users\\Administrator\\Desktop\\111\\1.png"
@@ -217,6 +218,70 @@ class CDR():
         newGroup.Name = groupName
         return newGroup
 
+    # inesert placeholder, all placeholder is the same name
+    def insertPlaceholder(self, layerObj):
+        placeholderObj = layerObj.CreateLineSegment(10, 10, 11, 11)
+        placeholderObj.Name = "placeholder"
+        placeholderObj.Outline.Type = 0
+        return placeholderObj
+       
+    # move shapes into existing groupobj
+    def moveShapeToGroup(self, groupobj, shapeObjs):
+        firstmember = groupobj.Shapes.Item(1)
+        allIds = [k.StaticID for k in groupobj.Shapes]
+        for shape in shapeObjs:
+            if shape.StaticID in allIds:  # shape already in group
+                continue
+            else:
+                shape.OrderFrontOf(firstmember)
+        return groupobj
+    
+    # 合并多个形状分组
+    # layer 指定层
+    # name 新的分组名字
+    # [s1,s2,s3...] 需要合并的对象名称数组
+    # shapeObjs must in layerObj, but maynot in parentobj
+    def groupShapeObjs(self, layerObj, groupName, parentobj = None, shapeObjs = []):
+        # first try to find the group, shape object has not Findshape method
+        if parentobj == None:
+            parentobj = layerObj
+
+        groupObj = None
+        for shape in parentobj.Shapes:
+            if shape.Name == groupName:
+                groupObj = shape
+                break
+
+        #if shapeObjs dont have enough objects, add placeholder
+        if len(shapeObjs) < 1:
+            shapeObjs.append(self.insertPlaceholder(layerObj))
+        if len(shapeObjs) < 2:
+            shapeObjs.append(self.insertPlaceholder(layerObj)) 
+
+        # new group must has at least two shapeObjs
+        if groupObj == None:
+            if len(shapeObjs) < 2:  # should not happen because we add placeholder, anyway keep it for safe
+                return None
+            else:           #create new group
+                # if it does has parentgroup, move to parent first
+                if parentobj != layerObj:
+                    self.moveShapeToGroup(parentobj, shapeObjs)
+                # then make new group
+                groupIndex = []
+                shapeIDs = [k.StaticID for k in shapeObjs]
+                for index in range(len(parentobj.Shapes)):
+                    itemIndex = index + 1
+                    item = parentobj.Shapes.Item(itemIndex)
+                    if item.StaticID in shapeIDs:
+                        groupIndex.append(itemIndex)
+
+                rs = parentobj.Shapes.Range(groupIndex)
+                newGroup = rs.Group()
+                if newGroup != None:
+                    newGroup.Name = groupName
+                return newGroup
+        else:       # Already has group
+            return self.moveShapeToGroup(groupObj, shapeObjs)
 
     # 增加形状对象到组对象
     # 组对象groupObj
@@ -283,7 +348,6 @@ class CDR():
 
     # 创建占位对象
     def createPlaceholder(self, layerObj):
-        self.doc.Unit = 5
         self.doc.ReferencePoint = 3
         placeholderObj1 = layerObj.CreateLineSegment(10, 10, 11, 11)
         placeholderObj1.Name = "placeholder1"
@@ -344,7 +408,6 @@ class CDR():
 
     # 创建边界三角形
     def drawDecorationTriangle(self, name, style, points, position):
-        self.doc.Unit = 5
 
         ActivePage = self.doc.ActivePage
         sizeheight = ActivePage.sizeheight
@@ -461,7 +524,7 @@ class CDR():
                 self.adjustParaTextHeight(theobj)
             return theobj
         bound = self.convertCood(oribound)
-        theobj = self.doc.ActiveLayer.CreateParagraphText(bound[0], -1 * bound[3], bound[2], -1 * bound[1], content, 0, -1)
+        theobj = self.doc.ActiveLayer.CreateParagraphText(bound[0], -1 * bound[1] , bound[2], -1 * bound[1] - 1, content, 0, -1)
         theobj.ApplyStyle(style)
         theobj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
         theobj.Name = name
@@ -531,7 +594,7 @@ class CDR():
 
 
     # insert line
-    def insertLine(self, oribound, name='分隔线', style = '粗分隔线'):
+    def insertLine(self, oribound, name='分隔线', style = '粗分隔线', type = 'horizontal'):
         lineobj = self.doc.ActiveLayer.FindShape(name)
         if lineobj != None:
             # adjust it's bound
@@ -539,7 +602,12 @@ class CDR():
             self.sizeObj(lineobj, oribound, withheight = False)
             return lineobj
         bound = self.convertCood(oribound)
-        lineobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[2], -1*bound[3])
+        if type == 'horizontal':
+            lineobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[2], -1*bound[1])
+        elif type == 'vertical':
+            lineobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[0], -1*bound[3])
+        else:
+            lineobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[2], -1*bound[3])
         lineobj.ApplyStyle(style)
         lineobj.Name = name
         return lineobj
