@@ -77,11 +77,13 @@ def addShapeToGroup():
     s1 =  layerObj.FindShape("test1")
     if s1 == None:
        s1 = cdrObj.drawDecorationTriangle("test1",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
-    cdrObj.addShapeToGroup(g1,s1)
+       
+    cdrObj.addShapeToGroup(g4,s1)
 
 
 
 if __name__ == '__main__':
+    addShapeToGroup()
     # testPowerClip()
     # testAccessGroup()
     # testGroup()

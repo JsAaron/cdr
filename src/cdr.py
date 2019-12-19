@@ -163,19 +163,22 @@ class CDR():
         return s1
 
 
-    def getGroupShape(self, obj ,name):
-        return obj.Shapes.FindShape(name)
+    # 找到当前组内的形状
+    def getSubShape(self, parentobj ,name):
+        groupObj = None
+        for shape in parentobj.Shapes:
+            if shape.Name == parentobj:
+                groupObj = shape
+                break
+        return groupObj
 
 
-    # 获取组形状合计
-    # 默认只搜索当前一层子级
-    def getSubShapes(self, groupObj ,name,):
+    # 找到当前组内的形状合集
+    def getSubShapes(self, parentobj ,name):
         groupShapes = []
-        for index in range(len(groupObj.Shapes)):
-            itemIndex = index + 1
-            item = groupObj.Shapes.Item(itemIndex)
-            if item.Name == name:
-                groupShapes.append(item)
+        for shape in parentobj.Shapes:
+            if shape.Name == name:
+                groupShapes.append(shape)
         return groupShapes
 
 
@@ -270,7 +273,7 @@ class CDR():
         if parentobj == None:
             parentobj = layerObj
 
-        groupObj = self.getGroupShape(parentobj,groupName)
+        groupObj = self.getSubShape(parentobj,groupName)
 
         # new group must has at least two shapeObjs
         if groupObj == None:
@@ -306,26 +309,6 @@ class CDR():
             return self.moveShapeToGroup(groupObj, shapeObjs)
 
 
-    # 从组中移除指定的对象2
-    # layerObj layer层
-    # groupObjs  组对象
-    # removeObj 需要移除的对象
-    def removGroupShapeObjs(self, layerObj, groupObjs, removeObj = None ):
-        # 如果是在layerObj下移除对象
-        if removeObj == None:
-            groupObjs = layerObj
-            removeObj = groupObjs
-            
-        # for index in range(len(groupObjs.Shapes)):
-        #     itemIndex = index + 1
-        #     item = groupObjs.Shapes.Item(itemIndex)
-        #     print(item)
-
-        # placeholderObj = self.insertPlaceholder(layerObj)
-        # print(removeObj.Name)
-        # removeObj.Delete()
-
-
     # 增加形状对象到组对象
     def addShapeToGroup(self,groupObj, shapeObj):
         firstmember = groupObj.Shapes.Item(1)
@@ -355,6 +338,27 @@ class CDR():
                     item.OrderFrontOf(firstObj)
             delGroupObj.Delete()    
         return groupObj
+
+
+    # 从组中移除指定的对象2
+    # layerObj layer层
+    # groupObjs  组对象
+    # removeObj 需要移除的对象
+    def removGroupShapeObjs(self, layerObj, groupObjs, removeObj = None ):
+        # 如果是在layerObj下移除对象
+        if removeObj == None:
+            groupObjs = layerObj
+            removeObj = groupObjs
+            
+        # for index in range(len(groupObjs.Shapes)):
+        #     itemIndex = index + 1
+        #     item = groupObjs.Shapes.Item(itemIndex)
+        #     print(item)
+
+        # placeholderObj = self.insertPlaceholder(layerObj)
+        # print(removeObj.Name)
+        # removeObj.Delete()
+
 
 
     # 复制对象
