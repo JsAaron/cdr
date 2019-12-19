@@ -77,13 +77,50 @@ def addShapeToGroup():
     s1 =  layerObj.FindShape("test1")
     if s1 == None:
        s1 = cdrObj.drawDecorationTriangle("test1",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
-       
+
+    # 增加一个对象到组
     cdrObj.addShapeToGroup(g4,s1)
 
 
+# 从组中删除一个对象，维持组的持久性
+def removGroupShapeObjs():
+    cdrObj = CDR()
+    layerObj = cdrObj.getLayer('秒秒学装饰')
+    g1 = cdrObj.groupShapeObjs(layerObj,"占位组",)
+    g2 = cdrObj.groupShapeObjs(layerObj,"子组占位组1",g1)
+    g3 = cdrObj.groupShapeObjs(layerObj,"子组占位组2",g2)
+    g4 = cdrObj.groupShapeObjs(layerObj,"子组占位组3",g3)
+
+    s1 =  layerObj.FindShape("test1")
+    if s1 == None:
+       s1 = cdrObj.drawDecorationTriangle("test1",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
+
+    # 增加一个对象到组
+    cdrObj.addShapeToGroup(g4,s1)
+    # 从组中删除一个对象，但是保持组的持久性
+    cdrObj.removGroupShapeObjs(g4,s1)
+
+
+# 从组中删除一个对象，不维持持组的持久性
+def deleteGroupShapeObjs():
+    cdrObj = CDR()
+    layerObj = cdrObj.getLayer('秒秒学装饰')
+    g1 = cdrObj.groupShapeObjs(layerObj,"占位组",)
+    g2 = cdrObj.groupShapeObjs(layerObj,"子组占位组1",g1)
+    g3 = cdrObj.groupShapeObjs(layerObj,"子组占位组2",g2)
+    g4 = cdrObj.groupShapeObjs(layerObj,"子组占位组3",g3)
+
+    s1 =  layerObj.FindShape("test1")
+    if s1 == None:
+       s1 = cdrObj.drawDecorationTriangle("test1",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
+
+    # 增加一个对象到组
+    cdrObj.addShapeToGroup(g4,s1)
+    cdrObj.deleteGroupShapeObjs(g4,s1)
 
 if __name__ == '__main__':
-    addShapeToGroup()
+    removGroupShapeObjs()
+    # deleteGroupShapeObjs()
     # testPowerClip()
     # testAccessGroup()
     # testGroup()

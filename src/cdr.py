@@ -116,7 +116,12 @@ class CDR():
         else:
             return obj
 
-
+    # 移动形状到缓存
+    def __moveShapeToCache(self,layerObj,shapeObj):
+        delGroupObj = self.createDeleteCache(layerObj)
+        firstObj = delGroupObj.Shapes.Item(1)
+        shapeObj.OrderFrontOf(firstObj)
+        delGroupObj.Delete() 
 
     # =================================== 基础方法 ===================================
 
@@ -173,6 +178,16 @@ class CDR():
         return groupObj
 
 
+    # 通过ID过去形状对象
+    def getSubShapeById(self, parentObj ,shapeObj):
+        groupObj = None
+        for shape in parentObj.Shapes:
+            if shape.StaticID == shapeObj.StaticID:
+                groupObj = shape
+                break
+        return groupObj
+
+
     # 找到当前组内的形状合集
     def getSubShapes(self, parentobj ,name):
         groupShapes = []
@@ -221,28 +236,6 @@ class CDR():
         return self.__detectionImage(layer, os.path.basename(imagePath))
 
 
-    # 合并多个形状分组
-    # layer 指定层
-    # name 新的分组名字
-    # [s1,s2,s3...] 需要合并的对象名称数组
-    def groupShape(self, layer, groupName, shapeNames):
-        existShape = layer.FindShape(groupName)
-        if existShape != None:
-           return existShape
-
-        groupIndex = []
-        for index in range(len(layer.Shapes)):
-            itemIndex = index+1
-            item = layer.Shapes.Item(itemIndex)
-            if item.Name in shapeNames:
-                groupIndex.append(itemIndex)
-
-        rs = layer.Shapes.Range(groupIndex)
-        newGroup = rs.Group()
-        newGroup.Name = groupName
-        return newGroup
-
-
     # inesert placeholder, all placeholder is the same name
     def insertPlaceholder(self, layerObj):
         placeholderObj = layerObj.CreateLineSegment(10, 10, 11, 11)
@@ -262,6 +255,14 @@ class CDR():
                 shape.OrderFrontOf(firstmember)
         return groupobj
     
+
+    # find whether a shape is in a group
+    def findShapeInGroup(self, groupobj, shapename):
+        for shape in groupobj.Shapes:
+            if shape.Name == shapename:
+                return shape
+        return None
+
 
     # 合并多个形状分组
     # layer 指定层
@@ -309,28 +310,36 @@ class CDR():
             return self.moveShapeToGroup(groupObj, shapeObjs)
 
 
+    # 创建临时删除区域
+    # 删除不能用Delete, 直接delete会把整体列表都移除
+    # 需要创建一个临时的对象，把shapre移动过去，最后删除这个临时对象
+    def createDeleteCache(self,layerObj):
+        shapeObjs = []
+        groupIndex = []
+        shapeObjs.append(self.insertPlaceholder(layerObj))
+        shapeObjs.append(self.insertPlaceholder(layerObj))
+        for index in range(len(layerObj.Shapes)):
+            itemIndex = index + 1
+            item = layerObj.Shapes.Item(itemIndex)
+            if item.Name == 'placeholder':
+                groupIndex.append(itemIndex)
+        rs = layerObj.Shapes.Range(groupIndex)
+        delGroupObj = rs.Group()
+        delGroupObj.Name = "临时删除组"
+        return delGroupObj
+
+
     # 增加形状对象到组对象
     def addShapeToGroup(self,groupObj, shapeObj):
+        # 本身不是组结构
+        if groupObj.Shapes.Count == 0:
+            return
         firstmember = groupObj.Shapes.Item(1)
         shapeObj.OrderFrontOf(firstmember)
         placeholderArr = self.getSubShapes(groupObj,'placeholder')
         # 如果当前组下还存在预创建对象
-        # 删除不能用Delete, 直接delete会把整体列表都移除
-        # 需要创建一个临时的对象，把shapre移动过去，最后删除这个临时对象
         if len(placeholderArr):
-            shapeObjs = []
-            groupIndex = []
-            layerObj = groupObj.Layer
-            shapeObjs.append(self.insertPlaceholder(layerObj))
-            shapeObjs.append(self.insertPlaceholder(layerObj))
-            for index in range(len(layerObj.Shapes)):
-                itemIndex = index + 1
-                item = layerObj.Shapes.Item(itemIndex)
-                if item.Name == 'placeholder':
-                    groupIndex.append(itemIndex)
-            rs = layerObj.Shapes.Range(groupIndex)
-            delGroupObj = rs.Group()
-            delGroupObj.Name = "临时删除组"
+            delGroupObj = self.createDeleteCache(groupObj.Layer)
             firstObj = delGroupObj.Shapes.Item(1)
             for index in range(len(placeholderArr)):
                 item = placeholderArr[index]
@@ -340,26 +349,33 @@ class CDR():
         return groupObj
 
 
-    # 从组中移除指定的对象2
-    # layerObj layer层
-    # groupObjs  组对象
-    # removeObj 需要移除的对象
-    def removGroupShapeObjs(self, layerObj, groupObjs, removeObj = None ):
-        # 如果是在layerObj下移除对象
-        if removeObj == None:
-            groupObjs = layerObj
-            removeObj = groupObjs
-            
-        # for index in range(len(groupObjs.Shapes)):
-        #     itemIndex = index + 1
-        #     item = groupObjs.Shapes.Item(itemIndex)
-        #     print(item)
+    # 从组中移除指定的对象
+    # 保持组的持久
+    def removGroupShapeObjs(self, groupObj, shapeObj):
+        hasObj = self.getSubShapeById(groupObj,shapeObj)
+        if hasObj == None:
+            return hasObj
+        layerObj = groupObj.Layer
+        #必须保持结构
+        if groupObj.Shapes.Count == 1:
+            # 新加入占位
+            self.insertPlaceholder(layerObj).OrderFrontOf(shapeObj)
+            self.insertPlaceholder(layerObj).OrderFrontOf(shapeObj)
+        self.__moveShapeToCache(layerObj,shapeObj)
+        return groupObj
+  
 
-        # placeholderObj = self.insertPlaceholder(layerObj)
-        # print(removeObj.Name)
-        # removeObj.Delete()
-
-
+    # 删除组对象，如果组为空,不保持组的存在
+    def deleteGroupShapeObjs(self, groupObj, shapeObj):
+        hasObj = self.getSubShapeById(groupObj,shapeObj)
+        if hasObj == None:
+            return hasObj
+        layerObj = groupObj.Layer
+        self.__moveShapeToCache(layerObj,shapeObj)
+        if groupObj.Shapes.Count == 0:
+            groupObj.Ungroup()
+        return groupObj
+  
 
     # 复制对象
     # obj是一个对象，也可以是一个组
@@ -370,8 +386,8 @@ class CDR():
         return newObj
 
 
-
     # =========================================== 扩展 =======================================================
+
 
 
     def groupDecorationTriangle(self):
@@ -430,7 +446,7 @@ class CDR():
 
         layer = self.getLayer("秒秒学装饰")
         sh = layer.CreateCurve(crv)
-        sh.Name = name
+        sh.Name = '三角形' + position
         sh.Fill.UniformColor.RGBAssign(style['background-color'][0],style['background-color'][1],style['background-color'][2])
         sh.PositionX = positionX 
         sh.PositionY = positionY
@@ -480,9 +496,11 @@ class CDR():
     # style: text style of the paragraph
     # content: text string
     # the height of paragraph text should only one line, because we calc overflow, only enlarge, not shrink
-    def insertParaText(self, oribound, name ='正文', content = '', style = '正文', paletteidx = 2):
+    def insertParaText(self, oribound, name ='正文', content = '', style = '正文', paletteidx = 2, shape=None):
         # if the text already exist, just adjust it's bound
-        theobj = self.doc.ActiveLayer.FindShape(name)
+        theobj = shape
+        if shape == None:
+            theobj = self.doc.ActiveLayer.FindShape(name)
         newHeight = 0
         if theobj != None:
             # adjust it's bound
@@ -514,8 +532,10 @@ class CDR():
     # bound: text bound, height will be auto calc, maybe not in bound
     # style: text style of the paragraph
     # content: text string
-    def insertPointText(self, oribound, name='主标题', content = '', style = '正文', paletteidx = 2):
-        theobj = self.doc.ActiveLayer.FindShape(name)
+    def insertPointText(self, oribound, name='主标题', content = '', style = '正文', paletteidx = 2, shape=None):
+        theobj = shape
+        if shape == None:
+            theobj = self.doc.ActiveLayer.FindShape(name)
         if theobj != None:
             # adjust it's bound
             story = theobj.Text.Story.Text
@@ -534,8 +554,10 @@ class CDR():
 
 
     # insert background rect
-    def insertRectangle(self, oribound, name='正文背景', round = 0, paletteidx = 0, noborder = True):
-        theobj = self.doc.ActiveLayer.FindShape(name)
+    def insertRectangle(self, oribound, name='正文背景', round = 0, paletteidx = 0, noborder = True, shape=None):
+        theobj = shape
+        if shape == None:
+            theobj = self.doc.ActiveLayer.FindShape(name)
         if theobj != None:
             # adjust it's bound
             self.moveObj(theobj, oribound)
@@ -552,8 +574,10 @@ class CDR():
 
 
     # insert powerclip from rectangle
-    def insertPowerclip(self, oribound, name='图片', round = 0, style = '图文框'):
-        theobj = self.doc.ActiveLayer.FindShape(name)
+    def insertPowerclip(self, oribound, name='图片', round = 0, style = '图文框', shape=None):
+        theobj = shape
+        if shape == None:
+            theobj = self.doc.ActiveLayer.FindShape(name)
         if theobj != None:
             # adjust it's bound
             self.moveObj(theobj, oribound)
@@ -571,8 +595,10 @@ class CDR():
 
 
     # insert line
-    def insertLine(self, oribound, name='分隔线', style = '粗分隔线', type = 'horizontal'):
-        lineobj = self.doc.ActiveLayer.FindShape(name)
+    def insertLine(self, oribound, name='分隔线', style = '粗分隔线', type = 'horizontal', shape=None):
+        theobj = shape
+        if shape == None:
+            theobj = self.doc.ActiveLayer.FindShape(name)
         if lineobj != None:
             # adjust it's bound
             self.moveObj(lineobj, oribound)
