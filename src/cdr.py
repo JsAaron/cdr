@@ -13,6 +13,7 @@ import time
 
 
 
+
 DEFAULTLINEHEIGHT = 5.5  # mm
 
 
@@ -34,8 +35,8 @@ class CDR():
         if self.doc.ActivePage.TOPY > 0:
             self.doc.DrawingOriginY = self.doc.ActivePage.TOPY / 2
 
-    # 初始默认图层
 
+    # 初始默认图层
     def __initDefalutLayer(self):
         pagesConfig = []
         for page in self.doc.Pages:
@@ -71,9 +72,11 @@ class CDR():
         for curLayer in allLayers:
             determine.initField(curLayer.Name, curLayer.Shapes, pageIndex)
 
+
     def __accessInput(self,  determine, allLayers, pageIndex):
         for curLayer in allLayers:
             Input.accessShape(self.doc,  curLayer.Shapes, determine, pageIndex)
+
 
     def __setImage(self, determine, allLayers, pageIndex):
         visibleLayerName = determine.getVisibleField()
@@ -82,6 +85,7 @@ class CDR():
             Input.accessImage(self.doc, curLayer.Shapes, pageIndex)
             # 设置状态，处理层级可见性
             determine.setLayerVisible(curLayer, visibleLayerName)
+
 
     def __accessExtractTextData(self, pageObj, pageIndex):
         allLayers = pageObj.AllLayers
@@ -92,6 +96,7 @@ class CDR():
         if prarm.cmdCommand == "set:text":
             self.__setImage(determine, allLayers, pageIndex)
 
+
     def __accessData(self, pageIndex):
         if pageIndex:
             self.__accessExtractTextData(
@@ -101,6 +106,7 @@ class CDR():
             for page in self.doc.Pages:
                 self.__accessExtractTextData(page, count)
                 count += 1
+
 
      # 探测图片是否已经创建
     # 默认探测5次
@@ -116,12 +122,14 @@ class CDR():
         else:
             return obj
 
+
     # 移动形状到缓存
     def __moveShapeToCache(self,layerObj,shapeObj):
         delGroupObj = self.createDeleteCache(layerObj)
         firstObj = delGroupObj.Shapes.Item(1)
         shapeObj.OrderFrontOf(firstObj)
         delGroupObj.Delete() 
+
 
     # =================================== 基础方法 ===================================
 
