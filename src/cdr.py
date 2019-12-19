@@ -120,6 +120,24 @@ class CDR():
 
     # =================================== 基础方法 ===================================
 
+    # 判断变量类型
+    def getType(self,variate):
+        type = None
+        if isinstance(variate, int):
+            type = "int"
+        elif isinstance(variate, str):
+            type = "str"
+        elif isinstance(variate, float):
+            type = "float"
+        elif isinstance(variate, list):
+            type = "list"
+        elif isinstance(variate, tuple):
+            type = "tuple"
+        elif isinstance(variate, dict):
+            type = "dict"
+        return type
+
+
     # 获取所有数据段
     def get(self, pageIndex=""):
         prarm.setCommand("get:text")
@@ -145,18 +163,20 @@ class CDR():
         return s1
 
 
-    # 找到对应形状
-    # range layer/shape 查找形状的返回，
-    # name  形状名
-    # 查询的返回对应
-    def getShape(self, queryType, obj ,name):
-        if queryType == "layer":
-            if obj != None:
-                return obj.FindShape(name)
-            return self.doc.ActiveLayer.FindShape(name)
+    def getGroupShape(self, obj ,name):
+        return obj.Shapes.FindShape(name)
 
-        if queryType == "group":
-            return obj.Shapes.FindShape(name)
+
+    # 获取组形状合计
+    # 默认只搜索当前一层子级
+    def getSubShapes(self, groupObj ,name,):
+        groupShapes = []
+        for index in range(len(groupObj.Shapes)):
+            itemIndex = index + 1
+            item = groupObj.Shapes.Item(itemIndex)
+            if item.Name == name:
+                groupShapes.append(item)
+        return groupShapes
 
 
     # 切换页面
@@ -181,6 +201,7 @@ class CDR():
         if layer != None:
             layer.Activate()
         return layer
+
 
     # 添加图片
     # imagePath："C:\\Users\\Administrator\\Desktop\\111\\1.png"
@@ -218,6 +239,7 @@ class CDR():
         newGroup.Name = groupName
         return newGroup
 
+
     # inesert placeholder, all placeholder is the same name
     def insertPlaceholder(self, layerObj):
         placeholderObj = layerObj.CreateLineSegment(10, 10, 11, 11)
@@ -225,6 +247,7 @@ class CDR():
         placeholderObj.Outline.Type = 0
         return placeholderObj
        
+
     # move shapes into existing groupobj
     def moveShapeToGroup(self, groupobj, shapeObjs):
         firstmember = groupobj.Shapes.Item(1)
@@ -236,6 +259,7 @@ class CDR():
                 shape.OrderFrontOf(firstmember)
         return groupobj
     
+
     # 合并多个形状分组
     # layer 指定层
     # name 新的分组名字
@@ -246,20 +270,17 @@ class CDR():
         if parentobj == None:
             parentobj = layerObj
 
-        groupObj = None
-        for shape in parentobj.Shapes:
-            if shape.Name == groupName:
-                groupObj = shape
-                break
-
-        #if shapeObjs dont have enough objects, add placeholder
-        if len(shapeObjs) < 1:
-            shapeObjs.append(self.insertPlaceholder(layerObj))
-        if len(shapeObjs) < 2:
-            shapeObjs.append(self.insertPlaceholder(layerObj)) 
+        groupObj = self.getGroupShape(parentobj,groupName)
 
         # new group must has at least two shapeObjs
         if groupObj == None:
+
+            #if shapeObjs dont have enough objects, add placeholder
+            if len(shapeObjs) < 1:
+                shapeObjs.append(self.insertPlaceholder(layerObj))
+            if len(shapeObjs) < 2:  
+                shapeObjs.append(self.insertPlaceholder(layerObj)) 
+
             if len(shapeObjs) < 2:  # should not happen because we add placeholder, anyway keep it for safe
                 return None
             else:           #create new group
@@ -280,43 +301,60 @@ class CDR():
                 if newGroup != None:
                     newGroup.Name = groupName
                 return newGroup
-        else:       # Already has group
+        else:      
+            # Already has group
             return self.moveShapeToGroup(groupObj, shapeObjs)
 
+
+    # 从组中移除指定的对象2
+    # layerObj layer层
+    # groupObjs  组对象
+    # removeObj 需要移除的对象
+    def removGroupShapeObjs(self, layerObj, groupObjs, removeObj = None ):
+        # 如果是在layerObj下移除对象
+        if removeObj == None:
+            groupObjs = layerObj
+            removeObj = groupObjs
+            
+        # for index in range(len(groupObjs.Shapes)):
+        #     itemIndex = index + 1
+        #     item = groupObjs.Shapes.Item(itemIndex)
+        #     print(item)
+
+        # placeholderObj = self.insertPlaceholder(layerObj)
+        # print(removeObj.Name)
+        # removeObj.Delete()
+
+
     # 增加形状对象到组对象
-    # 组对象groupObj
-    # 加入的形状名 newShapeName [name1,name2,name3....]
-    # 定义返回子对象
-    def addShapeToGroup(self, groupObj, newShapeName,rSubObj=None):
-
-        if isinstance(newShapeName, str) == True:
-            newShapeName = [newShapeName]
-
-        groupName = groupObj.Name
-        createNames = []
-        parentLayer = groupObj.Layer
-
-        for key in groupObj.Shapes:
-            createNames.append(key.Name)
-
-        newAdd = False
-        for index in range(len(newShapeName)):
-            name = newShapeName[index]
-            has = name in createNames
-            if has == False:
-               newAdd = True
-               createNames.append(newShapeName[index])
-
-        if newAdd == True:
-            groupObj.Ungroup()
-            newObj = self.groupShape(parentLayer, groupName, createNames)
-            if rSubObj == True:
-                #指定返回子对象
-                return self.getShape('group',newObj, newShapeName[0])
-            else:
-               return newObj
-        else:
-            return groupObj
+    def addShapeToGroup(self,groupObj, shapeObj):
+        firstmember = groupObj.Shapes.Item(1)
+        shapeObj.OrderFrontOf(firstmember)
+        placeholderArr = self.getSubShapes(groupObj,'placeholder')
+        # 如果当前组下还存在预创建对象
+        # 删除不能用Delete, 直接delete会把整体列表都移除
+        # 需要创建一个临时的对象，把shapre移动过去，最后删除这个临时对象
+        if len(placeholderArr):
+            shapeObjs = []
+            groupIndex = []
+            layerObj = groupObj.Layer
+            shapeObjs.append(self.insertPlaceholder(layerObj))
+            shapeObjs.append(self.insertPlaceholder(layerObj))
+            for index in range(len(layerObj.Shapes)):
+                itemIndex = index + 1
+                item = layerObj.Shapes.Item(itemIndex)
+                if item.Name == 'placeholder':
+                    groupIndex.append(itemIndex)
+            rs = layerObj.Shapes.Range(groupIndex)
+            delGroupObj = rs.Group()
+            delGroupObj.Name = "临时删除组"
+            firstObj = delGroupObj.Shapes.Item(1)
+            for index in range(len(placeholderArr)):
+                item = placeholderArr[index]
+                if item.Name == 'placeholder':
+                    item.OrderFrontOf(firstObj)
+            delGroupObj.Delete()    
+        return groupObj
 
 
     # 复制对象
@@ -327,71 +365,6 @@ class CDR():
         newObj.Name = newname
         return newObj
 
-
-    # 判断变量类型
-    def getType(self,variate):
-        type = None
-        if isinstance(variate, int):
-            type = "int"
-        elif isinstance(variate, str):
-            type = "str"
-        elif isinstance(variate, float):
-            type = "float"
-        elif isinstance(variate, list):
-            type = "list"
-        elif isinstance(variate, tuple):
-            type = "tuple"
-        elif isinstance(variate, dict):
-            type = "dict"
-        return type
-
-
-    # 创建占位对象
-    def createPlaceholder(self, layerObj):
-        self.doc.ReferencePoint = 3
-        placeholderObj1 = layerObj.CreateLineSegment(10, 10, 11, 11)
-        placeholderObj1.Name = "placeholder1"
-        placeholderObj1.Outline.Type = 0
-        placeholderObj1.AddToSelection()
-
-        placeholderObj2 = layerObj.CreateLineSegment(10, 10, 11, 11)
-        placeholderObj2.Name = "placeholder2"
-        placeholderObj2.Outline.Type = 0
-        placeholderObj2.AddToSelection()
-  
-
-    # 创建或者读取组对象
-    # createGroupName 需要创建的组的名字
-    # parentLayerName 搜索的层名字
-    # parentGroupName 在指定的组里面继续创建
-
-    # 创建组 accessGroup(createGroupName,layerObj)
-    # 创建嵌套组 accessGroup(createGroupName, parentGroupObj ,layerObj)
-    def accessGroup(self,createGroupName, layerObj = None, parentGroupObj = None):
-        # 提供父组
-        if parentGroupObj != None:
-            swop = layerObj
-            layerObj = parentGroupObj
-            parentGroupObj = swop
-
-        newGroupObj = None
-        if parentGroupObj == None:  
-            newGroupObj = self.getShape('layer',layerObj, createGroupName)
-            if newGroupObj == None:
-                self.createPlaceholder(layerObj)
-                newGroupObj = self.groupShape(layerObj,createGroupName,['placeholder1','placeholder2'])
-                return newGroupObj
-            else:
-                return newGroupObj
-        else:
-            newGroupObj = self.getShape('group',parentGroupObj, createGroupName)
-            if newGroupObj == None:
-                self.createPlaceholder(layerObj)
-                newGroupObj = self.groupShape(layerObj,createGroupName,['placeholder1','placeholder2'])
-                newGroupObj.AddToPowerClip(parentGroupObj)
-                return newGroupObj
-            else:
-                return newGroupObj
 
 
     # =========================================== 扩展 =======================================================
@@ -453,7 +426,7 @@ class CDR():
 
         layer = self.getLayer("秒秒学装饰")
         sh = layer.CreateCurve(crv)
-        sh.Name = '三角形' + position
+        sh.Name = name
         sh.Fill.UniformColor.RGBAssign(style['background-color'][0],style['background-color'][1],style['background-color'][2])
         sh.PositionX = positionX 
         sh.PositionY = positionY

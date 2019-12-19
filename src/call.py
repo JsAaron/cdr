@@ -65,31 +65,25 @@ def testGroup():
         s4 = cdrObj.drawDecorationTriangle("test4",{"background-color":[255, 0, 0]},{"top":300,"right":600},'rightbottom')   
 
 
-    # # 创建一个组对象
-    # cdrObj.groupShape(layer,"组1",['test1','test2'])
-
-    # 在秒秒学结构层下 创建占位组名占位组
-    # cdrObj.accessGroup("占位组",'秒秒学结构')
-
-
-    # 往组对象，添加2个新的对象
-    # cdrObj.addShapeToGroup(newGroups,['test1','test4'])
-
-
-
-# 测试组对象占位
-def testAccessGroup():
+# 测试组对象移动
+def addShapeToGroup():
     cdrObj = CDR()
     layerObj = cdrObj.getLayer('秒秒学装饰')
-    g1 = cdrObj.accessGroup("占位组",layerObj)
-    g2 = cdrObj.accessGroup("子组占位组1",g1,layerObj)
-    # cdrObj.accessGroup("子组占位组2",g2,layerObj)
-    # cdrObj.accessGroup("子组占位组2",g2,layerObj)
+    g1 = cdrObj.groupShapeObjs(layerObj,"占位组",)
+    g2 = cdrObj.groupShapeObjs(layerObj,"子组占位组1",g1)
+    g3 = cdrObj.groupShapeObjs(layerObj,"子组占位组2",g2)
+    g4 = cdrObj.groupShapeObjs(layerObj,"子组占位组3",g3)
+
+    s1 =  layerObj.FindShape("test1")
+    if s1 == None:
+       s1 = cdrObj.drawDecorationTriangle("test1",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
+    cdrObj.addShapeToGroup(g1,s1)
+
 
 
 if __name__ == '__main__':
     # testPowerClip()
-    testAccessGroup()
+    # testAccessGroup()
     # testGroup()
     # drawDecorationTriangle()
     # drawDecorationTriangle()
