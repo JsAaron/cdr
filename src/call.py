@@ -118,8 +118,15 @@ def deleteGroupShapeObjs():
     cdrObj.addShapeToGroup(g4,s1)
     cdrObj.deleteGroupShapeObjs(g4,s1)
 
+# 修改文本
+def modifyParaText():
+    cdrObj = CDR()
+    obj = cdrObj.insertParaText([0, 0, 120, 500],'测试1','我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111')
+    cdrObj.modifyParaText(obj,'dfs123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111',[10, 800, 100, 50],'','')
+
 if __name__ == '__main__':
-    removGroupShapeObjs()
+    modifyParaText()
+    # removGroupShapeObjs()
     # deleteGroupShapeObjs()
     # testPowerClip()
     # testAccessGroup()

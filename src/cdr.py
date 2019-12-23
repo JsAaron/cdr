@@ -291,7 +291,13 @@ class CDR():
             if len(shapeObjs) < 1:
                 shapeObjs.append(self.insertPlaceholder(layerObj))
             if len(shapeObjs) < 2:  
-                shapeObjs.append(self.insertPlaceholder(layerObj)) 
+                # the placeholder for one object should not change the group'size, so move it to the same position with 
+                # # object
+                theplaceholder = self.insertPlaceholder(layerObj)
+                orishapeobj = shapeObjs[0]
+                theplaceholder.PositionX = orishapeobj.PositionX
+                theplaceholder.PositionY = orishapeobj.PositionY
+                shapeObjs.append(theplaceholder) 
 
             if len(shapeObjs) < 2:  # should not happen because we add placeholder, anyway keep it for safe
                 return None
@@ -388,11 +394,29 @@ class CDR():
     # 复制对象
     # obj是一个对象，也可以是一个组
     # newname是复制后对象的名字
-    def cloneShape(self, obj, newname):
-        newObj = obj.Duplicate()
+    def cloneShape(self, obj, newname, OffsetX = 0, OffsetY = 0):
+        newObj = obj.Duplicate(OffsetX, OffsetY)
         newObj.Name = newname
         return newObj
 
+    # copy a block from master Layer to current layer
+    def cloneFromMaster(self, layer, groupname):
+        # select the group in master layer
+        masterpage = self.doc.MasterPage
+        masterlayer = None
+        for mlayer in masterpage.AllLayers:
+            if mlayer.Name == '板块':
+                masterlayer = mlayer
+                break
+        if masterlayer == None:
+            return None
+        thegroup = masterlayer.FindShape(groupname, 7)      # cdrGroupShape
+        if thegroup == None:
+            return None
+        # copy it
+        thegroup.CopyToLayer(layer)
+        copiedgroup = layer.FindShape(groupname)
+        return copiedgroup
 
     # =========================================== 扩展 =======================================================
 
@@ -504,11 +528,9 @@ class CDR():
     # style: text style of the paragraph
     # content: text string
     # the height of paragraph text should only one line, because we calc overflow, only enlarge, not shrink
-    def insertParaText(self, oribound, name ='正文', content = '', style = '正文', paletteidx = 2, shape=None):
+    def insertParaText(self, oribound, name ='正文', content = '', style = '', paletteidx = 2, shape=None):
         # if the text already exist, just adjust it's bound
         theobj = shape
-        if shape == None:
-            theobj = self.doc.ActiveLayer.FindShape(name)
         newHeight = 0
         if theobj != None:
             # adjust it's bound
@@ -528,12 +550,52 @@ class CDR():
             return theobj
         bound = self.convertCood(oribound)
         theobj = self.doc.ActiveLayer.CreateParagraphText(bound[0], -1 * bound[1] , bound[2], -1 * bound[1] - 1, content, 0, -1)
-        theobj.ApplyStyle(style)
-        theobj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
+        if style:
+            theobj.ApplyStyle(style)
+        if self.palette.ColorCount>=paletteidx:
+            theobj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
         theobj.Name = name
         theobj.SizeHeight = DEFAULTLINEHEIGHT
         self.adjustParaTextHeight(theobj)
         return theobj
+
+
+
+    # 修改文本
+    # shapeObj 文本对象
+    # content 文本内容
+    # oribound 坐标系
+    # style
+    # paletteidx 调色表索引
+    # name 节点名字
+    def modifyParaText(self,shapeObj, content='',oribound=[], style = '',paletteidx = 2, name=''):
+        if shapeObj == None or content == '' or shapeObj.Text.Story.Text == content:
+            return
+        shapeObj.Text.Story.Text = content
+        if name:
+            shapeObj.Name = name
+        if style:
+            shapeObj.ApplyStyle(style)
+        if paletteidx and self.palette.ColorCount >= int(paletteidx):
+            shapeObj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
+
+        if len(oribound):
+            self.moveObj(shapeObj, oribound)
+            overflowW = (shapeObj.SizeWidth + oribound[0]) - self.pagewidth
+            overflowH = (shapeObj.SizeHeight + oribound[1]) - self.pageheight
+            hasChange = False
+            # 右边溢出
+            if overflowW>0:
+                shapeObj.SizeWidth = shapeObj.SizeWidth - overflowW
+                self.adjustParaTextHeight(shapeObj)
+                hasChange = True
+            # 底部溢出
+            if overflowH>0:
+                self.adjustParaTextHeight(shapeObj)
+                shapeObj.PositionY = -self.pageheight + shapeObj.SizeHeight
+                hasChange = True
+            if hasChange == False:
+                self.adjustParaTextHeight(shapeObj)
 
 
     # insert paragraph text
@@ -542,8 +604,6 @@ class CDR():
     # content: text string
     def insertPointText(self, oribound, name='主标题', content = '', style = '正文', paletteidx = 2, shape=None):
         theobj = shape
-        if shape == None:
-            theobj = self.doc.ActiveLayer.FindShape(name)
         if theobj != None:
             # adjust it's bound
             story = theobj.Text.Story.Text
@@ -564,8 +624,6 @@ class CDR():
     # insert background rect
     def insertRectangle(self, oribound, name='正文背景', round = 0, paletteidx = 0, noborder = True, shape=None):
         theobj = shape
-        if shape == None:
-            theobj = self.doc.ActiveLayer.FindShape(name)
         if theobj != None:
             # adjust it's bound
             self.moveObj(theobj, oribound)
@@ -584,8 +642,6 @@ class CDR():
     # insert powerclip from rectangle
     def insertPowerclip(self, oribound, name='图片', round = 0, style = '图文框', shape=None):
         theobj = shape
-        if shape == None:
-            theobj = self.doc.ActiveLayer.FindShape(name)
         if theobj != None:
             # adjust it's bound
             self.moveObj(theobj, oribound)
@@ -605,23 +661,21 @@ class CDR():
     # insert line
     def insertLine(self, oribound, name='分隔线', style = '粗分隔线', type = 'horizontal', shape=None):
         theobj = shape
-        if shape == None:
-            theobj = self.doc.ActiveLayer.FindShape(name)
-        if lineobj != None:
+        if theobj != None:
             # adjust it's bound
-            self.moveObj(lineobj, oribound)
-            self.sizeObj(lineobj, oribound, withheight = False)
-            return lineobj
+            self.moveObj(theobj, oribound)
+            self.sizeObj(theobj, oribound, withheight = False)
+            return theobj
         bound = self.convertCood(oribound)
         if type == 'horizontal':
-            lineobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[2], -1*bound[1])
+            theobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[2], -1*bound[1])
         elif type == 'vertical':
-            lineobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[0], -1*bound[3])
+            theobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[0], -1*bound[3])
         else:
-            lineobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[2], -1*bound[3])
-        lineobj.ApplyStyle(style)
-        lineobj.Name = name
-        return lineobj
+            theobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[2], -1*bound[3])
+        theobj.ApplyStyle(style)
+        theobj.Name = name
+        return theobj
     
 
     # insert image
@@ -651,7 +705,7 @@ class CDR():
         if amount !=0 :
             obj.PositionY -= amount
 
-
+    # change the size of obj
     def sizeObj(self, obj, oribound, withheight = True):
         bound = self.convertCood(oribound)
         if obj.SizeWidth != bound[2] - bound[0]:
@@ -659,6 +713,10 @@ class CDR():
         if obj.SizeHeight != bound[3] - bound[1] and withheight:
             obj.SizeHeight = bound[3] - bound[1]
 
+    # make obj suit for new bound
+    def newbound(self, obj, newbound):
+        self.moveObj(obj, newbound)
+        self.sizeObj(obj, newbound)
 
     # align object in block frame bound
     def alignObject(self, oribound, obj, halign = 'center', valign = 'top'):
