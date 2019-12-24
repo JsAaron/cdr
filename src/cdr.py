@@ -12,8 +12,6 @@ import os
 import time
 
 
-
-
 DEFAULTLINEHEIGHT = 5.5  # mm
 
 
@@ -38,14 +36,23 @@ class CDR():
 
     # 初始默认图层
     def __initDefalutLayer(self):
+
+        #母版
+        hasMasterLayer = False
+        for masterLayer in self.doc.MasterPage.AllLayers:
+            if masterLayer.Name == '秒秒学全局参数':
+                hasMasterLayer = True
+        if hasMasterLayer == False:
+            self.doc.MasterPage.createlayer('秒秒学全局参数')
+
+        # 页面
         pagesConfig = []
         for page in self.doc.Pages:
             dictName = {
                 "秒秒学板块": True,
                 "秒秒学装饰": True,
                 "秒秒学结构": True,
-                "秒秒学背景": True,
-                "秒秒学全局参数": True,
+                "秒秒学背景": True
             }
 
             for curLayer in page.AllLayers:
@@ -176,18 +183,8 @@ class CDR():
         return s1
 
 
-    # 找到当前组内的形状
-    def getSubShape(self, parentobj ,name):
-        groupObj = None
-        for shape in parentobj.Shapes:
-            if shape.Name == parentobj:
-                groupObj = shape
-                break
-        return groupObj
-
-
     # 通过ID过去形状对象
-    def getSubShapeById(self, parentObj ,shapeObj):
+    def findByI(self, parentObj ,shapeObj):
         groupObj = None
         for shape in parentObj.Shapes:
             if shape.StaticID == shapeObj.StaticID:
@@ -196,8 +193,18 @@ class CDR():
         return groupObj
 
 
+    # 找到当前组内的形状
+    def findByName(self, parentobj ,name):
+        groupObj = None
+        for shape in parentobj.Shapes:
+            if shape.Name == parentobj:
+                groupObj = shape
+                break
+        return groupObj
+
+
     # 找到当前组内的形状合集
-    def getSubShapes(self, parentobj ,name):
+    def findByNames(self, name,parentobj=None):
         groupShapes = []
         for shape in parentobj.Shapes:
             if shape.Name == name:
@@ -282,7 +289,7 @@ class CDR():
         if parentobj == None:
             parentobj = layerObj
 
-        groupObj = self.getSubShape(parentobj,groupName)
+        groupObj = self.findByName(parentobj,groupName)
 
         # new group must has at least two shapeObjs
         if groupObj == None:
@@ -350,7 +357,7 @@ class CDR():
             return
         firstmember = groupObj.Shapes.Item(1)
         shapeObj.OrderFrontOf(firstmember)
-        placeholderArr = self.getSubShapes(groupObj,'placeholder')
+        placeholderArr = self.findByNames('placeholder',groupObj)
         # 如果当前组下还存在预创建对象
         if len(placeholderArr):
             delGroupObj = self.createDeleteCache(groupObj.Layer)
@@ -366,7 +373,7 @@ class CDR():
     # 从组中移除指定的对象
     # 保持组的持久
     def removGroupShapeObjs(self, groupObj, shapeObj):
-        hasObj = self.getSubShapeById(groupObj,shapeObj)
+        hasObj = self.findByI(groupObj,shapeObj)
         if hasObj == None:
             return hasObj
         layerObj = groupObj.Layer
@@ -381,7 +388,7 @@ class CDR():
 
     # 删除组对象，如果组为空,不保持组的存在
     def deleteGroupShapeObjs(self, groupObj, shapeObj):
-        hasObj = self.getSubShapeById(groupObj,shapeObj)
+        hasObj = self.findByI(groupObj,shapeObj)
         if hasObj == None:
             return hasObj
         layerObj = groupObj.Layer
@@ -560,8 +567,7 @@ class CDR():
         return theobj
 
 
-
-    # 修改文本
+    # 修改段落文本
     # shapeObj 文本对象
     # content 文本内容
     # oribound 坐标系
@@ -571,7 +577,7 @@ class CDR():
     def modifyParaText(self,shapeObj, content='',oribound=[], style = '',paletteidx = 2, name=''):
         if shapeObj == None or content == '' or shapeObj.Text.Story.Text == content:
             return
-        shapeObj.Text.Story.Text = content
+        shapeObj.Text.Story.Replace(content)
         if name:
             shapeObj.Name = name
         if style:
@@ -581,21 +587,22 @@ class CDR():
 
         if len(oribound):
             self.moveObj(shapeObj, oribound)
-            overflowW = (shapeObj.SizeWidth + oribound[0]) - self.pagewidth
-            overflowH = (shapeObj.SizeHeight + oribound[1]) - self.pageheight
-            hasChange = False
-            # 右边溢出
-            if overflowW>0:
-                shapeObj.SizeWidth = shapeObj.SizeWidth - overflowW
-                self.adjustParaTextHeight(shapeObj)
-                hasChange = True
-            # 底部溢出
-            if overflowH>0:
-                self.adjustParaTextHeight(shapeObj)
-                shapeObj.PositionY = -self.pageheight + shapeObj.SizeHeight
-                hasChange = True
-            if hasChange == False:
-                self.adjustParaTextHeight(shapeObj)
+            self.adjustParaTextHeight(shapeObj)
+            # overflowW = (shapeObj.SizeWidth + oribound[0]) - self.pagewidth
+            # overflowH = (shapeObj.SizeHeight + oribound[1]) - self.pageheight
+            # hasChange = False
+            # # 右边溢出
+            # if overflowW>0:
+            #     shapeObj.SizeWidth = shapeObj.SizeWidth - overflowW
+            #     self.adjustParaTextHeight(shapeObj)
+            #     hasChange = True
+            # # 底部溢出
+            # if overflowH>0:
+            #     self.adjustParaTextHeight(shapeObj)
+            #     shapeObj.PositionY = -self.pageheight + shapeObj.SizeHeight
+            #     hasChange = True
+            # if hasChange == False:
+            #     self.adjustParaTextHeight(shapeObj)
 
 
     # insert paragraph text
