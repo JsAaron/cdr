@@ -174,17 +174,16 @@ class CDR():
 
     # name 根据名称找到图层
     # page 指定页面搜索layer
-    def getLayer(self, name):
-        s1 = self.doc.ActiveLayer.FindShape(name)
-        if s1 == None:
+    def findLayerByName(self, name = ''):
+        if name:
             for curLayer in self.doc.ActivePage.AllLayers:
-                    if curLayer.Name == name:
-                        return curLayer
-        return s1
+                if curLayer.Name == name:
+                    return curLayer
+        return self.doc.ActiveLayer
 
 
     # 通过ID过去形状对象
-    def findByI(self, parentObj ,shapeObj):
+    def findShapeById(self, parentObj ,shapeObj):
         groupObj = None
         for shape in parentObj.Shapes:
             if shape.StaticID == shapeObj.StaticID:
@@ -194,7 +193,7 @@ class CDR():
 
 
     # 找到当前组内的形状
-    def findByName(self, parentobj ,name):
+    def findShapeByName(self, parentobj ,name):
         groupObj = None
         for shape in parentobj.Shapes:
             if shape.Name == parentobj:
@@ -204,7 +203,7 @@ class CDR():
 
 
     # 找到当前组内的形状合集
-    def findByNames(self, name,parentobj=None):
+    def findShapeByNames(self, name,parentobj=None):
         groupShapes = []
         for shape in parentobj.Shapes:
             if shape.Name == name:
@@ -230,7 +229,7 @@ class CDR():
     # select predefined layer
     def selectLayer(self, layername):
         # 必须设置活动的layer，这样调用vb.exe才会在这个layer的内部
-        layer = self.getLayer(layername)
+        layer = self.findLayerByName(layername)
         if layer != None:
             layer.Activate()
         return layer
@@ -289,7 +288,7 @@ class CDR():
         if parentobj == None:
             parentobj = layerObj
 
-        groupObj = self.findByName(parentobj,groupName)
+        groupObj = self.findShapeByName(parentobj,groupName)
 
         # new group must has at least two shapeObjs
         if groupObj == None:
@@ -357,7 +356,7 @@ class CDR():
             return
         firstmember = groupObj.Shapes.Item(1)
         shapeObj.OrderFrontOf(firstmember)
-        placeholderArr = self.findByNames('placeholder',groupObj)
+        placeholderArr = self.findShapeByNames('placeholder',groupObj)
         # 如果当前组下还存在预创建对象
         if len(placeholderArr):
             delGroupObj = self.createDeleteCache(groupObj.Layer)
@@ -373,7 +372,7 @@ class CDR():
     # 从组中移除指定的对象
     # 保持组的持久
     def removGroupShapeObjs(self, groupObj, shapeObj):
-        hasObj = self.findByI(groupObj,shapeObj)
+        hasObj = self.findShapeById(groupObj,shapeObj)
         if hasObj == None:
             return hasObj
         layerObj = groupObj.Layer
@@ -388,7 +387,7 @@ class CDR():
 
     # 删除组对象，如果组为空,不保持组的存在
     def deleteGroupShapeObjs(self, groupObj, shapeObj):
-        hasObj = self.findByI(groupObj,shapeObj)
+        hasObj = self.findShapeById(groupObj,shapeObj)
         if hasObj == None:
             return hasObj
         layerObj = groupObj.Layer
@@ -485,7 +484,7 @@ class CDR():
         spath.AppendLineSegment(y, 0)
         spath.Closed = True
 
-        layer = self.getLayer("秒秒学装饰")
+        layer = self.findLayerByName("秒秒学装饰")
         sh = layer.CreateCurve(crv)
         sh.Name = '三角形' + position
         sh.Fill.UniformColor.RGBAssign(style['background-color'][0],style['background-color'][1],style['background-color'][2])
@@ -709,6 +708,16 @@ class CDR():
             obj.PositionY = -1 * bound[1]
 
 
+    # 移动X轴
+    def moveLandscapeObj(self, obj, amount):
+        obj.PositionX = amount
+
+
+    # 移动Y轴
+    def moveVerticalObj(self, obj, amount):
+        obj.PositionY = -1 * amount
+
+
     # movedown object
     def movedownObj(self, obj, amount):
         if amount !=0 :
@@ -766,3 +775,54 @@ class CDR():
             obj.PositionY = top
         pass
         
+    
+
+    # ============= 移动 =====================
+
+    # 移动左边
+    def moveToLeft(self,name):
+        layer = self.findLayerByName()
+        sh = layer.FindShape(name)
+        self.moveLandscapeObj(sh,0)
+
+
+   # 移动到中间
+    def moveToMiddleX(self,name):
+        layer = self.findLayerByName()
+        sh = layer.FindShape(name)
+        self.moveLandscapeObj(sh,(self.pagewidth - sh.SizeWidth)/2)
+
+
+    # 移动右边
+    def moveToRight(self,name):
+        layer = self.findLayerByName()
+        sh = layer.FindShape(name)
+        self.moveLandscapeObj(sh,self.pagewidth - sh.SizeWidth)
+
+
+    # 移动到顶部
+    def moveToTop(self,name):
+        layer = self.findLayerByName()
+        sh = layer.FindShape(name)
+        self.moveVerticalObj(sh,0)
+
+
+   # 移动到垂直中间
+    def moveToMiddleY(self,name):
+        layer = self.findLayerByName()
+        sh = layer.FindShape(name)
+        self.moveVerticalObj(sh,(self.pageheight - sh.SizeHeight)/2)
+
+
+    # 移动到底部
+    def moveToBottom(self,name):
+        layer = self.findLayerByName()
+        sh = layer.FindShape(name)
+        self.moveVerticalObj(sh,self.pageheight - sh.SizeHeight)
+
+
+    # 移动到正中间
+    def moveToCenter(self,name):
+        layer = self.findLayerByName()
+        sh = layer.FindShape(name)
+        self.moveObj(sh,[(self.pagewidth - sh.SizeWidth)/2,(self.pageheight - sh.SizeHeight)/2])

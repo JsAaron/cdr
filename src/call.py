@@ -124,9 +124,23 @@ def modifyParaText():
     obj = cdrObj.insertParaText([0, 0, 120, 500],'测试1','我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111')
     cdrObj.modifyParaText(obj,'dfs123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111',[5, 50, 100, 50],'','')
 
+
+def moveToMiddle():
+    # cdrObj = CDR()
+    # cdrObj.moveToMiddleX("测试1")
+    # cdrObj.moveToLeft('测试1')
+    # cdrObj.moveToRight('测试1')
+    # cdrObj.moveToTop('测试1')
+    # cdrObj.moveToBottom('测试1')
+    # cdrObj.moveToMiddleY('测试1')
+    # cdrObj.moveToCenter('测试1')
+
+
 if __name__ == '__main__':
-    cdrObj = CDR()
-    cdrObj.addFolder(1)
+    moveToMiddle()
+    # modifyParaText()
+    # cdrObj = CDR()
+    # cdrObj.addFolder(1)
     # modifyParaText()
     # removGroupShapeObjs()
     # deleteGroupShapeObjs()
