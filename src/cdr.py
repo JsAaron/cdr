@@ -425,6 +425,8 @@ class CDR():
         copiedgroup = layer.FindShape(groupname)
         return copiedgroup
 
+
+
     # =========================================== 扩展 =======================================================
 
 
@@ -712,6 +714,7 @@ class CDR():
         if amount !=0 :
             obj.PositionY -= amount
 
+
     # change the size of obj
     def sizeObj(self, obj, oribound, withheight = True):
         bound = self.convertCood(oribound)
@@ -720,10 +723,12 @@ class CDR():
         if obj.SizeHeight != bound[3] - bound[1] and withheight:
             obj.SizeHeight = bound[3] - bound[1]
 
+
     # make obj suit for new bound
     def newbound(self, obj, newbound):
         self.moveObj(obj, newbound)
         self.sizeObj(obj, newbound)
+
 
     # align object in block frame bound
     def alignObject(self, oribound, obj, halign = 'center', valign = 'top'):

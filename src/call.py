@@ -126,6 +126,7 @@ def modifyParaText():
 
 if __name__ == '__main__':
     cdrObj = CDR()
+    cdrObj.addFolder(1)
     # modifyParaText()
     # removGroupShapeObjs()
     # deleteGroupShapeObjs()
