@@ -1,7 +1,7 @@
 import subprocess
 import sys
 import win32com.client
-from win32com.client import Dispatch, constants
+from win32com.client import Dispatch, constants,GetActiveObject
 from determine import Determine
 import input as Input
 from result import retrunData, setPageTotal
@@ -18,7 +18,10 @@ DEFAULTLINEHEIGHT = 5.5  # mm
 class CDR():
 
     def __init__(self, path=""):
-        self.app = Dispatch('CorelDraw.Application')
+        try:
+            self.app = GetActiveObject('CorelDraw.Application')
+        except:
+            self.app = Dispatch('CorelDraw.Application')
         if path:
             self.app.OpenDocument(path)
         self.doc = self.app.ActiveDocument
@@ -140,6 +143,11 @@ class CDR():
 
     # =================================== 基础方法 ===================================
 
+    # 公开创建标准目录层接口
+
+    def createStdFolder(self):
+        return self.__initDefalutLayer()
+
     # 判断变量类型
     def getType(self,variate):
         type = None
@@ -196,7 +204,8 @@ class CDR():
     def findShapeByName(self, parentobj ,name):
         groupObj = None
         for shape in parentobj.Shapes:
-            if shape.Name == parentobj:
+            # if shape.Name == parentobj:
+            if shape.Name == name:
                 groupObj = shape
                 break
         return groupObj
@@ -484,12 +493,16 @@ class CDR():
         spath.AppendLineSegment(y, 0)
         spath.Closed = True
 
-        layer = self.findLayerByName("秒秒学装饰")
+        # layer = self.getLayer("秒秒学装饰")
+        layer = self.doc.ActivePage.ActiveLayer
         sh = layer.CreateCurve(crv)
-        sh.Name = '三角形' + position
+        # sh.Name = '三角形' + position
+        # sh.Name = name
+        # print(sh.Name)
         sh.Fill.UniformColor.RGBAssign(style['background-color'][0],style['background-color'][1],style['background-color'][2])
         sh.PositionX = positionX 
         sh.PositionY = positionY
+        sh.Name = name
         return sh
 
 
@@ -787,7 +800,7 @@ class CDR():
 
 
    # 移动到中间
-    def moveToMiddleX(self,name):
+    def moveToLandscapeMiddle(self,name):
         layer = self.findLayerByName()
         sh = layer.FindShape(name)
         self.moveLandscapeObj(sh,(self.pagewidth - sh.SizeWidth)/2)
@@ -808,13 +821,13 @@ class CDR():
 
 
    # 移动到垂直中间
-    def moveToMiddleY(self,name):
+    def moveToVerticalMiddle(self,name):
         layer = self.findLayerByName()
         sh = layer.FindShape(name)
         self.moveVerticalObj(sh,(self.pageheight - sh.SizeHeight)/2)
 
 
-    # 移动到底部
+    # 移动到垂直底部
     def moveToBottom(self,name):
         layer = self.findLayerByName()
         sh = layer.FindShape(name)
@@ -826,3 +839,7 @@ class CDR():
         layer = self.findLayerByName()
         sh = layer.FindShape(name)
         self.moveObj(sh,[(self.pagewidth - sh.SizeWidth)/2,(self.pageheight - sh.SizeHeight)/2])
+
+
+    #============= 对齐 =====================
+    

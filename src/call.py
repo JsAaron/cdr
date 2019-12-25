@@ -126,14 +126,14 @@ def modifyParaText():
 
 
 def moveToMiddle():
-    # cdrObj = CDR()
-    # cdrObj.moveToMiddleX("测试1")
+    cdrObj = CDR()
+    # cdrObj.moveToLandscapeMiddle("测试1")
     # cdrObj.moveToLeft('测试1')
     # cdrObj.moveToRight('测试1')
     # cdrObj.moveToTop('测试1')
     # cdrObj.moveToBottom('测试1')
-    # cdrObj.moveToMiddleY('测试1')
-    # cdrObj.moveToCenter('测试1')
+    # cdrObj.moveToVerticalMiddle('测试1')
+    cdrObj.moveToCenter('测试1')
 
 
 if __name__ == '__main__':
