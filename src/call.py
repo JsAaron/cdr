@@ -121,7 +121,7 @@ def deleteGroupShapeObjs():
 # 修改文本
 def modifyParaText():
     cdrObj = CDR()
-    obj = cdrObj.insertParaText([0, 0, 120, 500],'测试1','我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111')
+    obj = cdrObj.insertParaText([0, 0, 120, 500],'测试1','我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf1111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf111111')
     cdrObj.modifyParaText(obj,'dfs123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111',[5, 50, 100, 50],'','')
 
 
@@ -134,20 +134,21 @@ def moveToMiddle():
     # cdrObj.moveToTop('测试1')
     # cdrObj.moveToBottom('测试1')
     # cdrObj.moveToVerticalMiddle('测试1')
-    cdrObj.moveToCenter('测试1')
+    # cdrObj.moveToCenter('测试1')
 
 
 # 字体尺寸修改
 def increaseFontSize():
-     cdrObj = CDR()
+    cdrObj = CDR()
     #  cdrObj.addFontSize('测试1',24)
-     cdrObj.reduceFontSize('测试1',15)
+    #  cdrObj.reduceFontSize('测试1',15)
+    # cdrObj.setColor('测试1',[255,0,0])
 
 
 if __name__ == '__main__':
-    increaseFontSize()
+    # increaseFontSize()
     # moveToMiddle()
-    # modifyParaText()
+    modifyParaText()
     # cdrObj = CDR()
     # cdrObj.addFolder(1)
     # modifyParaText()

@@ -578,8 +578,7 @@ class CDR():
         if style:
             theobj.ApplyStyle(style)
         if self.palette.ColorCount >= paletteidx:
-            theobj.Text.Story.Fill.UniformColor = self.palette.Colors()[
-                                                                      paletteidx]
+            theobj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
         theobj.Name = name
         theobj.SizeHeight = DEFAULTLINEHEIGHT
         self.adjustParaTextHeight(theobj)
@@ -595,7 +594,8 @@ class CDR():
     def modifyParaText(self, shapeObj, content='', oribound=[], style='', paletteidx=2, name=''):
         if shapeObj == None or content == '' or shapeObj.Text.Story.Text == content:
             return
-        shapeObj.Text.Story.Replace(content)
+        shapeObj.Text.Story.Text = ''
+        shapeObj.Text.Story.Text = content
         if name:
             shapeObj.Name = name
         if style:
@@ -603,31 +603,15 @@ class CDR():
         if paletteidx and self.palette.ColorCount >= int(paletteidx):
             shapeObj.Text.Story.Fill.UniformColor = self.palette.Colors()[
                                                                         paletteidx]
-
         if len(oribound):
             self.moveObj(shapeObj, oribound)
             self.adjustParaTextHeight(shapeObj)
-            # overflowW = (shapeObj.SizeWidth + oribound[0]) - self.pagewidth
-            # overflowH = (shapeObj.SizeHeight + oribound[1]) - self.pageheight
-            # hasChange = False
-            # # 右边溢出
-            # if overflowW>0:
-            #     shapeObj.SizeWidth = shapeObj.SizeWidth - overflowW
-            #     self.adjustParaTextHeight(shapeObj)
-            #     hasChange = True
-            # # 底部溢出
-            # if overflowH>0:
-            #     self.adjustParaTextHeight(shapeObj)
-            #     shapeObj.PositionY = -self.pageheight + shapeObj.SizeHeight
-            #     hasChange = True
-            # if hasChange == False:
-            #     self.adjustParaTextHeight(shapeObj)
+
 
     # insert paragraph text
     # bound: text bound, height will be auto calc, maybe not in bound
     # style: text style of the paragraph
     # content: text string
-
     def insertPointText(self, oribound, name='主标题', content='', style='正文', paletteidx=2, shape=None):
         theobj = shape
         if theobj != None:
@@ -850,10 +834,10 @@ class CDR():
     # shapeObj 对象
     # value 设置的值
     # baseValue 如果存在基础值
-    def addFontSize(self, shapeObj, value, baseValue):
+    def addFontSize(self, shapeObj, value, baseValue = ''):
         shapeObj = self.transformObjs(shapeObj)
         oldSize = shapeObj.Text.Story.Size
-       if baseValue:
+        if baseValue:
             shapeObj.Text.Story.Size = oldSize - baseValue
             shapeObj.SizeHeight = DEFAULTLINEHEIGHT
             self.adjustParaTextHeight(shapeObj)
@@ -868,7 +852,7 @@ class CDR():
     # shapeObj 对象
     # value 设置的值
     # baseValue 如果存在基础值
-    def reduceFontSize(self,shapeObj,value,baseValue):
+    def reduceFontSize(self,shapeObj,value,baseValue = ''):
         shapeObj = self.transformObjs(shapeObj)
         oldSize = shapeObj.Text.Story.Size
         if baseValue:
@@ -898,3 +882,9 @@ class CDR():
 
 
     # ========================== 配色 ==========================
+
+    # 设置颜色
+    def setColor(self,shapObj,rgb=[]):
+        shapeObj = self.transformObjs(shapObj)
+        shapeObj.Fill.UniformColor.RGBAssign(rgb[0], rgb[1], rgb[2])
+
