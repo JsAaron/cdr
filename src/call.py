@@ -125,6 +125,7 @@ def modifyParaText():
     cdrObj.modifyParaText(obj,'dfs123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111我是内容123123大1sdfasfsfsdf2312dfsadfsfsdf11111',[5, 50, 100, 50],'','')
 
 
+# 移动对象
 def moveToMiddle():
     cdrObj = CDR()
     # cdrObj.moveToLandscapeMiddle("测试1")
@@ -136,8 +137,16 @@ def moveToMiddle():
     cdrObj.moveToCenter('测试1')
 
 
+# 字体尺寸修改
+def increaseFontSize():
+     cdrObj = CDR()
+    #  cdrObj.addFontSize('测试1',24)
+     cdrObj.reduceFontSize('测试1',15)
+
+
 if __name__ == '__main__':
-    moveToMiddle()
+    increaseFontSize()
+    # moveToMiddle()
     # modifyParaText()
     # cdrObj = CDR()
     # cdrObj.addFolder(1)

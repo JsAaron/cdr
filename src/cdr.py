@@ -1,7 +1,7 @@
 import subprocess
 import sys
 import win32com.client
-from win32com.client import Dispatch, constants,GetActiveObject
+from win32com.client import Dispatch, constants, GetActiveObject
 from determine import Determine
 import input as Input
 from result import retrunData, setPageTotal
@@ -36,11 +36,10 @@ class CDR():
         if self.doc.ActivePage.TOPY > 0:
             self.doc.DrawingOriginY = self.doc.ActivePage.TOPY / 2
 
-
     # 初始默认图层
     def __initDefalutLayer(self):
 
-        #母版
+        # 母版
         hasMasterLayer = False
         for masterLayer in self.doc.MasterPage.AllLayers:
             if masterLayer.Name == '秒秒学全局参数':
@@ -82,11 +81,9 @@ class CDR():
         for curLayer in allLayers:
             determine.initField(curLayer.Name, curLayer.Shapes, pageIndex)
 
-
     def __accessInput(self,  determine, allLayers, pageIndex):
         for curLayer in allLayers:
             Input.accessShape(self.doc,  curLayer.Shapes, determine, pageIndex)
-
 
     def __setImage(self, determine, allLayers, pageIndex):
         visibleLayerName = determine.getVisibleField()
@@ -96,7 +93,6 @@ class CDR():
             # 设置状态，处理层级可见性
             determine.setLayerVisible(curLayer, visibleLayerName)
 
-
     def __accessExtractTextData(self, pageObj, pageIndex):
         allLayers = pageObj.AllLayers
         determine = Determine()
@@ -105,7 +101,6 @@ class CDR():
         # 设置图片/层的可见性
         if prarm.cmdCommand == "set:text":
             self.__setImage(determine, allLayers, pageIndex)
-
 
     def __accessData(self, pageIndex):
         if pageIndex:
@@ -117,9 +112,9 @@ class CDR():
                 self.__accessExtractTextData(page, count)
                 count += 1
 
-
      # 探测图片是否已经创建
     # 默认探测5次
+
     def __detectionImage(self, layer, imageName, count=10):
         obj = layer.FindShape(imageName)
         # 探测结束
@@ -132,24 +127,22 @@ class CDR():
         else:
             return obj
 
-
     # 移动形状到缓存
-    def __moveShapeToCache(self,layerObj,shapeObj):
+    def __moveShapeToCache(self, layerObj, shapeObj):
         delGroupObj = self.createDeleteCache(layerObj)
         firstObj = delGroupObj.Shapes.Item(1)
         shapeObj.OrderFrontOf(firstObj)
-        delGroupObj.Delete() 
-
+        delGroupObj.Delete()
 
     # =================================== 基础方法 ===================================
 
     # 公开创建标准目录层接口
-
     def createStdFolder(self):
         return self.__initDefalutLayer()
 
+
     # 判断变量类型
-    def getType(self,variate):
+    def getType(self, variate):
         type = None
         if isinstance(variate, int):
             type = "int"
@@ -182,7 +175,7 @@ class CDR():
 
     # name 根据名称找到图层
     # page 指定页面搜索layer
-    def findLayerByName(self, name = ''):
+    def findLayerByName(self, name=''):
         if name:
             for curLayer in self.doc.ActivePage.AllLayers:
                 if curLayer.Name == name:
@@ -191,7 +184,7 @@ class CDR():
 
 
     # 通过ID过去形状对象
-    def findShapeById(self, parentObj ,shapeObj):
+    def findShapeById(self, parentObj, shapeObj):
         groupObj = None
         for shape in parentObj.Shapes:
             if shape.StaticID == shapeObj.StaticID:
@@ -201,7 +194,7 @@ class CDR():
 
 
     # 找到当前组内的形状
-    def findShapeByName(self, parentobj ,name):
+    def findShapeByName(self, parentobj, name):
         groupObj = None
         for shape in parentobj.Shapes:
             # if shape.Name == parentobj:
@@ -212,12 +205,21 @@ class CDR():
 
 
     # 找到当前组内的形状合集
-    def findShapeByNames(self, name,parentobj=None):
+    def findShapeByNames(self, name, parentobj=None):
         groupShapes = []
         for shape in parentobj.Shapes:
             if shape.Name == name:
                 groupShapes.append(shape)
         return groupShapes
+
+
+    # 转化成指定对象
+    # name id obj
+    def transformObjs(self, shapeObj):
+        if self.getType(shapeObj) == 'str':
+            layer = self.findLayerByName()
+            shapeObj = layer.FindShape(shapeObj)
+        return shapeObj
 
 
     # 切换页面
@@ -265,7 +267,7 @@ class CDR():
         placeholderObj.Name = "placeholder"
         placeholderObj.Outline.Type = 0
         return placeholderObj
-       
+
 
     # move shapes into existing groupobj
     def moveShapeToGroup(self, groupobj, shapeObjs):
@@ -277,7 +279,7 @@ class CDR():
             else:
                 shape.OrderFrontOf(firstmember)
         return groupobj
-    
+
 
     # find whether a shape is in a group
     def findShapeInGroup(self, groupobj, shapename):
@@ -292,31 +294,31 @@ class CDR():
     # name 新的分组名字
     # [s1,s2,s3...] 需要合并的对象名称数组
     # shapeObjs must in layerObj, but maynot in parentobj
-    def groupShapeObjs(self, layerObj, groupName, parentobj = None, shapeObjs = []):
+    def groupShapeObjs(self, layerObj, groupName, parentobj=None, shapeObjs=[]):
         # first try to find the group, shape object has not Findshape method
         if parentobj == None:
             parentobj = layerObj
 
-        groupObj = self.findShapeByName(parentobj,groupName)
+        groupObj = self.findShapeByName(parentobj, groupName)
 
         # new group must has at least two shapeObjs
         if groupObj == None:
 
-            #if shapeObjs dont have enough objects, add placeholder
+            # if shapeObjs dont have enough objects, add placeholder
             if len(shapeObjs) < 1:
                 shapeObjs.append(self.insertPlaceholder(layerObj))
-            if len(shapeObjs) < 2:  
-                # the placeholder for one object should not change the group'size, so move it to the same position with 
+            if len(shapeObjs) < 2:
+                # the placeholder for one object should not change the group'size, so move it to the same position with
                 # # object
                 theplaceholder = self.insertPlaceholder(layerObj)
                 orishapeobj = shapeObjs[0]
                 theplaceholder.PositionX = orishapeobj.PositionX
                 theplaceholder.PositionY = orishapeobj.PositionY
-                shapeObjs.append(theplaceholder) 
+                shapeObjs.append(theplaceholder)
 
             if len(shapeObjs) < 2:  # should not happen because we add placeholder, anyway keep it for safe
                 return None
-            else:           #create new group
+            else:  # create new group
                 # if it does has parentgroup, move to parent first
                 if parentobj != layerObj:
                     self.moveShapeToGroup(parentobj, shapeObjs)
@@ -334,7 +336,7 @@ class CDR():
                 if newGroup != None:
                     newGroup.Name = groupName
                 return newGroup
-        else:      
+        else:
             # Already has group
             return self.moveShapeToGroup(groupObj, shapeObjs)
 
@@ -342,7 +344,7 @@ class CDR():
     # 创建临时删除区域
     # 删除不能用Delete, 直接delete会把整体列表都移除
     # 需要创建一个临时的对象，把shapre移动过去，最后删除这个临时对象
-    def createDeleteCache(self,layerObj):
+    def createDeleteCache(self, layerObj):
         shapeObjs = []
         groupIndex = []
         shapeObjs.append(self.insertPlaceholder(layerObj))
@@ -359,13 +361,13 @@ class CDR():
 
 
     # 增加形状对象到组对象
-    def addShapeToGroup(self,groupObj, shapeObj):
+    def addShapeToGroup(self, groupObj, shapeObj):
         # 本身不是组结构
         if groupObj.Shapes.Count == 0:
             return
         firstmember = groupObj.Shapes.Item(1)
         shapeObj.OrderFrontOf(firstmember)
-        placeholderArr = self.findShapeByNames('placeholder',groupObj)
+        placeholderArr = self.findShapeByNames('placeholder', groupObj)
         # 如果当前组下还存在预创建对象
         if len(placeholderArr):
             delGroupObj = self.createDeleteCache(groupObj.Layer)
@@ -374,45 +376,46 @@ class CDR():
                 item = placeholderArr[index]
                 if item.Name == 'placeholder':
                     item.OrderFrontOf(firstObj)
-            delGroupObj.Delete()    
+            delGroupObj.Delete()
         return groupObj
 
 
     # 从组中移除指定的对象
     # 保持组的持久
     def removGroupShapeObjs(self, groupObj, shapeObj):
-        hasObj = self.findShapeById(groupObj,shapeObj)
+        hasObj = self.findShapeById(groupObj, shapeObj)
         if hasObj == None:
             return hasObj
         layerObj = groupObj.Layer
-        #必须保持结构
+        # 必须保持结构
         if groupObj.Shapes.Count == 1:
             # 新加入占位
             self.insertPlaceholder(layerObj).OrderFrontOf(shapeObj)
             self.insertPlaceholder(layerObj).OrderFrontOf(shapeObj)
-        self.__moveShapeToCache(layerObj,shapeObj)
+        self.__moveShapeToCache(layerObj, shapeObj)
         return groupObj
-  
+
 
     # 删除组对象，如果组为空,不保持组的存在
     def deleteGroupShapeObjs(self, groupObj, shapeObj):
-        hasObj = self.findShapeById(groupObj,shapeObj)
+        hasObj = self.findShapeById(groupObj, shapeObj)
         if hasObj == None:
             return hasObj
         layerObj = groupObj.Layer
-        self.__moveShapeToCache(layerObj,shapeObj)
+        self.__moveShapeToCache(layerObj, shapeObj)
         if groupObj.Shapes.Count == 0:
             groupObj.Ungroup()
         return groupObj
-  
+
 
     # 复制对象
     # obj是一个对象，也可以是一个组
     # newname是复制后对象的名字
-    def cloneShape(self, obj, newname, OffsetX = 0, OffsetY = 0):
+    def cloneShape(self, obj, newname, OffsetX=0, OffsetY=0):
         newObj = obj.Duplicate(OffsetX, OffsetY)
         newObj.Name = newname
         return newObj
+
 
     # copy a block from master Layer to current layer
     def cloneFromMaster(self, layer, groupname):
@@ -438,15 +441,15 @@ class CDR():
     # =========================================== 扩展 =======================================================
 
 
-
     def groupDecorationTriangle(self):
-        sh1 = self.drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"bottom":300,"left":600},'lefttop')   
-        sh2 = self.drawDecorationTriangle("test",{"background-color":[255, 0, 0]},{"bottom":300,"right":600},'righttop') 
+        sh1 = self.drawDecorationTriangle(
+            "test", {"background-color": [255, 0, 0]}, {"bottom": 300, "left": 600}, 'lefttop')
+        sh2 = self.drawDecorationTriangle(
+            "test", {"background-color": [255, 0, 0]}, {"bottom": 300, "right": 600}, 'righttop')
         sr = self.app.ActiveSelection.Shapes
         for key in sr:
             key.Layer = self.doc.ActiveLayer
             key.Group(sh1)
-
 
     # 创建边界三角形
     def drawDecorationTriangle(self, name, style, points, position):
@@ -454,28 +457,28 @@ class CDR():
         ActivePage = self.doc.ActivePage
         sizeheight = ActivePage.sizeheight
         sizewidth = ActivePage.sizewidth
-     
+
         crv = self.app.CreateCurve(self.doc)
         spath = crv.CreateSubPath(0, 0)
 
         x = 0
         y = 0
         positionX = 0
-        positionY = 0 
+        positionY = 0
 
        # 左上角
         if position == 'lefttop':
             self.doc.ReferencePoint = 3
             x = -points['bottom']
             y = points['left']
-            positionX = 0 
+            positionX = 0
             positionY = sizeheight
-        
+
         if position == 'righttop':
             self.doc.ReferencePoint = 1
             x = -points['bottom']
             y = -points['right']
-            positionX = sizewidth 
+            positionX = sizewidth
             positionY = sizeheight
 
         if position == 'leftbottom':
@@ -487,7 +490,7 @@ class CDR():
             self.doc.ReferencePoint = 7
             x = points['top']
             y = -points['right']
-            positionX = sizewidth 
+            positionX = sizewidth
 
         spath.AppendLineSegment(0, x)
         spath.AppendLineSegment(y, 0)
@@ -499,15 +502,15 @@ class CDR():
         # sh.Name = '三角形' + position
         # sh.Name = name
         # print(sh.Name)
-        sh.Fill.UniformColor.RGBAssign(style['background-color'][0],style['background-color'][1],style['background-color'][2])
-        sh.PositionX = positionX 
+        sh.Fill.UniformColor.RGBAssign(
+            style['background-color'][0], style['background-color'][1], style['background-color'][2])
+        sh.PositionX = positionX
         sh.PositionY = positionY
         sh.Name = name
         return sh
 
-
-
     # adjust the height of the paragraph text, until all the content has been displayed
+
     def adjustParaTextHeight(self, textobj):
         if textobj.Type == 6:           # cdrTextShape
             if textobj.Text.Type == 1:  # cdrParagraphText
@@ -517,11 +520,10 @@ class CDR():
                     initloop = 0
                     for i in range(maxloop):
                         if textobj.Text.Overflow:
-                            textobj.SizeHeight +=  amount
+                            textobj.SizeHeight += amount
                         else:
                             break
         pass
-    
 
     # convert coordinates
     # in common sense, the coordinate should start at left top and y axis is down, so is is the think of people
@@ -529,6 +531,7 @@ class CDR():
     # in Coreldraw, it is different:
     # single-page: left -> right is the same, but original point is left top, y axis is up
     # double-page: left is different for left-page or right-page, and original point is bottom center, y axis is up
+
     def convertCood(self, oribound):
         bound = oribound.copy()
         lx = self.doc.ActivePage.LeftX
@@ -537,19 +540,19 @@ class CDR():
             bound[2] += lx
         return bound
 
-
     # revert clac
+
     def revertCood(self, xvalue):
         lx = self.doc.ActivePage.LeftX
         return xvalue - lx
-
 
     # insert paragraph text
     # bound: text bound, height will be auto calc, maybe not in bound
     # style: text style of the paragraph
     # content: text string
     # the height of paragraph text should only one line, because we calc overflow, only enlarge, not shrink
-    def insertParaText(self, oribound, name ='正文', content = '', style = '', paletteidx = 2, shape=None):
+
+    def insertParaText(self, oribound, name='正文', content='', style='', paletteidx=2, shape=None):
         # if the text already exist, just adjust it's bound
         theobj = shape
         newHeight = 0
@@ -564,22 +567,23 @@ class CDR():
             self.moveObj(theobj, oribound)
             # only width change exceed half characters, should we really change text width
             # 2.5 is in mm, and half characters
-            if abs(theobj.SizeWidth - (oribound[2] - oribound[0])) > DEFAULTLINEHEIGHT/2 or newHeight > 0:   
+            if abs(theobj.SizeWidth - (oribound[2] - oribound[0])) > DEFAULTLINEHEIGHT/2 or newHeight > 0:
                 theobj.SizeWidth = oribound[2] - oribound[0]
                 theobj.SizeHeight = DEFAULTLINEHEIGHT
                 self.adjustParaTextHeight(theobj)
             return theobj
         bound = self.convertCood(oribound)
-        theobj = self.doc.ActiveLayer.CreateParagraphText(bound[0], -1 * bound[1] , bound[2], -1 * bound[1] - 1, content, 0, -1)
+        theobj = self.doc.ActiveLayer.CreateParagraphText(
+            bound[0], -1 * bound[1], bound[2], -1 * bound[1] - 1, content, 0, -1)
         if style:
             theobj.ApplyStyle(style)
-        if self.palette.ColorCount>=paletteidx:
-            theobj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
+        if self.palette.ColorCount >= paletteidx:
+            theobj.Text.Story.Fill.UniformColor = self.palette.Colors()[
+                                                                      paletteidx]
         theobj.Name = name
         theobj.SizeHeight = DEFAULTLINEHEIGHT
         self.adjustParaTextHeight(theobj)
         return theobj
-
 
     # 修改段落文本
     # shapeObj 文本对象
@@ -588,7 +592,7 @@ class CDR():
     # style
     # paletteidx 调色表索引
     # name 节点名字
-    def modifyParaText(self,shapeObj, content='',oribound=[], style = '',paletteidx = 2, name=''):
+    def modifyParaText(self, shapeObj, content='', oribound=[], style='', paletteidx=2, name=''):
         if shapeObj == None or content == '' or shapeObj.Text.Story.Text == content:
             return
         shapeObj.Text.Story.Replace(content)
@@ -597,7 +601,8 @@ class CDR():
         if style:
             shapeObj.ApplyStyle(style)
         if paletteidx and self.palette.ColorCount >= int(paletteidx):
-            shapeObj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
+            shapeObj.Text.Story.Fill.UniformColor = self.palette.Colors()[
+                                                                        paletteidx]
 
         if len(oribound):
             self.moveObj(shapeObj, oribound)
@@ -618,12 +623,12 @@ class CDR():
             # if hasChange == False:
             #     self.adjustParaTextHeight(shapeObj)
 
-
     # insert paragraph text
     # bound: text bound, height will be auto calc, maybe not in bound
     # style: text style of the paragraph
     # content: text string
-    def insertPointText(self, oribound, name='主标题', content = '', style = '正文', paletteidx = 2, shape=None):
+
+    def insertPointText(self, oribound, name='主标题', content='', style='正文', paletteidx=2, shape=None):
         theobj = shape
         if theobj != None:
             # adjust it's bound
@@ -634,16 +639,17 @@ class CDR():
             self.moveObj(theobj, oribound)
             return theobj
         bound = self.convertCood(oribound)
-        theobj = self.doc.ActiveLayer.CreateArtisticText(bound[0], -1 * bound[3], content, 0, -1)
+        theobj = self.doc.ActiveLayer.CreateArtisticText(
+            bound[0], -1 * bound[3], content, 0, -1)
         theobj.ApplyStyle(style)
         theobj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
         theobj.Name = name
         theobj.PositionY = -1 * bound[1]
         return theobj
 
-
     # insert background rect
-    def insertRectangle(self, oribound, name='正文背景', round = 0, paletteidx = 0, noborder = True, shape=None):
+
+    def insertRectangle(self, oribound, name='正文背景', round=0, paletteidx=0, noborder=True, shape=None):
         theobj = shape
         if theobj != None:
             # adjust it's bound
@@ -651,7 +657,7 @@ class CDR():
             self.sizeObj(theobj, oribound)
             return theobj
         bound = self.convertCood(oribound)
-        theobj = self.doc.ActiveLayer.CreateRectangle(bound[0], -1 * bound[1], bound[2], -1 * bound[3], 
+        theobj = self.doc.ActiveLayer.CreateRectangle(bound[0], -1 * bound[1], bound[2], -1 * bound[3],
                     round, round, round, round)
         theobj.Fill.UniformColor = self.palette.Colors()[paletteidx]
         if noborder:
@@ -659,9 +665,9 @@ class CDR():
         theobj.Name = name
         return theobj
 
-
     # insert powerclip from rectangle
-    def insertPowerclip(self, oribound, name='图片', round = 0, style = '图文框', shape=None):
+
+    def insertPowerclip(self, oribound, name='图片', round=0, style='图文框', shape=None):
         theobj = shape
         if theobj != None:
             # adjust it's bound
@@ -669,37 +675,40 @@ class CDR():
             self.sizeObj(theobj, oribound)
             return theobj
         bound = self.convertCood(oribound)
-        theobj = self.doc.ActiveLayer.CreateRectangle(bound[0], -1 * bound[1], bound[2], -1 * bound[3], 
+        theobj = self.doc.ActiveLayer.CreateRectangle(bound[0], -1 * bound[1], bound[2], -1 * bound[3],
                     round, round, round, round)
         theobj.ApplyStyle(style)
         theobj.Name = name
-        rect2 = self.doc.ActiveLayer.CreateRectangle(bound[0], bound[1], bound[2], bound[3], 
+        rect2 = self.doc.ActiveLayer.CreateRectangle(bound[0], bound[1], bound[2], bound[3],
                     round, round, round, round)
         rect2.AddToPowerClip(theobj, -1)
         return theobj
 
-
     # insert line
-    def insertLine(self, oribound, name='分隔线', style = '粗分隔线', type = 'horizontal', shape=None):
+
+    def insertLine(self, oribound, name='分隔线', style='粗分隔线', type='horizontal', shape=None):
         theobj = shape
         if theobj != None:
             # adjust it's bound
             self.moveObj(theobj, oribound)
-            self.sizeObj(theobj, oribound, withheight = False)
+            self.sizeObj(theobj, oribound, withheight=False)
             return theobj
         bound = self.convertCood(oribound)
         if type == 'horizontal':
-            theobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[2], -1*bound[1])
+            theobj = self.doc.ActiveLayer.CreateLineSegment(
+                bound[0], -1*bound[1], bound[2], -1*bound[1])
         elif type == 'vertical':
-            theobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[0], -1*bound[3])
+            theobj = self.doc.ActiveLayer.CreateLineSegment(
+                bound[0], -1*bound[1], bound[0], -1*bound[3])
         else:
-            theobj = self.doc.ActiveLayer.CreateLineSegment(bound[0], -1*bound[1], bound[2], -1*bound[3])
+            theobj = self.doc.ActiveLayer.CreateLineSegment(
+                bound[0], -1*bound[1], bound[2], -1*bound[3])
         theobj.ApplyStyle(style)
         theobj.Name = name
         return theobj
-    
 
     # insert image
+
     def dealBackgroundImage(self, name):
         theobj = self.doc.ActiveLayer.FindShape(name)
         if theobj == None:
@@ -710,7 +719,6 @@ class CDR():
         theobj.SizeWidth = self.doc.ActivePage.SizeWidth
         theobj.SizeHeight = self.doc.ActivePage.SizeHeight
         return theobj
-
 
     # move object
     def moveObj(self, obj, oribound):
@@ -733,12 +741,12 @@ class CDR():
 
     # movedown object
     def movedownObj(self, obj, amount):
-        if amount !=0 :
+        if amount != 0:
             obj.PositionY -= amount
 
 
     # change the size of obj
-    def sizeObj(self, obj, oribound, withheight = True):
+    def sizeObj(self, obj, oribound, withheight=True):
         bound = self.convertCood(oribound)
         if obj.SizeWidth != bound[2] - bound[0]:
             obj.SizeWidth = bound[2] - bound[0]
@@ -753,7 +761,7 @@ class CDR():
 
 
     # align object in block frame bound
-    def alignObject(self, oribound, obj, halign = 'center', valign = 'top'):
+    def alignObject(self, oribound, obj, halign='center', valign='top'):
         bound = self.convertCood(oribound)
         objwidth = obj.SizeWidth
         objheight = obj.SizeHeight
@@ -768,9 +776,9 @@ class CDR():
         elif halign == 'right':
             left = bound[0] + abs(boundwidth - objwidth)
             pass
-        else:  #left
+        else:  # left
             pass
-        
+
         if obj.PositionX != left:
             obj.PositionX = left
 
@@ -781,65 +789,112 @@ class CDR():
         elif halign == 'bottom':
             top = -(bound[1] + abs(boundheight - objheight))
             pass
-        else:  #top
+        else:  # top
             pass
-        
+
         if obj.PositionY != top:
             obj.PositionY = top
         pass
-        
-    
 
-    # ============= 移动 =====================
+
+    # ========================== 移动 ==========================
+
 
     # 移动左边
-    def moveToLeft(self,name):
-        layer = self.findLayerByName()
-        sh = layer.FindShape(name)
-        self.moveLandscapeObj(sh,0)
+    def moveToLeft(self, name):
+        sh = self.transformObjs(name)
+        self.moveLandscapeObj(sh, 0)
 
 
    # 移动到中间
-    def moveToLandscapeMiddle(self,name):
-        layer = self.findLayerByName()
-        sh = layer.FindShape(name)
-        self.moveLandscapeObj(sh,(self.pagewidth - sh.SizeWidth)/2)
+    def moveToLandscapeMiddle(self, name):
+        sh = self.transformObjs(name)
+        self.moveLandscapeObj(sh, (self.pagewidth - sh.SizeWidth)/2)
 
 
     # 移动右边
-    def moveToRight(self,name):
-        layer = self.findLayerByName()
-        sh = layer.FindShape(name)
-        self.moveLandscapeObj(sh,self.pagewidth - sh.SizeWidth)
+    def moveToRight(self, name):
+        sh = self.transformObjs(name)
+        self.moveLandscapeObj(sh, self.pagewidth - sh.SizeWidth)
 
 
     # 移动到顶部
-    def moveToTop(self,name):
-        layer = self.findLayerByName()
-        sh = layer.FindShape(name)
-        self.moveVerticalObj(sh,0)
+    def moveToTop(self, name):
+        sh = self.transformObjs(name)
+        self.moveVerticalObj(sh, 0)
 
 
    # 移动到垂直中间
-    def moveToVerticalMiddle(self,name):
-        layer = self.findLayerByName()
-        sh = layer.FindShape(name)
-        self.moveVerticalObj(sh,(self.pageheight - sh.SizeHeight)/2)
+    def moveToVerticalMiddle(self, name):
+        sh = self.transformObjs(name)
+        self.moveVerticalObj(sh, (self.pageheight - sh.SizeHeight)/2)
 
 
     # 移动到垂直底部
-    def moveToBottom(self,name):
-        layer = self.findLayerByName()
-        sh = layer.FindShape(name)
-        self.moveVerticalObj(sh,self.pageheight - sh.SizeHeight)
+    def moveToBottom(self, name):
+        sh = self.transformObjs(name)
+        self.moveVerticalObj(sh, self.pageheight - sh.SizeHeight)
 
 
     # 移动到正中间
-    def moveToCenter(self,name):
-        layer = self.findLayerByName()
-        sh = layer.FindShape(name)
-        self.moveObj(sh,[(self.pagewidth - sh.SizeWidth)/2,(self.pageheight - sh.SizeHeight)/2])
+    def moveToCenter(self, name):
+        sh = self.transformObjs(name)
+        self.moveObj(sh, [(self.pagewidth - sh.SizeWidth) /
+                     2, (self.pageheight - sh.SizeHeight)/2])
 
 
-    #============= 对齐 =====================
+    # ========================== 文本尺寸 ==========================
+
+   
+    # 增大字体
+    # shapeObj 对象
+    # value 设置的值
+    # baseValue 如果存在基础值
+    def addFontSize(self, shapeObj, value, baseValue):
+        shapeObj = self.transformObjs(shapeObj)
+        oldSize = shapeObj.Text.Story.Size
+       if baseValue:
+            shapeObj.Text.Story.Size = oldSize - baseValue
+            shapeObj.SizeHeight = DEFAULTLINEHEIGHT
+            self.adjustParaTextHeight(shapeObj)
+        else:
+            if value > oldSize:
+                shapeObj.Text.Story.Size = value
+                if shapeObj.Text.Overflow:
+                    self.adjustParaTextHeight(shapeObj)
+
+
+    # 减小字体
+    # shapeObj 对象
+    # value 设置的值
+    # baseValue 如果存在基础值
+    def reduceFontSize(self,shapeObj,value,baseValue):
+        shapeObj = self.transformObjs(shapeObj)
+        oldSize = shapeObj.Text.Story.Size
+        if baseValue:
+            shapeObj.Text.Story.Size = oldSize + baseValue
+            shapeObj.SizeHeight = DEFAULTLINEHEIGHT
+            self.adjustParaTextHeight(shapeObj)
+        else:
+            if value < oldSize:
+                shapeObj.Text.Story.Size = value
+                shapeObj.SizeHeight = DEFAULTLINEHEIGHT
+                self.adjustParaTextHeight(shapeObj)
+                 
+
+    # 字体自动递增
+    # shapeObj 对象
+    # baseValue 基础值
+    def increaseFontSize(self,shapeObj,baseValue):    
+        self.addFontSize(shapeObj,'',baseValue) 
+
     
+    # 自动递减
+    # shapeObj 对象
+    # baseValue 基础值
+    def decreaseFontSize(self,shapeObj,baseValue):
+        self.reduceFontSize(shapeObj,'',baseValue) 
+
+
+
+    # ========================== 配色 ==========================
