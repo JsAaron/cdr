@@ -138,6 +138,11 @@ def increaseFontSize():
     #  cdrObj.reduceFontSize('测试1',15)
     # cdrObj.setColor('测试1',[255,0,0])
 
+def testColor():
+    cdrObj = CDR()
+    # cdrObj.setColor('测试1',[255,0,0])
+    cdrObj.createPage(5)
+
 
 # 组合测试
 def combineTest():
@@ -151,9 +156,10 @@ def combineTest():
 
 
 if __name__ == '__main__':
+    testColor()
     # increaseFontSize()
     # moveToMiddle()
-    combineTest()
+    # combineTest()
     # cdrObj = CDR()
     # cdrObj.addFolder(1)
     # modifyParaText()

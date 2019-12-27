@@ -37,6 +37,7 @@ class CDR():
         if self.doc.ActivePage.TOPY > 0:
             self.doc.DrawingOriginY = self.doc.ActivePage.TOPY / 2
 
+
     # 初始默认图层
     def __initDefalutLayer(self):
 
@@ -78,13 +79,16 @@ class CDR():
                    if has == False:
                     self.doc.Pages.Item(index+1).CreateLayer(key)
 
+
     def __preprocess(self, determine, allLayers, pageIndex):
         for curLayer in allLayers:
             determine.initField(curLayer.Name, curLayer.Shapes, pageIndex)
 
+
     def __accessInput(self,  determine, allLayers, pageIndex):
         for curLayer in allLayers:
             Input.accessShape(self.doc,  curLayer.Shapes, determine, pageIndex)
+
 
     def __setImage(self, determine, allLayers, pageIndex):
         visibleLayerName = determine.getVisibleField()
@@ -94,6 +98,7 @@ class CDR():
             # 设置状态，处理层级可见性
             determine.setLayerVisible(curLayer, visibleLayerName)
 
+
     def __accessExtractTextData(self, pageObj, pageIndex):
         allLayers = pageObj.AllLayers
         determine = Determine()
@@ -102,6 +107,7 @@ class CDR():
         # 设置图片/层的可见性
         if prarm.cmdCommand == "set:text":
             self.__setImage(determine, allLayers, pageIndex)
+
 
     def __accessData(self, pageIndex):
         if pageIndex:
@@ -113,9 +119,9 @@ class CDR():
                 self.__accessExtractTextData(page, count)
                 count += 1
 
+
      # 探测图片是否已经创建
     # 默认探测5次
-
     def __detectionImage(self, layer, imageName, count=10):
         obj = layer.FindShape(imageName)
         # 探测结束
@@ -128,6 +134,7 @@ class CDR():
         else:
             return obj
 
+
     # 移动形状到缓存
     def __moveShapeToCache(self, layerObj, shapeObj):
         delGroupObj = self.createDeleteCache(layerObj)
@@ -135,7 +142,15 @@ class CDR():
         shapeObj.OrderFrontOf(firstObj)
         delGroupObj.Delete()
 
+
     # =================================== 基础方法 ===================================
+
+    # 创建新页面
+    def createPage(self,count=1):
+        index = self.app.ActivePage.Index
+        self.doc.AddPages(count)
+        self.togglePage(index)
+    
 
     # 公开创建标准目录层接口
     def createStdFolder(self):
@@ -193,6 +208,7 @@ class CDR():
                 break
         return groupObj
     
+
     # 通过id找到相应的对象
     # 增加对组的处理 xiaowy 2019/12/25
     def findShapeById2(self, parentobj ,objId):
@@ -793,7 +809,7 @@ class CDR():
         pass
 
 
-
+    
     # ========================== 移动 ==========================
 
     # move object
@@ -925,5 +941,7 @@ class CDR():
     # 设置颜色
     def setColor(self,shapObj,rgb=[]):
         shapeObj = self.transformObjs(shapObj)
-        shapeObj.Fill.UniformColor.RGBAssign(rgb[0], rgb[1], rgb[2])
+        # print(shapeObj.Layer.Color.Palette)
+        print(self.palette.Colors()[1])
+        # shapeObj.Fill.UniformColor.RGBAssign(rgb[0], rgb[1], rgb[2])
 
