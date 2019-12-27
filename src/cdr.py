@@ -12,6 +12,7 @@ import os
 import time
 
 
+
 DEFAULTLINEHEIGHT = 5.5  # mm
 
 
@@ -191,16 +192,35 @@ class CDR():
                 groupObj = shape
                 break
         return groupObj
+    
+    # 通过id找到相应的对象
+    # 增加对组的处理 xiaowy 2019/12/25
+    def findShapeById2(self, parentobj ,objId):
+        groupObj = None
+        for shape in parentobj.Shapes:
+            # if shape.Name == parentobj:
+            if shape.StaticID == objId:
+                # groupObj = shape
+                # break
+                return shape
+            elif not shape.IsSimpleShape: # for group
+                groupObj = self.findShapeById2(shape, objId)
+        return groupObj
+
 
 
     # 找到当前组内的形状
-    def findShapeByName(self, parentobj, name):
+    # 增加对组的处理 xiaowy 2019/12/25
+    def findShapeByName(self, parentobj ,name):
         groupObj = None
         for shape in parentobj.Shapes:
             # if shape.Name == parentobj:
             if shape.Name == name:
-                groupObj = shape
-                break
+                # groupObj = shape
+                # break
+                return shape
+            elif not shape.IsSimpleShape: # for group
+                groupObj = self.findShapeByName(shape, name)
         return groupObj
 
 
@@ -438,8 +458,7 @@ class CDR():
 
 
 
-    # =========================================== 扩展 =======================================================
-
+    # ========================== 创建/修改 ==========================
 
     def groupDecorationTriangle(self):
         sh1 = self.drawDecorationTriangle(
@@ -450,6 +469,7 @@ class CDR():
         for key in sr:
             key.Layer = self.doc.ActiveLayer
             key.Group(sh1)
+
 
     # 创建边界三角形
     def drawDecorationTriangle(self, name, style, points, position):
@@ -509,8 +529,8 @@ class CDR():
         sh.Name = name
         return sh
 
-    # adjust the height of the paragraph text, until all the content has been displayed
 
+    # adjust the height of the paragraph text, until all the content has been displayed
     def adjustParaTextHeight(self, textobj):
         if textobj.Type == 6:           # cdrTextShape
             if textobj.Text.Type == 1:  # cdrParagraphText
@@ -525,13 +545,13 @@ class CDR():
                             break
         pass
 
+
     # convert coordinates
     # in common sense, the coordinate should start at left top and y axis is down, so is is the think of people
     # which write from left to right, from top to bottom
     # in Coreldraw, it is different:
     # single-page: left -> right is the same, but original point is left top, y axis is up
     # double-page: left is different for left-page or right-page, and original point is bottom center, y axis is up
-
     def convertCood(self, oribound):
         bound = oribound.copy()
         lx = self.doc.ActivePage.LeftX
@@ -540,8 +560,8 @@ class CDR():
             bound[2] += lx
         return bound
 
-    # revert clac
 
+    # revert clac
     def revertCood(self, xvalue):
         lx = self.doc.ActivePage.LeftX
         return xvalue - lx
@@ -551,7 +571,6 @@ class CDR():
     # style: text style of the paragraph
     # content: text string
     # the height of paragraph text should only one line, because we calc overflow, only enlarge, not shrink
-
     def insertParaText(self, oribound, name='正文', content='', style='', paletteidx=2, shape=None):
         # if the text already exist, just adjust it's bound
         theobj = shape
@@ -584,6 +603,7 @@ class CDR():
         self.adjustParaTextHeight(theobj)
         return theobj
 
+
     # 修改段落文本
     # shapeObj 文本对象
     # content 文本内容
@@ -591,7 +611,8 @@ class CDR():
     # style
     # paletteidx 调色表索引
     # name 节点名字
-    def modifyParaText(self, shapeObj, content='', oribound=[], style='', paletteidx=2, name=''):
+    def modifyParaText(self, shapeObj, content='', oribound=[], style='', paletteidx='', name=''):
+        shapeObj = self.transformObjs(shapeObj)
         if shapeObj == None or content == '' or shapeObj.Text.Story.Text == content:
             return
         shapeObj.Text.Story.Text = ''
@@ -601,8 +622,7 @@ class CDR():
         if style:
             shapeObj.ApplyStyle(style)
         if paletteidx and self.palette.ColorCount >= int(paletteidx):
-            shapeObj.Text.Story.Fill.UniformColor = self.palette.Colors()[
-                                                                        paletteidx]
+            shapeObj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
         if len(oribound):
             self.moveObj(shapeObj, oribound)
             self.adjustParaTextHeight(shapeObj)
@@ -631,8 +651,8 @@ class CDR():
         theobj.PositionY = -1 * bound[1]
         return theobj
 
-    # insert background rect
 
+    # insert background rect
     def insertRectangle(self, oribound, name='正文背景', round=0, paletteidx=0, noborder=True, shape=None):
         theobj = shape
         if theobj != None:
@@ -649,8 +669,8 @@ class CDR():
         theobj.Name = name
         return theobj
 
-    # insert powerclip from rectangle
 
+    # insert powerclip from rectangle
     def insertPowerclip(self, oribound, name='图片', round=0, style='图文框', shape=None):
         theobj = shape
         if theobj != None:
@@ -668,8 +688,8 @@ class CDR():
         rect2.AddToPowerClip(theobj, -1)
         return theobj
 
-    # insert line
 
+    # insert line
     def insertLine(self, oribound, name='分隔线', style='粗分隔线', type='horizontal', shape=None):
         theobj = shape
         if theobj != None:
@@ -691,8 +711,14 @@ class CDR():
         theobj.Name = name
         return theobj
 
-    # insert image
 
+    # set random outline for an object, mostly for block frame
+    def setRandomOutline(self, shape):
+        shape.Outline.Color.HLSAssign(random.randint(0, 360), 100, 100)
+        pass
+    
+
+    # insert image
     def dealBackgroundImage(self, name):
         theobj = self.doc.ActiveLayer.FindShape(name)
         if theobj == None:
@@ -703,30 +729,6 @@ class CDR():
         theobj.SizeWidth = self.doc.ActivePage.SizeWidth
         theobj.SizeHeight = self.doc.ActivePage.SizeHeight
         return theobj
-
-    # move object
-    def moveObj(self, obj, oribound):
-        bound = self.convertCood(oribound)
-        if obj.PositionX != bound[0]:
-            obj.PositionX = bound[0]
-        if obj.PositionY != -1 * bound[1]:
-            obj.PositionY = -1 * bound[1]
-
-
-    # 移动X轴
-    def moveLandscapeObj(self, obj, amount):
-        obj.PositionX = amount
-
-
-    # 移动Y轴
-    def moveVerticalObj(self, obj, amount):
-        obj.PositionY = -1 * amount
-
-
-    # movedown object
-    def movedownObj(self, obj, amount):
-        if amount != 0:
-            obj.PositionY -= amount
 
 
     # change the size of obj
@@ -745,8 +747,10 @@ class CDR():
 
 
     # align object in block frame bound
-    def alignObject(self, oribound, obj, halign='center', valign='top'):
-        bound = self.convertCood(oribound)
+    def alignObject(self, oribound, obj, halign='center', valign='top', convert = True):
+        bound = oribound.copy()
+        if convert:
+            bound = self.convertCood(oribound)
         objwidth = obj.SizeWidth
         objheight = obj.SizeHeight
 
@@ -776,12 +780,45 @@ class CDR():
         else:  # top
             pass
 
-        if obj.PositionY != top:
-            obj.PositionY = top
+        if valign != None:
+            if obj.PositionY != top:
+                obj.PositionY = top
+        pass
+
+    # align all the objects in a group
+    def alignObjectInGroup(self, groupobj, halign='center', valign='top'):
+        groupbound = [groupobj.LeftX, -groupobj.TOPY, groupobj.RightX, -groupobj.bottomY]
+        for shape in groupobj.Shapes:
+            self.alignObject(groupbound, shape, halign, None, convert = False)
         pass
 
 
+
     # ========================== 移动 ==========================
+
+    # move object
+    def moveObj(self, obj, oribound):
+        bound = self.convertCood(oribound)
+        if obj.PositionX != bound[0]:
+            obj.PositionX = bound[0]
+        if obj.PositionY != -1 * bound[1]:
+            obj.PositionY = -1 * bound[1]
+
+
+    # 移动X轴
+    def moveLandscapeObj(self, obj, amount):
+        obj.PositionX = amount
+
+
+    # 移动Y轴
+    def moveVerticalObj(self, obj, amount):
+        obj.PositionY = -1 * amount
+
+
+    # movedown object
+    def movedownObj(self, obj, amount):
+        if amount != 0:
+            obj.PositionY -= amount
 
 
     # 移动左边
@@ -827,9 +864,18 @@ class CDR():
                      2, (self.pageheight - sh.SizeHeight)/2])
 
 
-    # ========================== 文本尺寸 ==========================
 
-   
+    # ========================== 尺寸 ==========================
+
+
+    #设置字体尺寸
+    def setFontSize(self,shapeObj,value):
+        shapeObj.Text.Story.Size = value
+        shapeObj.SizeHeight = DEFAULTLINEHEIGHT
+        if shapeObj.Text.Overflow:
+            self.adjustParaTextHeight(shapeObj)
+
+
     # 增大字体
     # shapeObj 对象
     # value 设置的值
@@ -838,14 +884,10 @@ class CDR():
         shapeObj = self.transformObjs(shapeObj)
         oldSize = shapeObj.Text.Story.Size
         if baseValue:
-            shapeObj.Text.Story.Size = oldSize - baseValue
-            shapeObj.SizeHeight = DEFAULTLINEHEIGHT
-            self.adjustParaTextHeight(shapeObj)
+            self.setFontSize(shapeObj,oldSize - baseValue)
         else:
             if value > oldSize:
-                shapeObj.Text.Story.Size = value
-                if shapeObj.Text.Overflow:
-                    self.adjustParaTextHeight(shapeObj)
+                 self.setFontSize(shapeObj,value)
 
 
     # 减小字体
@@ -856,15 +898,11 @@ class CDR():
         shapeObj = self.transformObjs(shapeObj)
         oldSize = shapeObj.Text.Story.Size
         if baseValue:
-            shapeObj.Text.Story.Size = oldSize + baseValue
-            shapeObj.SizeHeight = DEFAULTLINEHEIGHT
-            self.adjustParaTextHeight(shapeObj)
+            self.setFontSize(shapeObj, oldSize + baseValue)
         else:
             if value < oldSize:
-                shapeObj.Text.Story.Size = value
-                shapeObj.SizeHeight = DEFAULTLINEHEIGHT
-                self.adjustParaTextHeight(shapeObj)
-                 
+                self.setFontSize(shapeObj,value)
+ 
 
     # 字体自动递增
     # shapeObj 对象
@@ -882,6 +920,7 @@ class CDR():
 
 
     # ========================== 配色 ==========================
+
 
     # 设置颜色
     def setColor(self,shapObj,rgb=[]):
