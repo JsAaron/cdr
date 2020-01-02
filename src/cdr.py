@@ -6,11 +6,9 @@ from determine import Determine
 import input as Input
 from result import retrunData, setPageTotal
 import prarm
-
 import urllib.parse
 import os
 import time
-
 
 
 DEFAULTLINEHEIGHT = 5.5  # mm
@@ -37,6 +35,11 @@ class CDR():
         if self.doc.ActivePage.TOPY > 0:
             self.doc.DrawingOriginY = self.doc.ActivePage.TOPY / 2
 
+        c = self.app.Palettes.Open('C:\\Users\\Administrator\\Desktop\\11\\cw.xml')
+        print(c.ColorCount)
+        # print(self.app.Palettes.count)
+        # print(self.palette.InsertColor(1,'222222'))
+        # self.palette.AddColor('#fff')
 
     # 初始默认图层
     def __initDefalutLayer(self):
@@ -53,10 +56,10 @@ class CDR():
         pagesConfig = []
         for page in self.doc.Pages:
             dictName = {
+                "秒秒学背景": True,
                 "秒秒学板块": True,
-                "秒秒学装饰": True,
                 "秒秒学结构": True,
-                "秒秒学背景": True
+                "秒秒学装饰": True
             }
 
             for curLayer in page.AllLayers:
@@ -79,16 +82,13 @@ class CDR():
                    if has == False:
                     self.doc.Pages.Item(index+1).CreateLayer(key)
 
-
     def __preprocess(self, determine, allLayers, pageIndex):
         for curLayer in allLayers:
             determine.initField(curLayer.Name, curLayer.Shapes, pageIndex)
 
-
     def __accessInput(self,  determine, allLayers, pageIndex):
         for curLayer in allLayers:
             Input.accessShape(self.doc,  curLayer.Shapes, determine, pageIndex)
-
 
     def __setImage(self, determine, allLayers, pageIndex):
         visibleLayerName = determine.getVisibleField()
@@ -98,7 +98,6 @@ class CDR():
             # 设置状态，处理层级可见性
             determine.setLayerVisible(curLayer, visibleLayerName)
 
-
     def __accessExtractTextData(self, pageObj, pageIndex):
         allLayers = pageObj.AllLayers
         determine = Determine()
@@ -107,7 +106,6 @@ class CDR():
         # 设置图片/层的可见性
         if prarm.cmdCommand == "set:text":
             self.__setImage(determine, allLayers, pageIndex)
-
 
     def __accessData(self, pageIndex):
         if pageIndex:
@@ -119,9 +117,9 @@ class CDR():
                 self.__accessExtractTextData(page, count)
                 count += 1
 
-
      # 探测图片是否已经创建
     # 默认探测5次
+
     def __detectionImage(self, layer, imageName, count=10):
         obj = layer.FindShape(imageName)
         # 探测结束
@@ -134,7 +132,6 @@ class CDR():
         else:
             return obj
 
-
     # 移动形状到缓存
     def __moveShapeToCache(self, layerObj, shapeObj):
         delGroupObj = self.createDeleteCache(layerObj)
@@ -142,15 +139,7 @@ class CDR():
         shapeObj.OrderFrontOf(firstObj)
         delGroupObj.Delete()
 
-
     # =================================== 基础方法 ===================================
-
-    # 创建新页面
-    def createPage(self,count=1):
-        index = self.app.ActivePage.Index
-        self.doc.AddPages(count)
-        self.togglePage(index)
-    
 
     # 公开创建标准目录层接口
     def createStdFolder(self):
@@ -208,7 +197,6 @@ class CDR():
                 break
         return groupObj
     
-
     # 通过id找到相应的对象
     # 增加对组的处理 xiaowy 2019/12/25
     def findShapeById2(self, parentobj ,objId):
@@ -472,7 +460,7 @@ class CDR():
         copiedgroup = layer.FindShape(groupname)
         return copiedgroup
 
-
+    # find all the block templates of a type
 
     # ========================== 创建/修改 ==========================
 
@@ -587,7 +575,7 @@ class CDR():
     # style: text style of the paragraph
     # content: text string
     # the height of paragraph text should only one line, because we calc overflow, only enlarge, not shrink
-    def insertParaText(self, oribound, name='正文', content='', style='', paletteidx=2, shape=None):
+    def insertParaText(self, oribound, name='正文', content='', style='', paletteidx=2, shape=None, columns = 0):
         # if the text already exist, just adjust it's bound
         theobj = shape
         newHeight = 0
@@ -606,6 +594,9 @@ class CDR():
                 theobj.SizeWidth = oribound[2] - oribound[0]
                 theobj.SizeHeight = DEFAULTLINEHEIGHT
                 self.adjustParaTextHeight(theobj)
+            # xiaowy
+            if columns > 0:
+                self.setTextColumns(theobj, columns)
             return theobj
         bound = self.convertCood(oribound)
         theobj = self.doc.ActiveLayer.CreateParagraphText(
@@ -617,8 +608,25 @@ class CDR():
         theobj.Name = name
         theobj.SizeHeight = DEFAULTLINEHEIGHT
         self.adjustParaTextHeight(theobj)
+        # xiaowy
+        if columns > 0:
+                self.setTextColumns(theobj, columns)
         return theobj
 
+    def setTextColumns(self, textObj, columns):
+        '''
+        设定文本框的分栏
+        key-words:
+            textObj:text 对象
+            columns:分栏的个数
+        '''
+        story = textObj.Text.Story
+        fontSize = story.Size
+        columnSpace = 1.5 * fontSize
+        columnWidth = (textObj.SizeWidth - (columns - 1) * columnSpace) // columns
+        frame = textObj.Text.Frame
+        frame.SetColumns(columns, True, [columnWidth, columnSpace])
+        return textObj
 
     # 修改段落文本
     # shapeObj 文本对象
@@ -687,22 +695,39 @@ class CDR():
 
 
     # insert powerclip from rectangle
-    def insertPowerclip(self, oribound, name='图片', round=0, style='图文框', shape=None):
-        theobj = shape
+    def insertPowerclip(self, oribound, name='图片', round=0, style='图文框', shapeImg=None, shape='rect'):
+        '''
+        key-words:
+            shapeImg:图片形状对象,默认None
+            shape:形状,默认为矩形(rect),可为'circle'或'triangle'
+        '''
+        theobj = shapeImg
         if theobj != None:
             # adjust it's bound
             self.moveObj(theobj, oribound)
             self.sizeObj(theobj, oribound)
             return theobj
         bound = self.convertCood(oribound)
-        theobj = self.doc.ActiveLayer.CreateRectangle(bound[0], -1 * bound[1], bound[2], -1 * bound[3],
-                    round, round, round, round)
-        theobj.ApplyStyle(style)
-        theobj.Name = name
-        rect2 = self.doc.ActiveLayer.CreateRectangle(bound[0], bound[1], bound[2], bound[3],
-                    round, round, round, round)
-        rect2.AddToPowerClip(theobj, -1)
-        return theobj
+        if shape == 'rect':
+            theobj = self.doc.ActiveLayer.CreateRectangle(bound[0], -1 * bound[1], bound[2], -1 * bound[3],
+                        round, round, round, round)
+            theobj.ApplyStyle(style)
+            theobj.Name = name
+            rect2 = self.doc.ActiveLayer.CreateRectangle(bound[0], bound[1], bound[2], bound[3],
+                        round, round, round, round)
+            # rect2.Name = 'test' # for debug
+            rect2.AddToPowerClip(theobj, -1)
+        
+            return theobj
+        elif shape == 'circle':
+            theObj = self.doc.ActiveLayer.CreateEllipse(bound[0], -1 * bound[1], bound[2], -1 * bound[3])
+            theObj.Name = name
+            theObj.ApplyStyle(style)
+            circle = self.doc.ActiveLayer.CreateEllipse(bound[0], bound[1], bound[2], bound[3])
+            circle.AddToPowerClip(theObj, -1)
+            return theObj
+        else:
+            raise NotImplementedError('Waitting for next viersion...')
 
 
     # insert line
@@ -941,7 +966,5 @@ class CDR():
     # 设置颜色
     def setColor(self,shapObj,rgb=[]):
         shapeObj = self.transformObjs(shapObj)
-        # print(shapeObj.Layer.Color.Palette)
-        print(self.palette.Colors()[1])
-        # shapeObj.Fill.UniformColor.RGBAssign(rgb[0], rgb[1], rgb[2])
+        shapeObj.Fill.UniformColor.RGBAssign(rgb[0], rgb[1], rgb[2])
 

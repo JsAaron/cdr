@@ -156,8 +156,9 @@ def combineTest():
 
 
 if __name__ == '__main__':
-    testColor()
-    # increaseFontSize()
+    # testColor()
+    # cdrObj = CDR()
+    increaseFontSize()
     # moveToMiddle()
     # combineTest()
     # cdrObj = CDR()
