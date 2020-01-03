@@ -157,17 +157,31 @@ def combineTest():
 
 
 # 测试调色板
-def paletteText():
+def paletteTest():
     cdrObj = CDR()
-    cdrObj.removePlette('cw')
+
+    # 创建
     # newPalette = cdrObj.createPalette('testppp')
     # newPalette = cdrObj.setPletteEnabled(newPalette)
+    # color = cdrObj.createColorObj([110,128,255],'t1')
+    # cdrObj.addPletteColor(newPalette,color)
+
+    # 移除
+    # cdrObj.removePlette('cw')
+    
+
+    # 获取
+    # colorObj = cdrObj.getPaletteColor('testppp','t1')
+    # print(cdrObj.getColorValue(colorObj,'RGB'))
+    # colorObj = cdrObj.getPaletteColor('cw','a2')
+    # newPalette = cdrObj.setPletteEnabled(newPalette)
     # cdrObj.removePlette('test')
-    # color = cdrObj.createRGBColor([0,0,255])
+    color = cdrObj.createColorObj([0,100,100],'t1','CMY')
+    print(color.type)
     # cdrObj.addPletteColor(newPalette,color)
 
 if __name__ == '__main__':
-    paletteText()
+    paletteTest()
     # testColor()
     # cdrObj = CDR()
     # increaseFontSize()

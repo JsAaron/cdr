@@ -962,6 +962,70 @@ class CDR():
         shapeObj.Fill.UniformColor.RGBAssign(rgb[0], rgb[1], rgb[2])
 
 
+    # 获取颜色值
+    # colorObj 颜色对象
+    # mode 返回的颜色模式
+    def getColorValue(self,colorObj,mode="RGB"):
+        if mode == 'RGB':
+            if colorObj.type != 5:
+                 colorObj.ConvertToRGB()
+            return [colorObj.RGBRed,colorObj.RGBGreen,colorObj.RGBBlue]
+        elif mode == 'CMYK':
+            if colorObj.type != 2:
+                 colorObj.ConvertToCMYK()
+            return [colorObj.CMYKCyan,colorObj.CMYKMagenta,colorObj.CMYKYellow,colorObj.CMYKBlack]
+        elif mode == 'CMY':
+            if colorObj.type != 4:
+                colorObj.ConvertToCMY()
+            return [colorObj.CMYCyan,colorObj.CMYMagenta,colorObj.CMYYellow]
+        elif mode == 'HSB':
+            if colorObj.type != 6:
+                 colorObj.ConvertToHSB()
+            return [colorObj.HSBHue,colorObj.HSBBrightness,colorObj.HSBHue]
+        elif mode == 'HLS':
+            if colorObj.type != 7:
+                 colorObj.ConvertToHLS()
+            return [colorObj.HLSHue,colorObj.HLSLightness,colorObj.HLSSaturation]
+
+
+    # 设置颜色值
+    # colorObj 颜色对象
+    # mode 返回的颜色模式
+    # value 颜色值，数组格式
+    def setColorValue(self,colorObj,value,mode="RGB"):
+        if mode == 'RGB':
+            if colorObj.type != 5:
+                 colorObj.ConvertToRGB()
+            return colorObj.RGBAssign(value[0],value[1],value[2])
+        elif mode == 'CMYK':
+            if colorObj.type != 2:
+                 colorObj.ConvertToCMYK()
+            return colorObj.CMYKAssign(value[0],value[1],value[2],value[3])
+        elif mode == 'CMY':
+            if colorObj.type != 4:
+                colorObj.ConvertToCMY()
+            return colorObj.CMYAssign(value[0],value[1],value[2])
+        elif mode == 'HSB':
+            if colorObj.type != 6:
+                 colorObj.ConvertToHSB()
+            return colorObj.HSBAssign(value[0],value[1],value[2])
+        elif mode == 'HLS':
+            if colorObj.type != 7:
+                 colorObj.ConvertToHLS()
+            return colorObj.HLSAssign(value[0],value[1],value[2])
+
+
+    # 创建R颜色对象
+    # createRGBColor([110,128,255],'t1')
+    # name是作为搜索的一个key
+    def createColorObj(self,value,name = '',mode="RGB"):
+        colorObj = self.app.CreateColor()
+        if name:
+            colorObj.setname(name)
+        self.setColorValue(colorObj,value,mode)
+        return colorObj
+
+
     # 找到调色板对象
     def findPaletteObj(self,name):
         return self.app.PaletteManager.GetPalette(name)
@@ -1001,13 +1065,6 @@ class CDR():
             return
         self.setPletteDisabled(paletteObj)
         paletteObj.delete()
-
-
-    # 创建RGB颜色对象
-    def createRGBColor(self,value):
-        color = self.app.CreateColor()
-        color.RGBAssign(value[0],value[1],value[2])
-        return color
 
 
     # 设置调色板可用
@@ -1060,6 +1117,13 @@ class CDR():
         return paletteObj.RemoveColor(index)
 
 
-
-
+    # 获取调色板指定颜色
+    # nameObj 调色板名字/调色板对象
+    # key     颜色对象关键字
+    def getPaletteColor(self,nameObj,name=''):
+        paletteObj = self.transformPaletteObjs(nameObj)
+        if paletteObj == None:
+            return
+        colorIndex = paletteObj.findcolor(name)
+        return paletteObj.Color(colorIndex)
 
