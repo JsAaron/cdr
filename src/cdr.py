@@ -980,7 +980,7 @@ class CDR():
 
 
     # 创建调色板
-    # nameObj 调色板名字/调色板对象
+    # nam 调色板名字
     # path 保存路径/默认文档路径
     # overwrite 是否覆盖，变成默认调色板，默认 不覆盖
     def createPalette(self,name,path = '',overwrite = False):
@@ -997,7 +997,10 @@ class CDR():
     # nameObj 调色板名字/调色板对象
     def removePlette(self,nameObj):
         paletteObj = self.transformPaletteObjs(nameObj)
-        self.setPletteDisable(paletteObj)
+        if paletteObj == None:
+            return
+        self.setPletteDisabled(paletteObj)
+        paletteObj.delete()
 
 
     # 创建RGB颜色对象
@@ -1009,7 +1012,7 @@ class CDR():
 
     # 设置调色板可用
     # nameObj 调色板名字/调色板对象
-    def setPletteUsable(self,nameObj):
+    def setPletteEnabled(self,nameObj):
         paletteObj = self.transformPaletteObjs(nameObj)
         paletteObj.Open()
         return paletteObj
@@ -1017,7 +1020,7 @@ class CDR():
 
     # 禁用调色板
     # nameObj 调色板名字/调色板对象
-    def setPletteDisable(self,nameObj):
+    def setPletteDisabled(self,nameObj):
         paletteObj = self.transformPaletteObjs(nameObj)
         paletteObj.Close()
         return paletteObj
