@@ -1043,11 +1043,11 @@ class CDR():
         return self.app.Palettes.Open(path)
 
 
-    # 创建调色板
+    # 创建调色板，如果没有就创建
     # nam 调色板名字
     # path 保存路径/默认文档路径
     # overwrite 是否覆盖，变成默认调色板，默认 不覆盖
-    def createPalette(self,name,path = '',overwrite = False):
+    def accessPalette(self,name,path = '',overwrite = False):
         paletteObj = self.findPaletteObj(name)
         if paletteObj != None:
             return paletteObj
@@ -1099,14 +1099,28 @@ class CDR():
             return paletteObj.InsertColor(index,colorObj)
 
 
-    # 替换调色板颜色
+    # 替换调色板颜色,通过索引
     # nameObj 调色板名字/调色板对象
     # colorObj 颜色对象
     # index 替换的索引
-    def replacePletteColor(self,nameObj,colorObj,index):
+    def replacePletteColorByIndex(self,nameObj,colorObj,index):
         paletteObj = self.transformPaletteObjs(nameObj)
         self.removePletteColor(paletteObj,index)
         return self.addPletteColor(paletteObj,colorObj,index)
+
+
+    # 替换调色板颜色,通过名字
+    # nameObj 调色板名字/调色板对象
+    # colorObj 颜色对象
+    # name    颜色名字
+    def replacePletteColorByName(self,nameObj,colorObj,name=''):
+        paletteObj = self.transformPaletteObjs(nameObj)
+        if name == '':
+            name = colorObj.name
+        colorIndex = paletteObj.findcolor(name)
+        if colorIndex > 0:
+            self.removePletteColor(paletteObj,colorIndex)
+            return self.addPletteColor(paletteObj,colorObj,colorIndex)
 
 
     # 删除颜色

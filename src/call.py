@@ -156,52 +156,44 @@ def combineTest():
     cdrObj.setFontSize(obj,10)
 
 
-# 测试调色板
-def paletteTest():
+    #创建调色版，并增加颜色对象
+def paletteTest1():
     cdrObj = CDR()
+    paletteObj = cdrObj.accessPalette('my') 
+    cdrObj.setPletteEnabled(paletteObj) #启用
+    # 创建一个颜色对象,使用指定格式
+    color = cdrObj.createColorObj([110,128,255],'unique_key','RGB')  
+    # 把颜色增加到调色板上
+    cdrObj.addPletteColor(paletteObj,color)
 
-    # 创建
-    # newPalette = cdrObj.createPalette('testppp')
-    # newPalette = cdrObj.setPletteEnabled(newPalette)
-    # color = cdrObj.createColorObj([110,128,255],'t1')
-    # cdrObj.addPletteColor(newPalette,color)
 
-    # 移除
-    # cdrObj.removePlette('cw')
-    
+#测试调色板, 替换颜色
+def paletteTest2():
+    cdrObj = CDR()
+    paletteObj = cdrObj.accessPalette('my') 
+    newColor = cdrObj.createColorObj([0,255,255],'unique_key','RGB')  
+    cdrObj.replacePletteColorByName(paletteObj,newColor)
 
-    # 获取
-    # colorObj = cdrObj.getPaletteColor('testppp','t1')
-    # print(cdrObj.getColorValue(colorObj,'RGB'))
-    # colorObj = cdrObj.getPaletteColor('cw','a2')
-    # newPalette = cdrObj.setPletteEnabled(newPalette)
-    # cdrObj.removePlette('test')
-    color = cdrObj.createColorObj([0,100,100],'t1','CMY')
-    print(color.type)
-    # cdrObj.addPletteColor(newPalette,color)
+
+# 测试调色板,获取调色板中的指定颜色
+def paletteTest3():
+    cdrObj = CDR()
+    paletteObj = cdrObj.accessPalette('my')
+    # 获取颜色对象 
+    colorObj = cdrObj.getPaletteColor(paletteObj,'unique_key')
+    # 获取值
+    cmykValue = cdrObj.getColorValue(colorObj,'CMYK')
+    rgbValue = cdrObj.getColorValue(colorObj,'RGB')
+    hsbValue = cdrObj.getColorValue(colorObj,'HSB')
+    hlsValue = cdrObj.getColorValue(colorObj,'HLS')
+    cmkValue = cdrObj.getColorValue(colorObj,'CMY')
+    print(rgbValue)
 
 if __name__ == '__main__':
-    paletteTest()
-    # testColor()
-    # cdrObj = CDR()
-    # increaseFontSize()
-    # moveToMiddle()
-    # combineTest()
-    # cdrObj = CDR()
-    # cdrObj.addFolder(1)
-    # modifyParaText()
-    # removGroupShapeObjs()
-    # deleteGroupShapeObjs()
-    # testPowerClip()
-    # testAccessGroup()
-    # testGroup()
-    # drawDecorationTriangle()
-    # drawDecorationTriangle()
-    # drawDecorationTriangle()
-    # togglePage()
-    # print( test.get("aaaa") ==None)
-    # getContent()
-    # open()
-    # setContent()
+    # paletteTest1()
+    # paletteTest2()
+    paletteTest3()
+
+    
     
 
