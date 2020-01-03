@@ -35,12 +35,6 @@ class CDR():
         if self.doc.ActivePage.TOPY > 0:
             self.doc.DrawingOriginY = self.doc.ActivePage.TOPY / 2
 
-        c = self.app.Palettes.Open('C:\\Users\\Administrator\\Desktop\\11\\cw.xml')
-        print(c.ColorCount)
-        # print(self.app.Palettes.count)
-        # print(self.palette.InsertColor(1,'222222'))
-        # self.palette.AddColor('#fff')
-
     # 初始默认图层
     def __initDefalutLayer(self):
 
@@ -960,11 +954,61 @@ class CDR():
 
 
 
-    # ========================== 配色 ==========================
+    # ========================== 调色板配色 ==========================
 
 
     # 设置颜色
     def setColor(self,shapObj,rgb=[]):
         shapeObj = self.transformObjs(shapObj)
         shapeObj.Fill.UniformColor.RGBAssign(rgb[0], rgb[1], rgb[2])
+
+
+    # 创建调色板
+    def createPalette(self,name,path = '',overwrite = False):
+        # 默认保存文档路径
+        if path == '':
+            path = self.doc.filepath
+        return self.app.Palettes.create(name,path,overwrite)
+
+    # 创建RGB颜色对象
+    def createRGBAssign(self,value):
+        color = self.app.CreateColor()
+        color.RGBAssign(value[0],value[1],value[2])
+        return color
+
+
+    # 增加颜色到指定的调色板
+    def addPletteColor(self,paletteObj,colorObj,index=''):
+        #后追加
+        if index == '':
+            return paletteObj.addcolor(colorObj)
+        else:
+            if index >= paletteObj.ColorCount:
+                index = paletteObj.ColorCount + 1
+            # 指定插入的位置
+            return paletteObj.InsertColor(index,colorObj)
+
+
+    # 替换调色板颜色
+    def replacePletteColor(self,paletteObj,colorObj,index):
+        self.removePletteColor(paletteObj,index)
+        return self.addPletteColor(paletteObj,colorObj,index)
+
+
+    # 删除颜色
+    def removePletteColor(self,paletteObj,index):
+        return paletteObj.RemoveColor(index)
+
+
+    # 加载调色板
+    def loadPalette(self,path):
+        palette = self.createPalette('test')
+        print(palette.ColorCount)
+        # palette = self.app.Palettes.Open(path)
+        # color = self.createRGBAssign([33,75,201])
+        # self.replacePletteColor(palette,color,1)
+        # color = self.createRGBAssign([133,175,101])
+        # self.addPletteColor(palette,color)
+
+
 

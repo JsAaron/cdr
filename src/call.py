@@ -134,6 +134,7 @@ def moveToMiddle():
 # 字体尺寸修改
 def increaseFontSize():
     cdrObj = CDR()
+    cdrObj.loadPalette('C:\\Users\\Administrator\\Desktop\\123\\cw.xml')
     # cdrObj.addFontSize('测试1',24)
     #  cdrObj.reduceFontSize('测试1',15)
     # cdrObj.setColor('测试1',[255,0,0])
