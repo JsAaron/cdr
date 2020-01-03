@@ -156,10 +156,20 @@ def combineTest():
     cdrObj.setFontSize(obj,10)
 
 
+# 测试调色板
+def paletteText():
+    cdrObj = CDR()
+    newPalette = cdrObj.createPalette('testppp')
+    newPalette = cdrObj.setPletteUsable(newPalette)
+    cdrObj.removePlette('test')
+    color = cdrObj.createRGBColor([0,0,255])
+    cdrObj.addPletteColor(newPalette,color)
+
 if __name__ == '__main__':
+    paletteText()
     # testColor()
     # cdrObj = CDR()
-    increaseFontSize()
+    # increaseFontSize()
     # moveToMiddle()
     # combineTest()
     # cdrObj = CDR()

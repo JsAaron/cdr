@@ -956,29 +956,79 @@ class CDR():
 
     # ========================== 调色板配色 ==========================
 
-
     # 设置颜色
     def setColor(self,shapObj,rgb=[]):
         shapeObj = self.transformObjs(shapObj)
         shapeObj.Fill.UniformColor.RGBAssign(rgb[0], rgb[1], rgb[2])
 
 
+    # 找到调色板对象
+    def findPaletteObj(self,name):
+        return self.app.PaletteManager.GetPalette(name)
+
+
+    #转化对象
+    def transformPaletteObjs(self, shapeObj):
+        if self.getType(shapeObj) == 'str':
+            return self.findPaletteObj(shapeObj)
+        return shapeObj
+
+
+    # 加载调色板
+    def loadPalette(self,path):
+        return self.app.Palettes.Open(path)
+
+
     # 创建调色板
+    # nameObj 调色板名字/调色板对象
+    # path 保存路径/默认文档路径
+    # overwrite 是否覆盖，变成默认调色板，默认 不覆盖
     def createPalette(self,name,path = '',overwrite = False):
+        paletteObj = self.findPaletteObj(name)
+        if paletteObj != None:
+            return paletteObj
         # 默认保存文档路径
         if path == '':
             path = self.doc.filepath
         return self.app.Palettes.create(name,path,overwrite)
 
+
+    # 删除调色板
+    # nameObj 调色板名字/调色板对象
+    def removePlette(self,nameObj):
+        paletteObj = self.transformPaletteObjs(nameObj)
+        self.setPletteDisable(paletteObj)
+
+
     # 创建RGB颜色对象
-    def createRGBAssign(self,value):
+    def createRGBColor(self,value):
         color = self.app.CreateColor()
         color.RGBAssign(value[0],value[1],value[2])
         return color
 
 
+    # 设置调色板可用
+    # nameObj 调色板名字/调色板对象
+    def setPletteUsable(self,nameObj):
+        paletteObj = self.transformPaletteObjs(nameObj)
+        paletteObj.Open()
+        return paletteObj
+
+
+    # 禁用调色板
+    # nameObj 调色板名字/调色板对象
+    def setPletteDisable(self,nameObj):
+        paletteObj = self.transformPaletteObjs(nameObj)
+        paletteObj.Close()
+        return paletteObj
+
+
     # 增加颜色到指定的调色板
-    def addPletteColor(self,paletteObj,colorObj,index=''):
+    # nameObj 调色板名字/调色板对象
+    # colorObj 颜色对象
+    # index 增加指定的索引位置
+    def addPletteColor(self,nameObj,colorObj,index=''):
+        paletteObj = self.transformPaletteObjs(nameObj)
         #后追加
         if index == '':
             return paletteObj.addcolor(colorObj)
@@ -990,25 +1040,23 @@ class CDR():
 
 
     # 替换调色板颜色
-    def replacePletteColor(self,paletteObj,colorObj,index):
+    # nameObj 调色板名字/调色板对象
+    # colorObj 颜色对象
+    # index 替换的索引
+    def replacePletteColor(self,nameObj,colorObj,index):
+        paletteObj = self.transformPaletteObjs(nameObj)
         self.removePletteColor(paletteObj,index)
         return self.addPletteColor(paletteObj,colorObj,index)
 
 
     # 删除颜色
-    def removePletteColor(self,paletteObj,index):
+    # nameObj 调色板名字/调色板对象
+    # index 需要删除的索引
+    def removePletteColor(self,nameObj,index):
+        paletteObj = self.transformPaletteObjs(nameObj)
         return paletteObj.RemoveColor(index)
 
 
-    # 加载调色板
-    def loadPalette(self,path):
-        palette = self.createPalette('test')
-        print(palette.ColorCount)
-        # palette = self.app.Palettes.Open(path)
-        # color = self.createRGBAssign([33,75,201])
-        # self.replacePletteColor(palette,color,1)
-        # color = self.createRGBAssign([133,175,101])
-        # self.addPletteColor(palette,color)
 
 
 
