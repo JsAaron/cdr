@@ -189,10 +189,19 @@ def paletteTest3():
     cmkValue = cdrObj.getColorValue(colorObj,'CMY')
     print(rgbValue)
 
+
+def importText():
+    cdrObj = CDR()
+    layer = cdrObj.findLayerByName('秒秒学装饰')
+    sh = cdrObj.importFile(layer,'C:\\Users\\Administrator\\Desktop\\111\\test.cdr')
+    cdrObj.moveToCenter(sh)
+    print(sh)
+
 if __name__ == '__main__':
+    importText()
     # paletteTest1()
     # paletteTest2()
-    paletteTest3()
+    # paletteTest3()
 
     
     

@@ -11,6 +11,7 @@ import os
 import time
 
 
+
 DEFAULTLINEHEIGHT = 5.5  # mm
 
 
@@ -111,10 +112,9 @@ class CDR():
                 self.__accessExtractTextData(page, count)
                 count += 1
 
-     # 探测图片是否已经创建
+     # 探测形状是否已经创建
     # 默认探测5次
-
-    def __detectionImage(self, layer, imageName, count=10):
+    def __detectionShape(self, layer, imageName, count=10):
         obj = layer.FindShape(imageName)
         # 探测结束
         if count == 0:
@@ -122,7 +122,7 @@ class CDR():
         if obj == None:
             time.sleep(0.1)
             count = count-1
-            return self.__detectionImage(layer, imageName, count)
+            return self.__detectionShape(layer, imageName, count)
         else:
             return obj
 
@@ -190,6 +190,7 @@ class CDR():
                 groupObj = shape
                 break
         return groupObj
+    
     
     # 通过id找到相应的对象
     # 增加对组的处理 xiaowy 2019/12/25
@@ -264,26 +265,12 @@ class CDR():
         return layer
 
 
-    # 添加图片
-    # imagePath："C:\\Users\\Administrator\\Desktop\\111\\1.png"
-    def addImage(self, layer, imagePath):
-        # 路径转码
-        data = "{'path':'" + urllib.parse.quote(imagePath) + "'}"
-        parent = os.path.dirname(os.path.realpath(__file__))
-        vbPath = parent + '\\vb\\ConsoleApp.exe'
-        # 参数只有一个路径
-        # data = "{'path':'C%3A%5CUsers%5CAdministrator%5CDesktop%5C111%5C1.png'}"
-        cmdStr = [vbPath, 'add:image', data]
-        subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
-                         stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-        return self.__detectionImage(layer, os.path.basename(imagePath))
-
-
     # inesert placeholder, all placeholder is the same name
     def insertPlaceholder(self, layerObj):
         placeholderObj = layerObj.CreateLineSegment(10, 10, 11, 11)
         placeholderObj.Name = "placeholder"
         placeholderObj.Outline.Type = 0
+        placeholderObj.Visible = False
         return placeholderObj
 
 
@@ -434,16 +421,80 @@ class CDR():
         newObj.Name = newname
         return newObj
 
+    # select a suitable group in master page according to characters number
+    # there maybe many blocks for one blocktype, which is suitable for different characters number
+    # this function will select most suitable block 
+    def findMasterLayer(self, layername):
+        masterpage = self.doc.MasterPage
+        masterlayer = None
+        for mlayer in masterpage.AllLayers:
+            if mlayer.Name == layername:
+                masterlayer = mlayer
+                break
+        return masterlayer
+
+    # estimation of the character count, for 10.5 pt fontsize/ 15.6 pt lead as standard
+    def charCountRect(self, width, height):
+        charsperline = int(width / 3.7)
+        rows = int(height / 5.5)
+        return charsperline*rows
+    
+    # find the 正文 textfield in group and calc char counts
+    def calcTextFieldCount(self, groupobj):
+        count = 0
+        if groupobj == None:
+            return 0
+        contentgroup = self.findShapeByName(groupobj, '内容')
+        if contentgroup == None:
+            return 0
+        textfield = self.findShapeByName(contentgroup, '正文')
+        if textfield == None:
+            return 0
+        width = textfield.SizeWidth
+        height = textfield.SizeHeight
+        count = self.charCountRect(width, height)
+        return count
+    
+    # sort all the blocks in masterlayer with same name but different version
+    def sortBlocksInMaster(self):
+        blocklist = {}
+        blocklayer = self.findMasterLayer('板块')
+        for block in blocklayer.Shapes:
+            if block.type == 7:
+                #cdrGroupShape
+                thename = block.Name
+                m = re.split(r'(\d+)', thename)
+                if m==None:
+                    key = thename
+                else:
+                    key = m[0]
+                if not key in blocklist.keys():
+                    blocklist[key] = []
+                count = self.calcTextFieldCount(block)
+                # 0 means the block is from master block
+                blocklist[key].append((block.Name, count, 1))
+                blocklist[key].sort(key=lambda x: x[1], reverse=True)
+                pass
+        return blocklist
+
+    def selectBlockInMaster(self, blockname, charnum):
+        # select the group in master layer
+        blocklayer = self.findMasterLayer('板块')
+        grouprange = blocklayer.Shapes.FindShapes(blockname, 7)     
+        if grouprange == None:
+            return None
+        groups = grouprange.Shapes
+        charlist = []
+        for thegroup in groups:
+            # find text in the 
+            pass
+        pass 
 
     # copy a block from master Layer to current layer
     def cloneFromMaster(self, layer, groupname):
         # select the group in master layer
         masterpage = self.doc.MasterPage
-        masterlayer = None
-        for mlayer in masterpage.AllLayers:
-            if mlayer.Name == '板块':
-                masterlayer = mlayer
-                break
+        masterlayer = self.findMasterLayer('板块')
         if masterlayer == None:
             return None
         thegroup = masterlayer.FindShape(groupname, 7)      # cdrGroupShape
@@ -454,7 +505,18 @@ class CDR():
         copiedgroup = layer.FindShape(groupname)
         return copiedgroup
 
-    # find all the block templates of a type
+    # get baseunit from master block
+    def getBaseunitFromMasterBlock(self, groupname):
+        baseunit = [[]]
+        masterlayer = self.findMasterLayer('板块')
+        if masterlayer != None:
+            groupobj = masterlayer.FindShape(groupname, 7)      # cdrGroupShape
+            if groupobj != None:
+                contentgroup = self.findShapeByName(groupobj, '内容')
+                if contentgroup != None:
+                    for shape in contentgroup.Shapes:
+                        baseunit[0].append((shape.Name, 0, 0, 0, 0, 100, 0))
+        return baseunit
 
     # ========================== 创建/修改 ==========================
 
@@ -564,6 +626,15 @@ class CDR():
         lx = self.doc.ActivePage.LeftX
         return xvalue - lx
 
+    # whether a style is exist, otherwise return None
+    def styleExist(self, stylename):
+        stylesheet = self.doc.StyleSheet
+        thestyle = stylesheet.FindStyle(stylename)
+        if thestyle == None:
+            return None
+        else:
+            return stylename
+    
     # insert paragraph text
     # bound: text bound, height will be auto calc, maybe not in bound
     # style: text style of the paragraph
@@ -595,7 +666,7 @@ class CDR():
         bound = self.convertCood(oribound)
         theobj = self.doc.ActiveLayer.CreateParagraphText(
             bound[0], -1 * bound[1], bound[2], -1 * bound[1] - 1, content, 0, -1)
-        if style:
+        if style and self.styleExist(style):
             theobj.ApplyStyle(style)
         if self.palette.ColorCount >= paletteidx:
             theobj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
@@ -637,7 +708,7 @@ class CDR():
         shapeObj.Text.Story.Text = content
         if name:
             shapeObj.Name = name
-        if style:
+        if style and self.styleExist(style):
             shapeObj.ApplyStyle(style)
         if paletteidx and self.palette.ColorCount >= int(paletteidx):
             shapeObj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
@@ -663,7 +734,8 @@ class CDR():
         bound = self.convertCood(oribound)
         theobj = self.doc.ActiveLayer.CreateArtisticText(
             bound[0], -1 * bound[3], content, 0, -1)
-        theobj.ApplyStyle(style)
+        if style and self.styleExist(style):
+            theobj.ApplyStyle(style)
         theobj.Text.Story.Fill.UniformColor = self.palette.Colors()[paletteidx]
         theobj.Name = name
         theobj.PositionY = -1 * bound[1]
@@ -689,20 +761,20 @@ class CDR():
 
 
     # insert powerclip from rectangle
-    def insertPowerclip(self, oribound, name='图片', round=0, style='图文框', shapeImg=None, shape='rect'):
+    def insertPowerclip(self, oribound, name='图片', round=0, style='图文框', outline='rect', shape=None):
         '''
         key-words:
             shapeImg:图片形状对象,默认None
             shape:形状,默认为矩形(rect),可为'circle'或'triangle'
         '''
-        theobj = shapeImg
+        theobj = shape
         if theobj != None:
             # adjust it's bound
             self.moveObj(theobj, oribound)
             self.sizeObj(theobj, oribound)
             return theobj
         bound = self.convertCood(oribound)
-        if shape == 'rect':
+        if outline == 'rect':
             theobj = self.doc.ActiveLayer.CreateRectangle(bound[0], -1 * bound[1], bound[2], -1 * bound[3],
                         round, round, round, round)
             theobj.ApplyStyle(style)
@@ -713,7 +785,7 @@ class CDR():
             rect2.AddToPowerClip(theobj, -1)
         
             return theobj
-        elif shape == 'circle':
+        elif outline == 'circle':
             theObj = self.doc.ActiveLayer.CreateEllipse(bound[0], -1 * bound[1], bound[2], -1 * bound[3])
             theObj.Name = name
             theObj.ApplyStyle(style)
@@ -742,7 +814,8 @@ class CDR():
         else:
             theobj = self.doc.ActiveLayer.CreateLineSegment(
                 bound[0], -1*bound[1], bound[2], -1*bound[3])
-        theobj.ApplyStyle(style)
+        if style and self.styleExist(style):
+            theobj.ApplyStyle(style)
         theobj.Name = name
         return theobj
 
@@ -1141,3 +1214,20 @@ class CDR():
         colorIndex = paletteObj.findcolor(name)
         return paletteObj.Color(colorIndex)
 
+
+
+    # ========================== 文件导入导出 ==========================
+
+    # 导入图片
+    def importImage(self, layerObj, imagePath):
+        return self.importFile(layerObj, imagePath)
+
+
+    # 导入文件
+    def importFile(self,layerObj,path):
+        layerObj.Activate()
+        data = "{'path':'" + urllib.parse.quote(path) + "'}"
+        parent = os.path.dirname(os.path.realpath(__file__))
+        cmdStr = [parent + '\\vb\\ConsoleApp.exe', 'import', data]
+        subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        return self.__detectionShape(layerObj, os.path.basename(path))
