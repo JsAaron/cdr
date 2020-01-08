@@ -190,15 +190,24 @@ def paletteTest3():
     print(rgbValue)
 
 
-def importText():
+# 导入文件，并替换对象
+def replaceParts():
     cdrObj = CDR()
-    layer = cdrObj.findLayerByName('秒秒学装饰')
-    sh = cdrObj.importFile(layer,'C:\\Users\\Administrator\\Desktop\\111\\test.cdr')
-    cdrObj.moveToCenter(sh)
-    print(sh)
+    # 加载路径下的cdr文件，中的mytest对象
+    # 替换到指定的对象
+    cdrObj.replaceParts(['C:\\Users\\Administrator\\Desktop\\111\\2.cdr','mytest'],cdrObj.app.ActiveShape)
+
+
+# 保存文件
+def testSaveCDR():
+    cdrObj = CDR()
+    cdrObj.saveCDR('C:\\Users\\Administrator\\Desktop\\111\\5.cdr')
+
 
 if __name__ == '__main__':
-    importText()
+    testSaveCDR()
+    # replaceParts()
+    # importText()
     # paletteTest1()
     # paletteTest2()
     # paletteTest3()

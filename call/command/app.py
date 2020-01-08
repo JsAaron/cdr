@@ -59,8 +59,9 @@ data9 = "{'qrcode':{'pageIndex':'1','value':'C%3A%5CUsers%5CAdministrator%5CDesk
 
 data10 = "{'logo':{'pageIndex':'1','value':'C%3A%5CUsers%5CAdministrator%5CDesktop%5C111%5C1.png'}}"
 
-cmdStr = [
-    "D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe", 'set:text', data10]
+data11 = "{'path':'C%3A%5CUsers%5CAdministrator%5CDesktop%5C111%5C4.cdr'}"
+
+cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe", 'save', data11]
 
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)

@@ -7,6 +7,7 @@ Imports Newtonsoft.Json
 Module Param
     Public cmdImageUrl As String
     Public cmdCommand As String = "get:text"
+    Public cmdType As String
     Public cmdPath As String
     Public cmdStylePath As String
     Public cmdExternalData
@@ -76,7 +77,13 @@ Module Param
         ElseIf cmdCommand = "get:pageSize" Then
             If count = 3 Then
                 cmdPath = decodePath(args(1))
-            End If
+            End If '
+        ElseIf cmdCommand = "import" Then
+            cmdExternalData = JsonConvert.DeserializeObject(args(1))
+            cmdExternalData("path") = decodePath(cmdExternalData("path"))
+        ElseIf cmdCommand = "save" Then
+            cmdExternalData = JsonConvert.DeserializeObject(args(1))
+            cmdExternalData("path") = decodePath(cmdExternalData("path"))
         ElseIf cmdCommand = "set:image" Then
             If count = 3 Then
                 cmdExternalData = JsonConvert.DeserializeObject(args(1))

@@ -191,7 +191,7 @@ class CDR():
                 break
         return groupObj
     
-    
+
     # 通过id找到相应的对象
     # 增加对组的处理 xiaowy 2019/12/25
     def findShapeById2(self, parentobj ,objId):
@@ -205,7 +205,6 @@ class CDR():
             elif not shape.IsSimpleShape: # for group
                 groupObj = self.findShapeById2(shape, objId)
         return groupObj
-
 
 
     # 找到当前组内的形状
@@ -1224,6 +1223,7 @@ class CDR():
 
 
     # 导入文件
+    # 导入文件到指定的layer内部
     def importFile(self,layerObj,path):
         layerObj.Activate()
         data = "{'path':'" + urllib.parse.quote(path) + "'}"
@@ -1231,3 +1231,33 @@ class CDR():
         cmdStr = [parent + '\\vb\\ConsoleApp.exe', 'import', data]
         subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         return self.__detectionShape(layerObj, os.path.basename(path))
+
+
+    # 保存文件，到指定的目录
+    def saveFile(self,path):
+        data = "{'path':'" + urllib.parse.quote(path) + "'}"
+        parent = os.path.dirname(os.path.realpath(__file__))
+        cmdStr = [parent + '\\vb\\ConsoleApp.exe', 'save', data]
+        subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+
+
+    # 从外部导入部件直接替换
+    # 加载路径下的cdr文件，中的mytest对象
+    # 替换到指定的对象
+    # replaceParts(['C:\\Users\\Administrator\\Desktop\\111\\2.cdr','mytest'],delObj)
+    def replaceParts(self,loadData,delObj):
+        delLayer = delObj.Layer
+        cdrObj = self.importFile(delLayer,loadData[0])
+        addObj = cdrObj.Shapes.FindShape(loadData[1])
+        addObj.PositionX = delObj.PositionX
+        addObj.PositionY = delObj.PositionY
+        addObj.SizeWidth = delObj.SizeWidth
+        addObj.SizeHeight = delObj.SizeHeight
+        addObj.OrderFrontOf(delObj)
+        delObj.Delete()
+        cdrObj.Delete()
+
+    
+    #保存文档
+    def saveCDR(self,path):
+        self.saveFile(path)

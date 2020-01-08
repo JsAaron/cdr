@@ -218,6 +218,46 @@ Module App
 
             globalData.totalPages = pages.Count
 
+
+            '独立命令，保存文件
+            If Param.cmdCommand = "save" Then
+                doc.SaveAs(cmdExternalData("path"))
+                Exit Sub
+            End If
+
+
+            '如果是单独的入命令
+            If Param.cmdCommand = "import" Then
+                Dim parentLayer As Layer = doc.ActiveLayer
+                parentLayer.Activate()
+                '修改图片必须是显示状态才可以
+                Dim fixVisible
+                If parentLayer.Visible = False Then
+                    fixVisible = True
+                    parentLayer.Visible = True
+                End If
+
+                Try
+                    If cmdExternalData("type") = "" Then
+                        parentLayer.Import(cmdExternalData("path"), 0)
+                    Else
+                        parentLayer.Import(cmdExternalData("path"), cmdExternalData("type"))
+                    End If
+
+                    '如果修改了图片状态
+                    If fixVisible = True Then
+                        parentLayer.Visible = False
+                    End If
+
+                Catch ex As Exception
+
+                End Try
+
+
+                Exit Sub
+            End If
+
+
             '单独设置字体
             If Param.cmdCommand = "set:font" Then
                 globalData.steps = "设置字体"
