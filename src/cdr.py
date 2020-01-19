@@ -1121,12 +1121,19 @@ class CDR():
     # overwrite 是否覆盖，变成默认调色板，默认 不覆盖
     def accessPalette(self,name,path = '',overwrite = False):
         paletteObj = self.findPaletteObj(name)
-        if paletteObj != None:
-            return paletteObj
+        if paletteObj != None: 
+            return  self.setPletteEnabled(paletteObj)
         # 默认保存文档路径
         if path == '':
-            path = self.doc.filepath
-        return self.app.Palettes.create(name,path,overwrite)
+            path = self.doc.filepath + name
+        return self.setPletteEnabled(self.app.Palettes.create(name,path,overwrite))
+
+
+    # 设置默认调色板
+    def setPletteDefault(self,nameObj):
+        paletteObj = self.transformPaletteObjs(nameObj)
+        paletteObj.MakeDefault()
+        return paletteObj
 
 
     # 删除调色板
@@ -1147,7 +1154,7 @@ class CDR():
         return paletteObj
 
 
-    # 禁用调色板
+    # 关闭调色板
     # nameObj 调色板名字/调色板对象
     def setPletteDisabled(self,nameObj):
         paletteObj = self.transformPaletteObjs(nameObj)
@@ -1214,8 +1221,20 @@ class CDR():
         return paletteObj.Color(colorIndex)
 
 
+    # 将调色板另存为新文件
+    # fileName 指定文件名
+    # paletteName 调色板名字
+    def saveAsPalette(self,nameObj,fileName,paletteName):
+        paletteObj = self.transformPaletteObjs(nameObj)
+        if paletteObj == None:
+            return
+        return paletteObj.SaveAs(fileName,paletteName)
+
+
 
     # ========================== 文件导入导出 ==========================
+
+
 
     # 导入图片
     def importImage(self, layerObj, imagePath):
@@ -1245,7 +1264,7 @@ class CDR():
     # 加载路径下的cdr文件，中的mytest对象
     # 替换到指定的对象
     # replaceParts(['C:\\Users\\Administrator\\Desktop\\111\\2.cdr','mytest'],delObj)
-    def replaceParts(self,loadData,delObj):
+    def replacePart(self,loadData,delObj):
         delLayer = delObj.Layer
         cdrObj = self.importFile(delLayer,loadData[0])
         addObj = cdrObj.Shapes.FindShape(loadData[1])
@@ -1253,9 +1272,9 @@ class CDR():
         addObj.PositionY = delObj.PositionY
         addObj.SizeWidth = delObj.SizeWidth
         addObj.SizeHeight = delObj.SizeHeight
-        addObj.OrderFrontOf(delObj)
-        delObj.Delete()
-        cdrObj.Delete()
+        # addObj.OrderFrontOf(delObj)
+        # delObj.Delete()
+        # cdrObj.Delete()
 
     
     #保存文档

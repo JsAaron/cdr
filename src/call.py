@@ -178,39 +178,40 @@ def paletteTest2():
 # 测试调色板,获取调色板中的指定颜色
 def paletteTest3():
     cdrObj = CDR()
-    paletteObj = cdrObj.accessPalette('my')
+    paletteObj = cdrObj.accessPalette('test-paletter')
     # 获取颜色对象 
-    colorObj = cdrObj.getPaletteColor(paletteObj,'unique_key')
+    # colorObj = cdrObj.getPaletteColor(paletteObj,'unique_key')
     # 获取值
-    cmykValue = cdrObj.getColorValue(colorObj,'CMYK')
-    rgbValue = cdrObj.getColorValue(colorObj,'RGB')
-    hsbValue = cdrObj.getColorValue(colorObj,'HSB')
-    hlsValue = cdrObj.getColorValue(colorObj,'HLS')
-    cmkValue = cdrObj.getColorValue(colorObj,'CMY')
-    print(rgbValue)
+    # cmykValue = cdrObj.getColorValue(colorObj,'CMYK')
+    # rgbValue = cdrObj.getColorValue(colorObj,'RGB')
+    # hsbValue = cdrObj.getColorValue(colorObj,'HSB')
+    # hlsValue = cdrObj.getColorValue(colorObj,'HLS')
+    # cmkValue = cdrObj.getColorValue(colorObj,'CMY')
+    # print(colorObj)
 
 
 # 导入文件，并替换对象
-def replaceParts():
+def replacePart():
     cdrObj = CDR()
     # 加载路径下的cdr文件，中的mytest对象
     # 替换到指定的对象
-    cdrObj.replaceParts(['C:\\Users\\Administrator\\Desktop\\111\\2.cdr','mytest'],cdrObj.app.ActiveShape)
+    cdrObj.replacePart(['C:\\Users\\Administrator\\Desktop\\111\\2.cdr','mytest'],cdrObj.app.ActiveShape)
 
 
 # 保存文件
 def testSaveCDR():
     cdrObj = CDR()
-    cdrObj.saveCDR('C:\\Users\\Administrator\\Desktop\\111\\5.cdr')
+    print(cdrObj)
+    # cdrObj.saveCDR('C:\\Users\\Administrator\\Desktop\\111\\51.cdr')
 
 
 if __name__ == '__main__':
-    testSaveCDR()
-    # replaceParts()
+    # testSaveCDR()
+    # testSaveCDR()
     # importText()
     # paletteTest1()
     # paletteTest2()
-    # paletteTest3()
+    paletteTest3()
 
     
     
