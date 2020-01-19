@@ -1099,9 +1099,24 @@ class CDR():
 
 
     # 找到调色板对象
-    def findPaletteObj(self,name):
-        return self.app.PaletteManager.GetPalette(name)
+    # 返回由索引，唯一ID，名称或文件名标识的指定调色板
+    def findPaletteObj(self,id_name_key):
+        return self.app.PaletteManager.GetPalette(id_name_key)
 
+
+    # 返回默认调色板
+    def findDefalutPalette(self):
+        return self.app.PaletteManager.defaultpalette
+
+
+
+    def test(self):
+        print(self.app.PaletteManager.OpenPalettes.Item(1))
+        # print(self.app.PaletteManager.OpenPalettes.Item(2).Name)
+        # print(self.app.PaletteManager.OpenPalettes.Item(3).Name)
+        print(self.app.PaletteManager.OpenPalettes.Item(4).Name)
+        print(self.app.PaletteManager.OpenPalettes.Item(5).Name)
+        print(self.app.PaletteManager.OpenPalettes.Item(6).Name)
 
     #转化对象
     def transformPaletteObjs(self, shapeObj):
@@ -1132,7 +1147,8 @@ class CDR():
     # 设置默认调色板
     def setPletteDefault(self,nameObj):
         paletteObj = self.transformPaletteObjs(nameObj)
-        paletteObj.MakeDefault()
+        if paletteObj.Default != True:
+            paletteObj.MakeDefault()
         return paletteObj
 
 

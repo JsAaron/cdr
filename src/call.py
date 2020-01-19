@@ -178,7 +178,10 @@ def paletteTest2():
 # 测试调色板,获取调色板中的指定颜色
 def paletteTest3():
     cdrObj = CDR()
-    paletteObj = cdrObj.accessPalette('test-paletter')
+    cdrObj.test()
+    # paletteObj = cdrObj.accessPalette('test-paletter')
+    # cdrObj.setPletteDefault(paletteObj)
+
     # 获取颜色对象 
     # colorObj = cdrObj.getPaletteColor(paletteObj,'unique_key')
     # 获取值
