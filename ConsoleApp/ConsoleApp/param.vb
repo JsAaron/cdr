@@ -5,12 +5,14 @@ Imports Newtonsoft.Json
 
 '定义参数
 Module Param
-    Public cmdImageUrl As String
-    Public cmdCommand As String = "get:text"
-    Public cmdType As String
+    Public cmdCommand As String
     Public cmdPath As String
-    Public cmdStylePath As String
     Public cmdExternalData
+
+    '设置数据
+    Public cmdPrintSettings
+
+
     '活动页面
     Public cmdActivePagte
     '字体名字
@@ -51,11 +53,6 @@ Module Param
     End Function
 
 
-    Sub decodeURI(key)
-        If Param.hasValue(key) Then
-            cmdExternalData(key)("value") = decodePath(cmdExternalData(key)("value"))
-        End If
-    End Sub
 
 
     Function decodePath(value)
@@ -70,103 +67,18 @@ Module Param
         Dim count = args.Count
 
         cmdCommand = args(0)
-        If cmdCommand = "open" Then
-            If count = 2 Then
-                cmdPath = decodePath(args(1))
-            End If
-        ElseIf cmdCommand = "get:pageSize" Then
-            If count = 3 Then
-                cmdPath = decodePath(args(1))
-            End If '
+
+        '打印
+        If cmdCommand = "print" Then
+            cmdPrintSettings = JsonConvert.DeserializeObject(decodePath(args(1)))
         ElseIf cmdCommand = "import" Then
+            '导出
             cmdExternalData = JsonConvert.DeserializeObject(args(1))
             cmdExternalData("path") = decodePath(cmdExternalData("path"))
         ElseIf cmdCommand = "save" Then
+            '保存
             cmdExternalData = JsonConvert.DeserializeObject(args(1))
             cmdExternalData("path") = decodePath(cmdExternalData("path"))
-        ElseIf cmdCommand = "set:image" Then
-            If count = 3 Then
-                cmdExternalData = JsonConvert.DeserializeObject(args(1))
-                decodeURI("logo")
-                decodeURI("logo2")
-                decodeURI("qrcode")
-                cmdActivePagte = args(2)
-            End If
-        ElseIf cmdCommand = "get:fontJson" Then
-            If count = 2 Then
-                cmdPath = decodePath(args(1))
-            End If
-        ElseIf cmdCommand = "get:text" Then
-            '如果是2个参数
-            If count = 2 Then
-                '如果是单页设置：(get:pageSize,page,path)
-                '默认页面数不会多余100个，都算page的参数
-                If Len(args(1)) < 3 Then
-                    cmdActivePagte = args(1)
-                Else
-                    cmdPath = decodePath(args(1))
-                End If
-            End If
-
-            '如果是3个参数
-            If count = 3 Then
-                '(get:pageSize,page,path)
-                cmdActivePagte = args(1)
-                cmdPath = decodePath(args(2))
-            End If
-
-        ElseIf cmdCommand = "set:text" Then
-            If count = 1 Then
-                globalData.errorlog = "没有传递设置参数"
-            ElseIf count = 2 Then
-                cmdExternalData = JsonConvert.DeserializeObject(args(1))
-                decodeURI("logo")
-                decodeURI("logo2")
-                decodeURI("qrcode")
-            ElseIf count = 3 Then
-                '如果第3个参数，是页码
-                If Len(args(2)) < 3 Then
-                    cmdExternalData = JsonConvert.DeserializeObject(args(1))
-                    decodeURI("logo")
-                    decodeURI("logo2")
-                    decodeURI("qrcode")
-                    cmdActivePagte = args(2)
-                Else
-                    cmdExternalData = JsonConvert.DeserializeObject(args(1))
-                    decodeURI("logo")
-                    decodeURI("logo2")
-                    decodeURI("qrcode")
-                    cmdPath = decodePath(args(2))
-                End If
-
-            ElseIf count = 4 Then
-                cmdExternalData = JsonConvert.DeserializeObject(args(1))
-                decodeURI("logo")
-                decodeURI("logo2")
-                decodeURI("qrcode")
-                cmdActivePagte = args(2)
-                cmdPath = decodePath(args(3))
-            End If
-        ElseIf cmdCommand = "set:style" Then
-            '参数不够
-            If count = 1 Then
-                globalData.errorlog = "必须传递样式路径参数"
-            End If
-
-            If count = 2 Then
-                cmdStylePath = decodePath(args(1))
-            End If
-
-            '设置样式
-            If count = 3 Then
-                cmdPath = decodePath(args(1))
-            End If
-
-        ElseIf cmdCommand = "set:font" Then
-            If count = 1 Then
-                globalData.errorlog = "必须传递字体名"
-            End If
-            cmdFontName = args(1)
         End If
 
         ' Console.WriteLine(cmdExternalData)

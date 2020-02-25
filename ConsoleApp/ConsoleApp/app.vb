@@ -5,176 +5,88 @@ Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
 
-
-
 Module App
 
-
     Dim lineCount = 2
-    Dim mainCount = 2
 
 
-    Class Pagesize
-        Public width
-        Public height
-    End Class
+    '===================== 导入 =====================
 
+    Function setImport(doc As Document)
+        Dim parentLayer As Layer = doc.ActiveLayer
+        parentLayer.Activate()
+        '修改图片必须是显示状态才可以
+        Dim fixVisible
+        If parentLayer.Visible = False Then
+            fixVisible = True
+            parentLayer.Visible = True
+        End If
 
-    '获取文档所有页面、所有图层、所有图形对象
-    Public Function accessExtractTextData(doc As Document, page As Page, determine As Determine)
-
-        Dim k As Integer
-        Dim m As Integer
-        '当前页面的层
-        Dim curLayer As Layer
-        '当前页面所有层
-        Dim allLayers As Layers = page.AllLayers
-        Dim pageIndex = page.Index
-
-        If Param.cmdCommand = "set:image" Then
-            For m = 1 To allLayers.Count
-                curLayer = allLayers.Item(m)
-                '设置图片
-                Inputs.accessImage(doc, curLayer.Shapes)
-            Next m
-        Else
-
-            '预处理
-            globalData.steps = "预处理"
-            For k = 1 To allLayers.Count
-                curLayer = allLayers.Item(k)
-                '初始化预处理
-                determine.init(curLayer.Name, curLayer.Shapes, pageIndex)
-            Next k
-
-            '读/取操作
-            globalData.steps = "文本/图像读取操作"
-            For k = 1 To allLayers.Count
-                curLayer = allLayers.Item(k)
-                Inputs.accesstShape(doc, curLayer.Shapes, determine, pageIndex)
-            Next k
-
-            '设置图片/层的可见性
-            globalData.steps = "设置图片/层级可见性"
-            If Param.cmdCommand = "set:text" Then
-                Dim visibleLayerName = determine.getVisibleField()
-                For m = 1 To allLayers.Count
-                    curLayer = allLayers.Item(m)
-                    '设置图片
-                    Inputs.accessImage(doc, curLayer.Shapes)
-                    '设置状态，处理层级可见性
-                    determine.setLayerVisible(curLayer, visibleLayerName)
-                Next m
+        Try
+            If cmdExternalData("type") = "" Then
+                parentLayer.Import(cmdExternalData("path"), 0)
+            Else
+                parentLayer.Import(cmdExternalData("path"), cmdExternalData("type"))
             End If
 
-        End If
-
-
-        globalData.steps = "处理结束"
-        globalData.state = "True"
-
-    End Function
-
-
-
-    '========================================== 功能调用 ==========================================
-
-
-    '文本处理
-    Function fn_accessText(doc, page, determine)
-        If Param.cmdCommand = "get:text" Or Param.cmdCommand = "set:text" Or Param.cmdCommand = "set:image" Then
-            accessExtractTextData(doc, page, determine)
-            globalData.state = "True"
-            Return True
-        End If
-    End Function
-
-
-    '设置页面尺寸
-    Function fn_pageSize(app, doc)
-        If Param.cmdCommand = "get:pageSize" Then
-            globalData.steps = "开始获取页面尺寸"
-            '指定毫米
-            doc.Unit = 3
-            globalData.pagesize = New Pagesize()
-            globalData.pagesize.width = app.ActivePage.SizeWidth
-            globalData.pagesize.height = app.ActivePage.SizeHeight
-            globalData.state = "True"
-            globalData.steps = "获取页面尺寸完成"
-            Return True
-        End If
-    End Function
-
-
-    '打开文档功能
-    Function fn_open()
-        '如果只是打开文档，推出
-        If Param.cmdCommand = "open" Then
-            globalData.state = "True"
-            Return True
-        End If
-    End Function
-
-
-    '设置样式功能
-    Function fn_setStyle(doc)
-        '加载样式
-        If Param.cmdCommand = "set:style" Then
-            globalData.steps = "文档加载样式开始"
-            If Len(Param.cmdStylePath) = 0 Then
-                globalData.state = "False"
-                globalData.errorlog = "必须传递样式路径参数"
-                Return True
+            '如果修改了图片状态
+            If fixVisible = True Then
+                parentLayer.Visible = False
             End If
-            doc.LoadStyleSheet(Param.cmdStylePath)
-            globalData.state = "True"
-            globalData.steps = "文档加载样式完成"
-            Return True
-        End If
+
+        Catch ex As Exception
+
+        End Try
     End Function
 
 
-    '获取当前文字的json
-    Function fn_fontJson(doc)
-        If Param.cmdCommand = "get:fontJson" Then
-            Utils.createFontJson(doc)
-            globalData.state = "True"
-            Return True
-        End If
+    '===================== 打印 =====================
+
+
+    '设置打印普通参数
+    Function setPrintValue(doc, key, value)
+        Dim active_doc As Document = doc
+        Console.WriteLine(active_doc.PrintSettings.[key])
+
+        'doc.PrintSettings.PrintRange = printRangeValue
+
+        'Console.WriteLine(doc.PrintSettings.PaperWidth)
+        'Console.WriteLine(doc.PrintSettings.PaperHeight)
     End Function
 
 
-    '===================== 功能链接 =====================
+    '设置打印数组参数
+    Function setPrintArrayValue(doc, key, value)
 
-    '开始执行操作
-    Function execFn(app, doc, page, determine)
 
-        globalData.steps = "文档打开完成"
+    End Function
 
-        '打开文档
-        If fn_open() = True Then
-            Exit Function
+
+    Function setPrint(doc, key, value)
+        Dim active_doc As Document = doc
+        Dim JVType = TypeName(value)
+
+        '普通类型 布尔，字符串，数字
+        If JVType = "JValue" Then
+            If value.ToString().Length = 0 Then
+                Return False
+            Else
+                If value = False Then
+                    Return False
+                Else
+                    setPrintValue(active_doc, key, value.ToString())
+                End If
+            End If
         End If
 
-        '设置样式
-        If fn_setStyle(doc) = True Then
-            Exit Function
+        '数组类型
+        If JVType = "JArray" Then
+            Dim jvArray As JArray = value
+            If jvArray.Count > 0 Then
+                setPrintArrayValue(active_doc, key, value)
+            End If
         End If
 
-        '页面尺寸
-        If fn_pageSize(app, doc) = True Then
-            Exit Function
-        End If
-
-        '获取字体文件
-        If fn_fontJson(doc) = True Then
-            Exit Function
-        End If
-
-        '文本处理
-        If fn_accessText(doc, page, determine) = True Then
-            Exit Function
-        End If
     End Function
 
 
@@ -216,7 +128,15 @@ Module App
                 Exit Sub
             End If
 
-            globalData.totalPages = pages.Count
+
+            '独立命令，打印
+            If Param.cmdCommand = "print" Then
+                Dim settingsObject As JObject = cmdPrintSettings
+                For Each item In settingsObject
+                    setPrint(doc, item.Key, item.Value)
+                Next
+                Exit Sub
+            End If
 
 
             '独立命令，保存文件
@@ -228,70 +148,10 @@ Module App
 
             '如果是单独的入命令
             If Param.cmdCommand = "import" Then
-                Dim parentLayer As Layer = doc.ActiveLayer
-                parentLayer.Activate()
-                '修改图片必须是显示状态才可以
-                Dim fixVisible
-                If parentLayer.Visible = False Then
-                    fixVisible = True
-                    parentLayer.Visible = True
-                End If
-
-                Try
-                    If cmdExternalData("type") = "" Then
-                        parentLayer.Import(cmdExternalData("path"), 0)
-                    Else
-                        parentLayer.Import(cmdExternalData("path"), cmdExternalData("type"))
-                    End If
-
-                    '如果修改了图片状态
-                    If fixVisible = True Then
-                        parentLayer.Visible = False
-                    End If
-
-                Catch ex As Exception
-
-                End Try
-
-
+                setImport(doc)
                 Exit Sub
             End If
 
-
-            '单独设置字体
-            If Param.cmdCommand = "set:font" Then
-                globalData.steps = "设置字体"
-
-                '没有任何焦点
-                If TypeName(app.ActiveShape) = "Nothing" Then
-                    globalData.errorlog = "没有任何选中"
-                    globalData.steps = "设置字体失败"
-                Else
-                    '如果是文本类型
-                    If app.ActiveShape.Type = 6 Then
-                        app.ActiveShape.Text.Story.Font = Param.cmdFontName
-                        globalData.steps = "设置字体完成"
-                        globalData.state = "True"
-                        ' globalData.textOverflow = app.ActiveShape.Text.Overflow
-                    Else
-                        globalData.errorlog = "没有选中文本类型"
-                        globalData.steps = "设置字体失败"
-                    End If
-                End If
-                Exit Sub
-            End If
-
-
-            '遍历页面
-            If cmdActivePagte <> "" Then
-                Dim determine As Determine = New Determine()
-                execFn(app, doc, pages.Item(cmdActivePagte), determine)
-            Else
-                For i = 1 To pages.Count
-                    Dim determine As Determine = New Determine()
-                    execFn(app, doc, pages.Item(i), determine)
-                Next
-            End If
 
         Catch ex As Exception
             Console.WriteLine(ex)
@@ -301,33 +161,6 @@ Module App
     End Sub
 
 
-    '============================================== 命 令==============================================
-
-    '增加层
-    Function getLayerSet(page As Page)
-        Dim layer As Layer = page.CreateLayer("测试层")
-        Return layer
-    End Function
-
-
-    Function test1(page As Page)
-        Console.WriteLine(page)
-
-    End Function
-
-
-    '设置文本字体
-    Function setFontSize(activeShape As Shape, fontsize As Integer)
-        '文本类型
-        If activeShape.Type = 6 Then
-            If activeShape.Text.Story.Size <> fontsize Then
-                activeShape.Text.Story.Size = fontsize
-            End If
-            globalData.addFnReturn("shapewidth", activeShape.SizeWidth)
-            globalData.addFnReturn("shapeheight", activeShape.SizeHeight)
-            globalData.addFnReturn("overflow", activeShape.Text.Overflow)
-        End If
-    End Function
 
 
     Sub Main()
@@ -356,9 +189,8 @@ Module App
             openLink(app)
         End If
 
-        Console.WriteLine(globalData.retrunData())
+        'Console.WriteLine(globalData.retrunData())
 
-        'MsgBox(1)
 
     End Sub
 
