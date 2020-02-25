@@ -6,7 +6,8 @@ import win32api
 import win32con
 import win32com.client
 from win32com.client import Dispatch, constants
-
+import urllib.parse
+import re
 # obj = subprocess.Popen(cmdStr, stdin=subprocess.PIPE, stdout=subprocess.PIPE ,stderr=subprocess.PIPE)
 # print(obj.stdin.write('ls\n'.encode('utf-8')))
 
@@ -61,11 +62,51 @@ data10 = "{'logo':{'pageIndex':'1','value':'C%3A%5CUsers%5CAdministrator%5CDeskt
 
 data11 = "{'path':'C%3A%5CUsers%5CAdministrator%5CDesktop%5C111%5C4.cdr'}"
 
-cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe", 'save', data11]
+
+printSettings = {
+
+    #副本
+    "Collate":True,
+
+    # 文件名
+    "FileName":"test.prs",
+
+    # 份数
+    'Copies':10, 
+
+    # 打印的只是选中的图形而不是整个页面，置为 2 
+    'PrintRange':2,
+
+    # 设置页面范围，PrintRange设置为3才生效
+    'PageRange':'1, 2-4',
+
+    'PageSet':0,
+
+    # 设置打印纸张尺寸与方向
+    'SetPaperSize':[9, 2],
+    # 预设的打印机纸张尺寸
+    'PaperSize':9,
+    # 打印的纸张方向
+    'PaperOrientation':1,
+
+    # 打印到文件
+    'PrintToFile':False,
+    #选择打印机
+    'SelectPrinter':'Fax',
+
+     # 打开设置界面
+    'ShowDialog':True
+}
+
+person_json = json.dumps(printSettings)
+person_json = re.sub('\s+', '', person_json).strip()
+print(person_json)
+
+cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
+          'print',person_json]
 
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 for line in child.stdout.readlines():
     output = line.decode('UTF-8')
-
     print(output)

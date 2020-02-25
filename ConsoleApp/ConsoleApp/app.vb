@@ -46,17 +46,89 @@ Module App
     '设置打印普通参数
     Function setPrintValue(doc, key, value)
         Dim active_doc As Document = doc
-        Console.WriteLine(active_doc.PrintSettings.[key])
 
-        'doc.PrintSettings.PrintRange = printRangeValue
+        If key = "Collate" Then
+            Console.WriteLine(1)
+            active_doc.PrintSettings.Collate = value
+        End If
 
-        'Console.WriteLine(doc.PrintSettings.PaperWidth)
-        'Console.WriteLine(doc.PrintSettings.PaperHeight)
+        If key = "FileName" Then
+            Console.WriteLine(2)
+            active_doc.PrintSettings.FileName = value
+        End If
+
+        If key = "Copies" Then
+            Console.WriteLine(3)
+            active_doc.PrintSettings.Copies = value
+        End If
+
+        If key = "PrintRange" Then
+            Console.WriteLine(4)
+            active_doc.PrintSettings.PrintRange = value
+        End If
+
+        If key = "PageRange" Then
+            Console.WriteLine(6)
+            active_doc.PrintSettings.PageRange = value
+        End If
+
+        If key = "ShowDialog" Then
+            Console.WriteLine(5)
+            active_doc.PrintSettings.ShowDialog()
+        End If
+
+        If key = "PageSet" Then
+            Console.WriteLine(7)
+            active_doc.PrintSettings.PageSet = value
+        End If
+
+        If key = "PaperOrientation" Then
+            Console.WriteLine(8)
+            active_doc.PrintSettings.PaperOrientation = value
+        End If
+
+        If key = "PrintToFile" Then
+            Console.WriteLine(9)
+            active_doc.PrintSettings.PrintToFile = True
+        End If
+
+        If key = "SelectPrinter" Then
+            Console.WriteLine(10)
+            active_doc.PrintSettings.SelectPrinter(value)
+        End If
+
+        If key = "PaperSize" Then
+            Console.WriteLine(1)
+            active_doc.PrintSettings.PaperSize = value
+        End If
+
     End Function
 
 
     '设置打印数组参数
     Function setPrintArrayValue(doc, key, value)
+        Dim active_doc As Document = doc
+        If key = "SetPaperSize" Then
+            Dim v As JArray = value
+            active_doc.PrintSettings.SetPaperSize(v.First.ToString(), v.Last.ToString())
+        End If
+
+        ' Console.WriteLine(key)
+        'active_doc.PrintSettings.Printer.ShowDialog()
+
+    End Function
+
+
+    '设置打印对象参数
+    Function setPrintObjectValue(doc, key, value)
+        Dim active_doc As Document = doc
+        If key = "Printer" Then
+            Dim v As JObject = value
+            '打印机的颜色输出
+            If v("ColorEnabled") = "True" Then
+                ' active_doc.PrintSettings.Printer.ColorEnabled = True
+            End If
+        End If
 
 
     End Function
@@ -68,15 +140,24 @@ Module App
 
         '普通类型 布尔，字符串，数字
         If JVType = "JValue" Then
-            If value.ToString().Length = 0 Then
-                Return False
+
+            '如果参数是0
+            If value.ToString() = "0" Then
+                setPrintValue(active_doc, key, value.ToString())
             Else
-                If value = False Then
+                '如果参数是空
+                If value.ToString().Length = 0 Then
                     Return False
                 Else
-                    setPrintValue(active_doc, key, value.ToString())
+                    If value = False Then
+                        Return False
+                    Else
+                        setPrintValue(active_doc, key, value.ToString())
+                    End If
                 End If
             End If
+
+
         End If
 
         '数组类型
@@ -86,6 +167,17 @@ Module App
                 setPrintArrayValue(active_doc, key, value)
             End If
         End If
+
+        '对象类型
+        If JVType = "JObject" Then
+            Dim jvObject As JObject = value
+            '如果有属性
+            If jvObject.Count > 0 Then
+                setPrintObjectValue(active_doc, key, value)
+            End If
+        End If
+
+        'Console.WriteLine(JVType)
 
     End Function
 
