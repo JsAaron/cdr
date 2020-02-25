@@ -72,18 +72,21 @@ printSettings = {
     "FileName":"test.prs",
 
     # 份数
-    'Copies':10, 
+    'Copies':100, 
 
     # 打印的只是选中的图形而不是整个页面，置为 2 
-    'PrintRange':2,
+    # 1 当前页面
+    # 0 文档
+    # 3 指定页面
+    'PrintRange':0,
 
     # 设置页面范围，PrintRange设置为3才生效
-    'PageRange':'1, 2-4',
+    # 'PageRange':'1, 2-4',
 
-    'PageSet':0,
+    'PageSet':1,
 
     # 设置打印纸张尺寸与方向
-    'SetPaperSize':[9, 2],
+    'SetPaperSize':[9, 1],
     # 预设的打印机纸张尺寸
     'PaperSize':9,
     # 打印的纸张方向
@@ -91,19 +94,27 @@ printSettings = {
 
     # 打印到文件
     'PrintToFile':False,
+
     #选择打印机
     'SelectPrinter':'Fax',
 
      # 打开设置界面
-    'ShowDialog':True
+    'ShowDialog':False,
+
+    #将打印设置重置为默认值
+    'Reset':False,
+
+    #指定自定义打印机的纸张尺寸
+    # 'SetCustomPaperSize':[200,300,1]
 }
 
-person_json = json.dumps(printSettings)
-person_json = re.sub('\s+', '', person_json).strip()
-print(person_json)
+# 方法，保存打印配置文件到指定路径
+savePath = 'C:\\Users\\Administrator\\Desktop\\111\\test2.prs'
+person_json = json.dumps(printSettings,sort_keys=True,separators=(',',':'))
+path_json= "{'Save':'" + urllib.parse.quote(savePath) + "','Load':'" + urllib.parse.quote(savePath) + "'}"
 
 cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
-          'print',person_json]
+          'print',person_json,path_json]
 
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)
