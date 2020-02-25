@@ -200,13 +200,14 @@ def replacePart():
     cdrObj = CDR()
     # 加载路径下的cdr文件，中的mytest对象
     # 替换到指定的对象
-    cdrObj.replacePart(['C:\\Users\\Administrator\\Desktop\\111\\2.cdr','mytest'],cdrObj.app.ActiveShape)
+    # cdrObj.replacePart(['C:\\Users\\Administrator\\Desktop\\111\\2.cdr','mytest'],cdrObj.app.ActiveShape)
 
 
 # 保存文件
 def testSaveCDR():
     cdrObj = CDR()
-    print(cdrObj)
+
+    cdrObj.printOut()
     # cdrObj.saveCDR('C:\\Users\\Administrator\\Desktop\\111\\51.cdr')
 
 
@@ -216,7 +217,7 @@ if __name__ == '__main__':
     # importText()
     # paletteTest1()
     # paletteTest2()
-    paletteTest3()
+    testSaveCDR()
 
     
     
