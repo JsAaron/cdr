@@ -48,58 +48,66 @@ Module App
         Dim active_doc As Document = doc
 
         If key = "Collate" Then
-            Console.WriteLine(1)
             active_doc.PrintSettings.Collate = value
         End If
 
         If key = "FileName" Then
-            Console.WriteLine(2)
             active_doc.PrintSettings.FileName = value
         End If
 
         If key = "Copies" Then
-            Console.WriteLine(3)
             active_doc.PrintSettings.Copies = value
         End If
 
         If key = "PrintRange" Then
-            Console.WriteLine(4)
             active_doc.PrintSettings.PrintRange = value
         End If
 
         If key = "PageRange" Then
-            Console.WriteLine(6)
             active_doc.PrintSettings.PageRange = value
         End If
 
         If key = "ShowDialog" Then
-            Console.WriteLine(5)
-            active_doc.PrintSettings.ShowDialog()
+            If value = True Then
+                active_doc.PrintSettings.ShowDialog()
+            End If
         End If
 
         If key = "PageSet" Then
-            Console.WriteLine(7)
             active_doc.PrintSettings.PageSet = value
         End If
 
         If key = "PaperOrientation" Then
-            Console.WriteLine(8)
             active_doc.PrintSettings.PaperOrientation = value
         End If
 
         If key = "PrintToFile" Then
-            Console.WriteLine(9)
-            active_doc.PrintSettings.PrintToFile = True
+            active_doc.PrintSettings.PrintToFile = value
         End If
 
         If key = "SelectPrinter" Then
-            Console.WriteLine(10)
             active_doc.PrintSettings.SelectPrinter(value)
         End If
 
         If key = "PaperSize" Then
-            Console.WriteLine(1)
             active_doc.PrintSettings.PaperSize = value
+        End If
+
+        '保存样式方法
+        If key = "Save" Then
+            active_doc.PrintSettings.Save(value)
+        End If
+
+        '加载样式
+        If key = "Load" Then
+            active_doc.PrintSettings.Load(value)
+        End If
+
+        '将打印设置重置为默认值
+        If key = "Reset" Then
+            If value = True Then
+                active_doc.PrintSettings.Reset()
+            End If
         End If
 
     End Function
@@ -113,8 +121,10 @@ Module App
             active_doc.PrintSettings.SetPaperSize(v.First.ToString(), v.Last.ToString())
         End If
 
-        ' Console.WriteLine(key)
-        'active_doc.PrintSettings.Printer.ShowDialog()
+        If key = "SetCustomPaperSize" Then
+            Dim v As JArray = value
+            active_doc.PrintSettings.SetCustomPaperSize(v.Item(0).ToString(), v.Item(1).ToString(), v.Item(2).ToString())
+        End If
 
     End Function
 
@@ -140,24 +150,23 @@ Module App
 
         '普通类型 布尔，字符串，数字
         If JVType = "JValue" Then
-
-            '如果参数是0
-            If value.ToString() = "0" Then
-                setPrintValue(active_doc, key, value.ToString())
+            '如果没有参数
+            If value.ToString().Length = 0 Then
+                Return False
             Else
-                '如果参数是空
-                If value.ToString().Length = 0 Then
-                    Return False
-                Else
-                    If value = False Then
-                        Return False
-                    Else
-                        setPrintValue(active_doc, key, value.ToString())
-                    End If
-                End If
+                Dim typeValue
+                Select Case value.ToString()
+                    Case "0"
+                        typeValue = 0
+                    Case "True"
+                        typeValue = True
+                    Case "False"
+                        typeValue = False
+                    Case Else
+                        typeValue = value.ToString()
+                End Select
+                setPrintValue(active_doc, key, typeValue)
             End If
-
-
         End If
 
         '数组类型
@@ -227,6 +236,7 @@ Module App
                 For Each item In settingsObject
                     setPrint(doc, item.Key, item.Value)
                 Next
+                doc.PrintOut()
                 Exit Sub
             End If
 

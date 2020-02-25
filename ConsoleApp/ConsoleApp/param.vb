@@ -2,6 +2,7 @@
 Imports System.Text
 Imports Corel.Interop.VGCore
 Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
 
 '定义参数
 Module Param
@@ -53,13 +54,12 @@ Module Param
     End Function
 
 
-
-
     Function decodePath(value)
         Dim e = CreateObject("MSScriptControl.ScriptControl")
         e.Language = "javascript"
         Return e.Eval("decodeURIComponent('" & value & "')")
     End Function
+
 
     '参数解析
     Public Sub parseCommand(command)
@@ -70,13 +70,19 @@ Module Param
 
         '打印
         If cmdCommand = "print" Then
+            '参数
             cmdPrintSettings = JsonConvert.DeserializeObject(decodePath(args(1)))
+            '有路径的方法
+            If count = 3 Then
+                cmdExternalData = JsonConvert.DeserializeObject(args(2))
+                cmdPrintSettings("Save") = decodePath(cmdExternalData("Save"))
+                cmdPrintSettings("Load") = decodePath(cmdExternalData("Load"))
+            End If
+
         ElseIf cmdCommand = "import" Then
-            '导出
             cmdExternalData = JsonConvert.DeserializeObject(args(1))
             cmdExternalData("path") = decodePath(cmdExternalData("path"))
         ElseIf cmdCommand = "save" Then
-            '保存
             cmdExternalData = JsonConvert.DeserializeObject(args(1))
             cmdExternalData("path") = decodePath(cmdExternalData("path"))
         End If
