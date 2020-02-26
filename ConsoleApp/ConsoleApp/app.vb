@@ -191,6 +191,34 @@ Module App
     End Function
 
 
+    Function getSettingsValue(key)
+        Return cmdExportSettings(key).ToString()
+    End Function
+
+
+    '导出图片
+    Function exportImage(doc As Document)
+
+        Dim FileName = getSettingsValue("FileName")
+        Dim Filter = getSettingsValue("Filter")
+        Dim Range = getSettingsValue("Range")
+        Dim ImageType = getSettingsValue("ImageType")
+        Dim Width = getSettingsValue("Width")
+        Dim Height = getSettingsValue("Height")
+
+        Dim efilter As ExportFilter = doc.ExportBitmap(FileName, Filter, Range, ImageType, Width, Height, 0, 0, 0, True, True, False, False, 8)
+        '压缩
+        efilter.Compression = 80
+        efilter.Optimized = True
+        '平滑
+        efilter.Smoothing = 50
+        efilter.SubFormat = 1
+        efilter.Progressive = False
+        efilter.Finish()
+    End Function
+
+
+
     '===================== 建立链接 =====================
 
 
@@ -226,6 +254,13 @@ Module App
 
             If app.Documents.Count = 0 Then
                 globalData.errorlog = "没有找到活动文档"
+                Exit Sub
+            End If
+
+
+            '导出图片
+            If Param.cmdCommand = "export-image" Then
+                exportImage(doc)
                 Exit Sub
             End If
 

@@ -128,20 +128,6 @@ class CDR():
         return type
 
 
-    # 获取所有数据段
-    def get(self, pageIndex=""):
-        prarm.setCommand("get:text")
-        self.__accessData(pageIndex)
-        return retrunData()
-
-
-    # 更新数据段
-    def set(self, newData, pageIndex=""):
-        prarm.setCommand("set:text")
-        prarm.setExternalData(newData)
-        self.__accessData(pageIndex)
-
-
     # name 根据名称找到图层
     # page 指定页面搜索layer
     def findLayerByName(self, name=''):
@@ -737,9 +723,13 @@ class CDR():
         if shapeObj == None or content == '':
             return
 
+        if shapeObj.Text.Story.Text == content:
+            return
+
         # 比较两个数据一致性，处理换行的情况
         reText = re.sub('[\s+]', '', shapeObj.Text.Story.Text)
         reCotent = re.sub('[\s+]', '', content)
+
         if reText == reCotent:
             return
         if reText.replace("\n", "") == reCotent.replace("\n", ""):
@@ -1579,10 +1569,23 @@ class CDR():
             return False
     
 
+
+    # ====================== 导出图片 打印 =========================
+
+    def popen(self,cmdText,cmdStr):
+        parent = os.path.dirname(os.path.realpath(__file__))
+        cmdStr.insert(0,parent + '\\vb\\ConsoleApp.exe')
+        cmdStr.insert(1,cmdText)
+        child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        for line in child.stdout.readlines():
+            output = line.decode('UTF-8')
+            print(output)
+
+
     # 打印文件
     def printOut(self):
         # 打印配置
-        printSettings = {
+        settings = {
             #副本
             # "Collate":True,
             # 文件名
@@ -1614,12 +1617,63 @@ class CDR():
             #指定自定义打印机的纸张尺寸
             # 'SetCustomPaperSize':[200,300,1]
         }
-        settings_json_str = json.dumps(printSettings,sort_keys=True,separators=(',',':'))
-
+        settings_str = json.dumps(settings,sort_keys=True,separators=(',',':'))
         # 保存加载样式文件带有路径的，需要单独处理
         # path_json= "{'Save':'" + urllib.parse.quote(savePath) + "','Load':'" + urllib.parse.quote(savePath) + "'}"
-       
-        parent = os.path.dirname(os.path.realpath(__file__))
-        cmdStr = [parent + '\\vb\\ConsoleApp.exe', 'print', settings_json_str]
-        subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.popen('print',[settings_str])
         return 
+
+
+    # 设置打印状态
+    def setPrintable(self,status):
+        activePage =  self.doc.ActivePage
+        for curLayer in activePage.AllLayers:
+            if curLayer.Visible == False:
+                # 设置不可打印
+                curLayer.Printable = status
+
+
+    # vb处理导出图片
+    def vbExportBitmap(self,fileName,width,height):
+        config = {
+            # 保存转化格式是jpg
+            'Filter':774,
+            # 导出图片的范围, 
+            # 0 所有页面
+            # 1 定当前导出页面
+            # 2 指定选中的部分导出
+            'Range':1,
+            # 图像类型，指定要导出图片的颜色模式
+            # 4 RGB  
+            # 5 CMYK
+            'ImageType':4,
+            
+            # 指定位图的高度，像素
+            'Width':width,
+
+            #指定位图的高度，像素
+            'Height':height
+        }
+        fileName= "{'FileName':'" + urllib.parse.quote(fileName) + "'}"
+        configJson = json.dumps(config,sort_keys=True,separators=(',',':'))
+        self.popen('export-image',[configJson,fileName])
+
+
+    # 导出指定页面图片
+    # pageIndex 页码
+    # width 宽度单位px
+    # height 宽度单位px
+    # fileName 文件全路径
+    def exportBitmap(self,pageIndex,width,height,fileName):
+        page = self.doc.Pages.Item(pageIndex)
+        page.Activate()
+        self.setPrintable(False)
+        self.vbExportBitmap(fileName,width,height)
+        self.setPrintable(True)
+        return
+
+
+    # 导出所有页面图片
+    def exportAllBitmap(self,width,height,fileName):
+        
+        return

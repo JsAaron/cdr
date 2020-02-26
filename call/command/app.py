@@ -113,8 +113,34 @@ savePath = 'C:\\Users\\Administrator\\Desktop\\111\\test2.prs'
 person_json = json.dumps(printSettings,sort_keys=True,separators=(',',':'))
 path_json= "{'Save':'" + urllib.parse.quote(savePath) + "','Load':'" + urllib.parse.quote(savePath) + "'}"
 
+
+
+exportImagePath= "{'FileName':'" + urllib.parse.quote('C:\\Users\\Administrator\\Desktop\\111\\test1.jpeg') + "'}"
+exportImageConfig = {
+    # 保存转化格式是jpg
+    'Filter':774,
+    # 导出图片的范围, 
+    # 0 所有页面
+    # 1 定当前导出页面
+    # 2 指定选中的部分导出
+    'Range':1,
+    # 图像类型，指定要导出图片的颜色模式
+    # 4 RGB  
+    # 5 CMYK
+    'ImageType':4,
+    
+    # 指定位图的高度，像素
+    'Width':1136,
+
+    #指定位图的高度，像素
+    'Height':700
+}
+
+exportImageConfign_json = json.dumps(exportImageConfig,sort_keys=True,separators=(',',':'))
+
+
 cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
-          'print',person_json,path_json]
+          'export-image',exportImageConfign_json,exportImagePath]
 
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)

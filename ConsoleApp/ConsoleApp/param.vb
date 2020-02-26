@@ -10,8 +10,13 @@ Module Param
     Public cmdPath As String
     Public cmdExternalData
 
-    '设置数据
+    Private tempData
+
+    '打印数据
     Public cmdPrintSettings
+
+    '导出图片设置
+    Public cmdExportSettings
 
 
     '活动页面
@@ -78,13 +83,20 @@ Module Param
                 cmdPrintSettings("Save") = decodePath(cmdExternalData("Save"))
                 cmdPrintSettings("Load") = decodePath(cmdExternalData("Load"))
             End If
-
         ElseIf cmdCommand = "import" Then
             cmdExternalData = JsonConvert.DeserializeObject(args(1))
             cmdExternalData("path") = decodePath(cmdExternalData("path"))
         ElseIf cmdCommand = "save" Then
             cmdExternalData = JsonConvert.DeserializeObject(args(1))
             cmdExternalData("path") = decodePath(cmdExternalData("path"))
+        ElseIf cmdCommand = "export-image" Then
+            '导出图片
+            cmdExportSettings = JsonConvert.DeserializeObject(decodePath(args(1)))
+            '有路径的方法
+            If count = 3 Then
+                tempData = JsonConvert.DeserializeObject(args(2))
+                cmdExportSettings("FileName") = decodePath(tempData("FileName"))
+            End If
         End If
 
         ' Console.WriteLine(cmdExternalData)
