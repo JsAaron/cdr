@@ -1674,6 +1674,11 @@ class CDR():
 
 
     # 导出所有页面图片
-    def exportAllBitmap(self,width,height,fileName):
-        
+    # width 宽度单位px
+    # height 宽度单位px
+    # fileName 文件全路径
+    def exportAllBitmap(self,width,height,fileName ):
+        for page in  self.doc.Pages:
+            path = os.path.join(fileName, 'page-'+ str(page.Index) + '.jpg')
+            self.exportBitmap(page.Index,width,height,path)
         return
