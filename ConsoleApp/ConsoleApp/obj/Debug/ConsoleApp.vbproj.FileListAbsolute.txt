@@ -33,3 +33,4 @@ E:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.CopyComplete
 E:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.exe
 E:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.xml
 E:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.pdb
+E:\github\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbprojAssemblyReference.cache

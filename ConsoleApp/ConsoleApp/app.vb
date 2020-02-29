@@ -253,7 +253,6 @@ Module App
             exportName = "cover"
             Width = getSettingsValue("CoverWidth")
             Height = getSettingsValue("CoverHeight")
-            Console.WriteLine(Width)
         ElseIf pageIndex = activeDoc.Pages.Count Then
             '如果是封尾
             footerLayer = findMasterLayer(doc, "封底导出")
@@ -263,11 +262,23 @@ Module App
             Height = getSettingsValue("BackHeight")
         Else
             '中间页面
+            Dim v = pageIndex / 2
+            Dim s = 0
+            For i = 1 To Len(v)
+                If Mid(v, i, 1) = "." Then
+                    s = s + 1
+                End If
+            Next
+
+            If s = 1 Then
+                Return False
+            End If
+
             middleLayer = findMasterLayer(doc, "对页导出")
             setExportImageStatus(middleLayer, True)
-            exportName = pageIndex
             Width = getSettingsValue("MiddleWidth")
             Height = getSettingsValue("MiddleHeight")
+            exportName = pageIndex.ToString() + "-" + (pageIndex + 1).ToString()
         End If
 
         Dim filePath = FileName + "\" + exportName + ".jpg"
