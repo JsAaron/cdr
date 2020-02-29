@@ -126,11 +126,14 @@ exportImageConfig = {
     # 5 CMYK
     'ImageType':4,
     
-    # 指定位图的高度，像素
-    'Width':1136,
+    'CoverWidth':2552,
+    'CoverHeight':3162,
 
-    #指定位图的高度，像素
-    'Height':700
+    'BackWidth':2552,
+    'BackHeight':3407,
+
+    'MiddleWidth':3183,
+    'MiddleHeight':947
 }
 
 exportImageConfign_json = json.dumps(exportImageConfig,sort_keys=True,separators=(',',':'))
@@ -144,3 +147,5 @@ child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
 for line in child.stdout.readlines():
     output = line.decode('UTF-8')
     print(output)
+
+

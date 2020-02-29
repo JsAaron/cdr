@@ -208,12 +208,10 @@ def testSaveCDR():
     cdrObj = CDR()
 
     # 导出指定页面
-    cdrObj.exportBitmap(1,1136,700,'C:\\Users\\Administrator\\Desktop\\111\\test.jpg')
+    # cdrObj.exportBitmap('C:\\Users\\Administrator\\Desktop\\111',1)
     
     # 导出所有页面
-    # 只要目录
-    # cdrObj.exportAllBitmap(1136,700,'C:\\Users\\Administrator\\Desktop\\111\\')
-    # cdrObj.saveCDR('C:\\Users\\Administrator\\Desktop\\111\\51.cdr')
+    cdrObj.exportAllBitmap('C:\\Users\\Administrator\\Desktop\\111')
 
 
 if __name__ == '__main__':

@@ -10,6 +10,7 @@ import os
 import time
 
 
+
 DEFAULTLINEHEIGHT = 5.5  # mm
 
 class CDR():
@@ -746,7 +747,10 @@ class CDR():
         thelanguageid = shapeObj.Text.Story.LanguageID
         shapeObj.Text.Story.Text = ''
         shapeObj.Text.Story.Text = content
-        shapeObj.Text.Story.LanguageID = thelanguageid
+        if thelanguageid is not None:
+            if thelanguageid < 0:
+                thelanguageid = 2052
+            shapeObj.Text.Story.LanguageID = thelanguageid
         if name:
             shapeObj.Name = name
         if palettename != None:
@@ -1537,7 +1541,7 @@ class CDR():
         return imagefolder
 
     # loop through all the nested text field/ shape fill in the group and change their text color
-    def changeGroupColor(self, groupobj, palettename=None):
+    def changeGroupColor(self, groupobj, palettename=None, pageidstr=None):
         # if no color, do nothing
         if groupobj is None:
             return
@@ -1549,8 +1553,9 @@ class CDR():
 
         # loop through all the shapes
         for shape in shapes:
-            if shape.Type == 7:  # group
-                self.changeGroupColor(shape, palettename)
+            if shape.Type == 7:
+                if pageidstr is None or pageidstr in shape.Name:  # group
+                    self.changeGroupColor(shape, palettename, pageidstr)
             else:
                 thename = shape.Name
                 if 'placeholder' in thename or '外框' in thename or 'cellback' in thename:
@@ -1634,25 +1639,25 @@ class CDR():
 
 
     # vb处理导出图片
-    def vbExportBitmap(self,fileName,width,height):
+    def vbExportBitmap(self,fileName,page):
         config = {
-            # 保存转化格式是jpg
-            'Filter':774,
-            # 导出图片的范围, 
-            # 0 所有页面
-            # 1 定当前导出页面
-            # 2 指定选中的部分导出
-            'Range':1,
+            # 指定页面,
+            # 或者全部all
+            'Page':page,
+
             # 图像类型，指定要导出图片的颜色模式
             # 4 RGB  
             # 5 CMYK
             'ImageType':4,
             
-            # 指定位图的高度，像素
-            'Width':width,
+            'CoverWidth':2552,
+            'CoverHeight':3162,
 
-            #指定位图的高度，像素
-            'Height':height
+            'BackWidth':2552,
+            'BackHeight':3407,
+
+            'MiddleWidth':3183,
+            'MiddleHeight':947
         }
         fileName= "{'FileName':'" + urllib.parse.quote(fileName) + "'}"
         configJson = json.dumps(config,sort_keys=True,separators=(',',':'))
@@ -1661,19 +1666,14 @@ class CDR():
 
     # 导出指定页面图片
     # pageIndex 页码
-    # width 宽度单位px
-    # height 宽度单位px
-    # fileName 文件全路径
-    def exportBitmap(self,pageIndex,width,height,fileName):
-        page = self.doc.Pages.Item(pageIndex)
-        page.Activate()
-        self.setPrintable(False)
-        self.vbExportBitmap(fileName,width,height)
-        self.setPrintable(True)
+    # fileName 文件路径
+    def exportBitmap(self,fileName,pageIndex):
+        self.vbExportBitmap(fileName,pageIndex)
         return
 
 
     # 导出所有页面图片
-    def exportAllBitmap(self,width,height,fileName):
-        
+    # fileName 文件路径
+    def exportAllBitmap(self,fileName):
+        self.vbExportBitmap(fileName,'all')
         return
