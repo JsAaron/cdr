@@ -196,17 +196,74 @@ Module App
     End Function
 
 
+    '找到母版页面
+    Function findMasterLayer(doc, layerName)
+        Dim activeDoc As Document = doc
+        For k = 1 To activeDoc.MasterPage.Layers.Count
+            Dim curLayer As Layer = activeDoc.MasterPage.Layers.Item(k)
+            If curLayer.Name = layerName Then
+                Return curLayer
+            End If
+        Next k
+    End Function
+
+
+    '设置状态
+    Function setExportImageStatus(layer, status)
+        layer.Visible = status
+        layer.Printable = status
+    End Function
+
+
     '导出图片
-    Function exportImage(doc As Document)
+    Function exportImage(pageIndex, doc)
+
+
+        Dim activeDoc As Document = doc
 
         Dim FileName = getSettingsValue("FileName")
-        Dim Filter = getSettingsValue("Filter")
-        Dim Range = getSettingsValue("Range")
+        'Dim Filter = getSettingsValue("Filter")
+        ' Dim Range = getSettingsValue("Range")
         Dim ImageType = getSettingsValue("ImageType")
         Dim Width = getSettingsValue("Width")
         Dim Height = getSettingsValue("Height")
 
-        Dim efilter As ExportFilter = doc.ExportBitmap(FileName, Filter, Range, ImageType, Width, Height, 0, 0, 0, True, True, False, False, 8)
+        Dim coverLayer As Layer
+        Dim footerLayer As Layer
+        Dim middleLayer As Layer
+        Dim exportName As String
+
+        '激活当前到导出页面
+        Dim activePage As Page = activeDoc.Pages.Item(pageIndex)
+
+
+        If activePage.ActiveLayer.Shapes.Count = 0 Then
+            Return False
+        End If
+
+
+        activePage.Activate()
+
+        '如果是封面
+        If pageIndex = 1 Then
+            coverLayer = findMasterLayer(doc, "封面导出")
+            setExportImageStatus(coverLayer, True)
+            exportName = "cover"
+        ElseIf pageIndex = activeDoc.Pages.Count Then
+            '如果是封尾
+            footerLayer = findMasterLayer(doc, "封底导出")
+            setExportImageStatus(footerLayer, True)
+            exportName = "back"
+        Else
+            '中间页面
+            middleLayer = findMasterLayer(doc, "对页导出")
+            setExportImageStatus(middleLayer, True)
+            exportName = pageIndex
+        End If
+
+        Dim filePath = FileName + "\" + exportName + ".jpg"
+
+        Dim efilter As ExportFilter = activeDoc.ExportBitmap(filePath, 774, 1, ImageType, Width, Height, 0, 0, 0, True, True, False, False, 8)
         '压缩
         efilter.Compression = 80
         efilter.Optimized = True
@@ -215,6 +272,16 @@ Module App
         efilter.SubFormat = 1
         efilter.Progressive = False
         efilter.Finish()
+
+        '复位
+        If pageIndex = 1 Then
+            setExportImageStatus(coverLayer, False)
+        ElseIf pageIndex = activeDoc.Pages.Count Then
+            setExportImageStatus(footerLayer, False)
+        Else
+            setExportImageStatus(middleLayer, False)
+        End If
+
     End Function
 
 
@@ -260,7 +327,22 @@ Module App
 
             '导出图片
             If Param.cmdCommand = "export-image" Then
-                exportImage(doc)
+
+                '缓存区域
+                Dim cacheIndex = doc.ActivePage.Index
+                Dim pageIndex = getSettingsValue("Page")
+
+                If pageIndex = "all" Then
+                    For i = 1 To doc.Pages.Count
+                        exportImage(doc.Pages.Item(i).Index, doc)
+                    Next
+                Else
+                    exportImage(pageIndex, doc)
+                End If
+
+                '恢复之前的处理页面
+                doc.Pages.Item(cacheIndex).Activate()
+
                 Exit Sub
             End If
 
