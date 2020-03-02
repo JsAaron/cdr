@@ -1263,15 +1263,6 @@ class CDR():
         return self.app.PaletteManager.defaultpalette
 
 
-
-    def test(self):
-        print(self.app.PaletteManager.OpenPalettes.Item(1))
-        # print(self.app.PaletteManager.OpenPalettes.Item(2).Name)
-        # print(self.app.PaletteManager.OpenPalettes.Item(3).Name)
-        print(self.app.PaletteManager.OpenPalettes.Item(4).Name)
-        print(self.app.PaletteManager.OpenPalettes.Item(5).Name)
-        print(self.app.PaletteManager.OpenPalettes.Item(6).Name)
-
     #转化对象
     def transformPaletteObjs(self, shapeObj):
         if self.getType(shapeObj) == 'str':
@@ -1405,8 +1396,6 @@ class CDR():
         if paletteObj == None:
             return
         return paletteObj.SaveAs(fileName,paletteName)
-
-
 
 
     # ========================== 文件导入导出 ==========================
@@ -1682,3 +1671,40 @@ class CDR():
             path = os.path.join(fileName, 'page-'+ str(page.Index) + '.jpg')
             self.exportBitmap(page.Index,width,height,path)
         return
+
+
+
+    # ===================== 设置和读取标准颜色 =====================
+
+    # 设置对象标准颜色
+    def setPageStandardColor(self,pageObj):
+        for layer in pageObj.Layers:
+            if layer.Shapes.Count>0:
+                for shape in layer.Shapes:
+                    shapeType = shape.Type
+                    # print(shape.Fill.UniformColor.RGBValue)
+
+                    if shapeType == 7:
+                        # 组
+                        pass
+                    else:
+                        # 填充色
+                        colorType = shape.fill.UniformColor.Type
+                        handObj = {}
+                        if colorType == 2:
+                            colorValue = self.getColorValue(shape.fill.UniformColor,'CMYK')
+                            handObj = {'shape':shape, 'type':CMYK}
+
+
+                    
+
+                   
+        pass
+
+
+    # 处理标准颜色
+    def accessStandardColor(self):
+        #    for page in self.doc.Pages:
+        self.standardColor = []
+        self.setPageStandardColor(self.doc.Pages.Item(1))
+        pass

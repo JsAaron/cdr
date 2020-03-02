@@ -207,10 +207,21 @@ def replacePart():
 def testSaveCDR():
     cdrObj = CDR()
 
+    # for thecolor in paletteObj.Colors():
+    #     print(thecolor)
+
+    cdrObj.accessStandardColor()
+    
+    # for index in range(cdrObj.app.Palettes.Item(2).ColorCount):
+    #     cdrObj.app.Palettes.Item(2).Color(index+1).SetName(index)
+
+
+    # print(cdrObj.app.PaletteManager.DefaultPalette.GetPalette("调色板"))
+
     # 导出指定页面
     # cdrObj.exportBitmap(1,1136,700,'C:\\Users\\Administrator\\Desktop\\111\\test.jpg')
     
-    cdrObj.exportAllBitmap(1136,700,'C:\\Users\\Administrator\\Desktop\\111')
+    # cdrObj.exportAllBitmap(1136,700,'C:\\Users\\Administrator\\Desktop\\111')
     # 导出所有页面
     # 只要目录
     # cdrObj.exportAllBitmap(1136,700,'C:\\Users\\Administrator\\Desktop\\111\\')
