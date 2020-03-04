@@ -1756,5 +1756,6 @@ class CDR():
 
     # 处理标准颜色
     def standardizedColor(self,standardColor):
+        self.standardColor = standardColor
         return self.setPageStandardColor(self.doc.Pages.Item(1))
 
