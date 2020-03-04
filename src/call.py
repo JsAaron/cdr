@@ -209,9 +209,20 @@ def testSaveCDR():
 
     # for thecolor in paletteObj.Colors():
     #     print(thecolor)
+    standardColor = {
+        "69_2_20_0":"深色背景",
+        "1_0_0_0":"暮光之城色",
+        "93_88_89_80":"仓色",
+        "0_0_0_0":"白色",
+        "100_88_47_61":"Stratos"
+        # "6_4_4_0":"瓷色"
+    }
 
-    cdrObj.accessStandardColor()
-    
+    errorObj =  cdrObj.standardizedColor(standardColor)
+    print(errorObj)
+    # cdrObj.modifyShapeColor(errorObj.shapeObj)
+
+
     # for index in range(cdrObj.app.Palettes.Item(2).ColorCount):
     #     cdrObj.app.Palettes.Item(2).Color(index+1).SetName(index)
 

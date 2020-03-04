@@ -1676,35 +1676,85 @@ class CDR():
 
     # ===================== 设置和读取标准颜色 =====================
 
+    # 比对颜色
+    def asscessTextColor(self,colorObj,value):
+        try:
+            # 如果颜色名不一致
+            name = colorObj.name
+            findName = self.standardColor[value]
+            if findName != name:
+                # 名称不一致，重写
+                colorObj.name = name
+            return True
+        except:
+            # 属性不存在
+            return False
+
+
+    # 获取文本颜色
+    def getCMYKColor(self,colorObj):
+        cmyklist = self.getColorValue(colorObj,'CMYK')
+        return '_'.join(str(i) for i in cmyklist)
+
+
+    # 返回对象
+    def makeColorReturn(self,mark,pageObj,layerObj,shapeObj):
+        return {
+            'mark':mark,
+            'shapeObj':shapeObj,
+            "pageIndex":pageObj.Index,
+            "layerName":layerObj.Name,
+            "shapeName":shapeObj.Name
+        }
+
+
+    def setGroupColor(self,name,colorObj,pageObj,layerObj,shapeObj):
+        colorValue = self.getCMYKColor(colorObj)
+        uniformity = self.asscessTextColor(colorObj,colorValue)
+        if uniformity == False:
+            return self.makeColorReturn(name,pageObj,layerObj,shapeObj)
+
+
+    def loopGroupColor(self, pageObj,groupObj):
+        for shapeObj in groupObj.Shapes:
+            shapeType = shapeObj.Type
+            if shapeType == 7:
+               hasReturn =  self.loopGroupColor(pageObj,shapeObj)
+               if hasReturn:
+                   return hasReturn
+            else:
+                # 文本框
+                if shapeType == 6:
+                    textColorObj = shapeObj.Text.Story.fill.UniformColor
+                    hasReturn = self.setGroupColor('文字颜色',textColorObj,pageObj,groupObj,shapeObj)
+                    if hasReturn:
+                        return hasReturn
+                else:
+                    # 填充色
+                    uniformColor = shapeObj.fill.UniformColor
+                    if uniformColor.Type != 0:
+                        hasReturn = self.setGroupColor('填充颜色',uniformColor,pageObj,groupObj,shapeObj)
+                        if hasReturn:
+                            return hasReturn
+
+                    #边线
+                    outlineColor = shapeObj.Outline.Color
+                    if outlineColor.Type != 0:
+                        hasReturn = self.setGroupColor('边框颜色',outlineColor,pageObj,groupObj,shapeObj)
+                        if hasReturn:
+                            return hasReturn
+
+
     # 设置对象标准颜色
     def setPageStandardColor(self,pageObj):
-        for layer in pageObj.Layers:
-            if layer.Shapes.Count>0:
-                for shape in layer.Shapes:
-                    shapeType = shape.Type
-                    # print(shape.Fill.UniformColor.RGBValue)
-
-                    if shapeType == 7:
-                        # 组
-                        pass
-                    else:
-                        # 填充色
-                        colorType = shape.fill.UniformColor.Type
-                        handObj = {}
-                        if colorType == 2:
-                            colorValue = self.getColorValue(shape.fill.UniformColor,'CMYK')
-                            handObj = {'shape':shape, 'type':CMYK}
-
-
-                    
-
-                   
-        pass
+        for layerObj in pageObj.Layers:
+            if layerObj.Shapes.Count>0:
+                hasReturn = self.loopGroupColor(pageObj,layerObj)
+                if hasReturn:
+                    return hasReturn
 
 
     # 处理标准颜色
-    def accessStandardColor(self):
-        #    for page in self.doc.Pages:
-        self.standardColor = []
-        self.setPageStandardColor(self.doc.Pages.Item(1))
-        pass
+    def standardizedColor(self,standardColor):
+        return self.setPageStandardColor(self.doc.Pages.Item(1))
+
