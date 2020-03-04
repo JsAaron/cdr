@@ -1698,7 +1698,7 @@ class CDR():
 
 
     # 返回对象
-    def makeColorReturn(self,mark,pageObj,layerObj,shapeObj):
+    def makeSpecificColor(self,mark,pageObj,layerObj,shapeObj):
         return {
             'mark':mark,
             'shapeObj':shapeObj,
@@ -1708,39 +1708,39 @@ class CDR():
         }
 
 
-    def setGroupColor(self,name,colorObj,pageObj,layerObj,shapeObj):
+    def getSpecificShapeColor(self,name,colorObj,pageObj,layerObj,shapeObj):
         colorValue = self.getCMYKColor(colorObj)
         uniformity = self.asscessTextColor(colorObj,colorValue)
         if uniformity == False:
-            return self.makeColorReturn(name,pageObj,layerObj,shapeObj)
+            return self.makeSpecificColor(name,pageObj,layerObj,shapeObj)
 
 
-    def loopGroupColor(self, pageObj,groupObj):
+    def specificGroupColor(self, pageObj,groupObj):
         for shapeObj in groupObj.Shapes:
             shapeType = shapeObj.Type
             if shapeType == 7:
-               hasReturn =  self.loopGroupColor(pageObj,shapeObj)
+               hasReturn =  self.specificGroupColor(pageObj,shapeObj)
                if hasReturn:
                    return hasReturn
             else:
                 # 文本框
                 if shapeType == 6:
                     textColorObj = shapeObj.Text.Story.fill.UniformColor
-                    hasReturn = self.setGroupColor('文字颜色',textColorObj,pageObj,groupObj,shapeObj)
+                    hasReturn = self.getSpecificShapeColor('文字颜色',textColorObj,pageObj,groupObj,shapeObj)
                     if hasReturn:
                         return hasReturn
                 else:
                     # 填充色
                     uniformColor = shapeObj.fill.UniformColor
                     if uniformColor.Type != 0:
-                        hasReturn = self.setGroupColor('填充颜色',uniformColor,pageObj,groupObj,shapeObj)
+                        hasReturn = self.getSpecificShapeColor('填充颜色',uniformColor,pageObj,groupObj,shapeObj)
                         if hasReturn:
                             return hasReturn
 
                     #边线
                     outlineColor = shapeObj.Outline.Color
                     if outlineColor.Type != 0:
-                        hasReturn = self.setGroupColor('边框颜色',outlineColor,pageObj,groupObj,shapeObj)
+                        hasReturn = self.getSpecificShapeColor('边框颜色',outlineColor,pageObj,groupObj,shapeObj)
                         if hasReturn:
                             return hasReturn
 
@@ -1749,7 +1749,7 @@ class CDR():
     def setPageStandardColor(self,pageObj):
         for layerObj in pageObj.Layers:
             if layerObj.Shapes.Count>0:
-                hasReturn = self.loopGroupColor(pageObj,layerObj)
+                hasReturn = self.specificGroupColor(pageObj,layerObj)
                 if hasReturn:
                     return hasReturn
 
