@@ -115,31 +115,31 @@ path_json= "{'Save':'" + urllib.parse.quote(savePath) + "','Load':'" + urllib.pa
 
 
 
-exportImagePath= "{'FileName':'" + urllib.parse.quote('C:\\Users\\Administrator\\Desktop\\111\\test1.jpeg') + "'}"
+exportImagePath= "{'FileName':'" + urllib.parse.quote('C:\\Users\\Administrator\\Desktop\\111\\test') + "'}"
 exportImageConfig = {
-    # 保存转化格式是jpg
-    'Filter':774,
-    # 导出图片的范围, 
-    # 0 所有页面
-    # 1 定当前导出页面
-    # 2 指定选中的部分导出
-    'Range':1,
+    # 指定页面,
+    # 或者全部all
+    'Page':'all',
+
     # 图像类型，指定要导出图片的颜色模式
     # 4 RGB  
     # 5 CMYK
     'ImageType':4,
     
-    # 指定位图的高度，像素
-    'Width':1136,
+    'CoverWidth':0,
+    'CoverHeight':0,
 
-    #指定位图的高度，像素
-    'Height':700
+    'BackWidth':0,
+    'BackHeight':0,
+
+    'MiddleWidth':0,
+    'MiddleHeight':0
 }
 
 exportImageConfign_json = json.dumps(exportImageConfig,sort_keys=True,separators=(',',':'))
 
 
-cmdStr = ["D:\\\github\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
+cmdStr = ["D:\\\github\\dev-cdr\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
           'export-image',exportImageConfign_json,exportImagePath]
 
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,

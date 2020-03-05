@@ -238,6 +238,10 @@ def testSaveCDR():
     # cdrObj.exportAllBitmap(1136,700,'C:\\Users\\Administrator\\Desktop\\111\\')
     # cdrObj.saveCDR('C:\\Users\\Administrator\\Desktop\\111\\51.cdr')
 
+def testExportImage():
+    cdrObj = CDR()
+    cdrObj.exportBitmap('C:\\Users\\Administrator\\Desktop\\111\\test\\test.png',6)
+    pass
 
 if __name__ == '__main__':
     # testSaveCDR()
@@ -245,7 +249,8 @@ if __name__ == '__main__':
     # importText()
     # paletteTest1()
     # paletteTest2()
-    testSaveCDR()
+    # testSaveCDR()
+    testExportImage()
 
     
     

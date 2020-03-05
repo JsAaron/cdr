@@ -10,6 +10,7 @@ import os
 import time
 
 
+
 DEFAULTLINEHEIGHT = 5.5  # mm
 
 class CDR():
@@ -34,7 +35,8 @@ class CDR():
         self.pageheight = self.doc.ActivePage.SizeHeight
         self.palette = self.doc.Palette
         self._initDefalutLayer()
-        self.togglePage(1)
+        # don't toogle to page 1 for continous design
+        #self.togglePage(1)
         # adjust original point to top for double-page
         if self.doc.ActivePage.TOPY > 0:
             self.doc.DrawingOriginY = self.doc.ActivePage.TOPY / 2
@@ -165,7 +167,7 @@ class CDR():
 
     # 找到当前组内的形状
     # 增加对组的处理 xiaowy 2019/12/25
-    def findShapeByName(self, parentobj ,name):
+    def findShapeByName(self, parentobj, name, recursive=False):
         groupObj = None
         for shape in parentobj.Shapes:
             # if shape.Name == parentobj:
@@ -173,7 +175,7 @@ class CDR():
                 # groupObj = shape
                 # break
                 return shape
-            elif not shape.IsSimpleShape: # for group
+            elif (not shape.IsSimpleShape) and recursive: # for group
                 groupObj = self.findShapeByName(shape, name)
         return groupObj
 
@@ -266,6 +268,9 @@ class CDR():
     # [s1,s2,s3...] 需要合并的对象名称数组
     # shapeObjs must in layerObj, but maynot in parentobj
     def groupShapeObjs(self, layerObj, groupName, parentobj=None, shapeObjs=[]):
+        oriparent = parentobj
+        if oriparent == layerObj:
+            oriparent = None
         # first try to find the group, shape object has not Findshape method
         if parentobj == None:
             parentobj = layerObj
@@ -306,6 +311,9 @@ class CDR():
                 newGroup = rs.Group()
                 if newGroup != None:
                     newGroup.Name = groupName
+
+                if (newGroup.ParentGroup != oriparent) and oriparent is not None:
+                    self.moveShapeToGroup(parentobj, [newGroup])
                 return newGroup
         else:
             # Already has group
@@ -410,10 +418,10 @@ class CDR():
         count = 0
         if groupobj == None:
             return 0
-        contentgroup = self.findShapeByName(groupobj, '内容')
+        contentgroup = self.findShapeByName(groupobj, '内容', recursive=True)
         if contentgroup == None:
             return 0
-        textfield = self.findShapeByName(contentgroup, '正文')
+        textfield = self.findShapeByName(contentgroup, '正文', recursive=True)
         if textfield == None:
             return 0
         width = textfield.SizeWidth
@@ -723,6 +731,10 @@ class CDR():
         if shapeObj == None or content == '':
             return
 
+        # if not text shape, just return
+        if shapeObj.Type != 6:
+            return
+
         if shapeObj.Text.Story.Text == content:
             return
 
@@ -746,7 +758,10 @@ class CDR():
         thelanguageid = shapeObj.Text.Story.LanguageID
         shapeObj.Text.Story.Text = ''
         shapeObj.Text.Story.Text = content
-        shapeObj.Text.Story.LanguageID = thelanguageid
+        if thelanguageid is not None:
+            if thelanguageid < 0:
+                thelanguageid = 2052
+            shapeObj.Text.Story.LanguageID = thelanguageid
         if name:
             shapeObj.Name = name
         if palettename != None:
@@ -948,6 +963,73 @@ class CDR():
         self.sizeObj(theobj, newbound)
         return theobj
 
+    # insert a shape
+    def insertShape(self, oribound, name='背景图形', thetype='circle', palettename=None, noborder=True, style=None, shape=None):
+        theobj = shape
+        if theobj != None:
+            # adjust it's bound
+            self.moveObj(theobj, oribound)
+            self.sizeObj(theobj, oribound)
+            return theobj
+        bound = self.convertCood(oribound)
+        if thetype == 'rect':
+            theobj = self.doc.ActiveLayer.CreateRectangle(bound[0], -1 * bound[1], bound[2], -1 * bound[3])
+        elif thetype == 'circle':
+            theobj = self.doc.ActiveLayer.CreateEllipse(bound[0], -1 * bound[1], bound[2], -1 * bound[3])
+        elif thetype == 'roundrect':
+            theobj = self.doc.ActiveLayer.CreateRectangle(bound[0], -1 * bound[1], bound[2], -1 * bound[3],
+                    10, 10, 10, 10)
+        elif 'poly' in thetype:
+            sidesstr = re.sub("[^0-9]", "", thetype)
+            if len(sidesstr) == 0:
+                sidesstr = '6'
+            sides = int(sidesstr)
+            if sides < 3:
+                sides = 6
+            theobj = self.doc.ActiveLayer.CreatePolygon(bound[0], -1 * bound[1], bound[2], -1 * bound[3], sides)
+            pass
+
+        theobj.Name = name
+        # if there are style, using style
+        if style and self.styleExist(style):
+            theobj.ApplyStyle(style)
+            return theobj
+
+        # no style
+        if palettename != None:
+            palettecolor = self.getPaletteColor(self.palette, palettename)
+            if palettecolor != None:
+                theobj.Fill.UniformColor = palettecolor
+        else:
+            # set no fill
+            theobj.Fill.ApplyNoFill()
+        
+        if noborder:
+            theobj.ApplyStyle('无轮廓')
+
+        return theobj
+
+    # make a shape with text in it
+    def insertTextShape(self, oribound, name='编号', content = '0', thetype='circle', style=None, shape=None, textshape=None):
+        theobj = shape
+        if theobj is not None:
+            # adjust it's bound
+            self.moveObj(theobj, oribound)
+            self.sizeObj(theobj, oribound)
+            if textshape is not None:
+                self.modifyParaText(textshape, content)
+            return theobj
+        if style is None:
+            style = '数字'
+        theobj = self.insertShape(oribound, name+'容器', thetype, style, shape)
+        if theobj is None:
+            return None
+        textshape = self.insertParaText(oribound, name=name, content=content, style = style)
+        theobj.PlaceTextInside(textshape)
+        if style and self.styleExist(style):
+            theobj.ApplyStyle(style)
+        return theobj
+    
     # set random outline for an object, mostly for block frame
     def setRandomOutline(self, shape):
         shape.Outline.Color.HLSAssign(random.randint(0, 360), 100, 100)
@@ -1263,6 +1345,15 @@ class CDR():
         return self.app.PaletteManager.defaultpalette
 
 
+
+    def test(self):
+        print(self.app.PaletteManager.OpenPalettes.Item(1))
+        # print(self.app.PaletteManager.OpenPalettes.Item(2).Name)
+        # print(self.app.PaletteManager.OpenPalettes.Item(3).Name)
+        print(self.app.PaletteManager.OpenPalettes.Item(4).Name)
+        print(self.app.PaletteManager.OpenPalettes.Item(5).Name)
+        print(self.app.PaletteManager.OpenPalettes.Item(6).Name)
+
     #转化对象
     def transformPaletteObjs(self, shapeObj):
         if self.getType(shapeObj) == 'str':
@@ -1398,6 +1489,8 @@ class CDR():
         return paletteObj.SaveAs(fileName,paletteName)
 
 
+
+
     # ========================== 文件导入导出 ==========================
 
     # 导入图片
@@ -1526,7 +1619,7 @@ class CDR():
         return imagefolder
 
     # loop through all the nested text field/ shape fill in the group and change their text color
-    def changeGroupColor(self, groupobj, palettename=None):
+    def changeGroupColor(self, groupobj, palettename=None, pageidstr=None):
         # if no color, do nothing
         if groupobj is None:
             return
@@ -1538,8 +1631,9 @@ class CDR():
 
         # loop through all the shapes
         for shape in shapes:
-            if shape.Type == 7:  # group
-                self.changeGroupColor(shape, palettename)
+            if shape.Type == 7:
+                if pageidstr is None or pageidstr in shape.Name:  # only first level group need tobe this page
+                    self.changeGroupColor(shape, palettename)       # because only first level has page info
             else:
                 thename = shape.Name
                 if 'placeholder' in thename or '外框' in thename or 'cellback' in thename:
@@ -1623,25 +1717,25 @@ class CDR():
 
 
     # vb处理导出图片
-    def vbExportBitmap(self,fileName,width,height):
+    def vbExportBitmap(self,fileName,page):
         config = {
-            # 保存转化格式是jpg
-            'Filter':774,
-            # 导出图片的范围, 
-            # 0 所有页面
-            # 1 定当前导出页面
-            # 2 指定选中的部分导出
-            'Range':1,
+            # 指定页面,
+            # 或者全部all
+            'Page':page,
+
             # 图像类型，指定要导出图片的颜色模式
             # 4 RGB  
             # 5 CMYK
             'ImageType':4,
             
-            # 指定位图的高度，像素
-            'Width':width,
+            'CoverWidth':0,
+            'CoverHeight':0,
 
-            #指定位图的高度，像素
-            'Height':height
+            'BackWidth':0,
+            'BackHeight':0,
+
+            'MiddleWidth':0,
+            'MiddleHeight':0
         }
         fileName= "{'FileName':'" + urllib.parse.quote(fileName) + "'}"
         configJson = json.dumps(config,sort_keys=True,separators=(',',':'))
@@ -1650,112 +1744,54 @@ class CDR():
 
     # 导出指定页面图片
     # pageIndex 页码
-    # width 宽度单位px
-    # height 宽度单位px
-    # fileName 文件全路径
-    def exportBitmap(self,pageIndex,width,height,fileName):
-        page = self.doc.Pages.Item(pageIndex)
-        page.Activate()
-        self.setPrintable(False)
-        self.vbExportBitmap(fileName,width,height)
-        self.setPrintable(True)
+    # fileName 文件路径
+    def exportBitmap(self,fileName,pageIndex):
+        self.vbExportBitmap(fileName,pageIndex)
         return
 
 
     # 导出所有页面图片
-    # width 宽度单位px
-    # height 宽度单位px
-    # fileName 文件全路径
-    def exportAllBitmap(self,width,height,fileName ):
-        for page in  self.doc.Pages:
-            path = os.path.join(fileName, 'page-'+ str(page.Index) + '.jpg')
-            self.exportBitmap(page.Index,width,height,path)
+    # fileName 文件路径
+    def exportAllBitmap(self,fileName):
+        self.vbExportBitmap(fileName,'all')
         return
 
+    # write dict to global layer to store the info of internal info
+    def storeDict(self, thedict):
+        if not isinstance(thedict, dict):
+            return
+        jsonstr = json.dumps(thedict)
 
-
-    # ===================== 设置和读取标准颜色 =====================
-
-    # 比对颜色
-    def asscessTextColor(self,colorObj,value):
-        try:
-            # 如果颜色名不一致
-            name = colorObj.name
-            findName = self.standardColor[value]
-            if findName != name:
-                # 名称不一致，重写
-                colorObj.name = name
-            return True
-        except:
-            # 属性不存在
-            return False
-
-
-    # 获取文本颜色
-    def getCMYKColor(self,colorObj):
-        cmyklist = self.getColorValue(colorObj,'CMYK')
-        return '_'.join(str(i) for i in cmyklist)
-
-
-    # 返回对象
-    def makeSpecificColor(self,mark,pageObj,layerObj,shapeObj):
-        return {
-            'mark':mark,
-            'shapeObj':shapeObj,
-            "pageIndex":pageObj.Index,
-            "layerName":layerObj.Name,
-            "shapeName":shapeObj.Name
-        }
-
-
-    def getSpecificShapeColor(self,name,colorObj,pageObj,layerObj,shapeObj):
-        colorValue = self.getCMYKColor(colorObj)
-        uniformity = self.asscessTextColor(colorObj,colorValue)
-        if uniformity == False:
-            return self.makeSpecificColor(name,pageObj,layerObj,shapeObj)
-
-
-    def specificGroupColor(self, pageObj,groupObj):
-        for shapeObj in groupObj.Shapes:
-            shapeType = shapeObj.Type
-            if shapeType == 7:
-               hasReturn =  self.specificGroupColor(pageObj,shapeObj)
-               if hasReturn:
-                   return hasReturn
+        currentlayer = self.doc.ActiveLayer
+        masterlayer = self.findMasterLayer('秒秒学全局参数')
+        if masterlayer != None:
+            globalobj = masterlayer.FindShape('globalinfo', 6)      # cdrTextShape
+            if globalobj == None:
+                #create paratextobj
+                globalobj = masterlayer.CreateParagraphText(
+                    0, 1, 1, 2, jsonstr, 0, -1)
+                globalobj.Name = 'globalinfo'
             else:
-                # 文本框
-                if shapeType == 6:
-                    textColorObj = shapeObj.Text.Story.fill.UniformColor
-                    hasReturn = self.getSpecificShapeColor('文字颜色',textColorObj,pageObj,groupObj,shapeObj)
-                    if hasReturn:
-                        return hasReturn
-                else:
-                    # 填充色
-                    uniformColor = shapeObj.fill.UniformColor
-                    if uniformColor.Type != 0:
-                        hasReturn = self.getSpecificShapeColor('填充颜色',uniformColor,pageObj,groupObj,shapeObj)
-                        if hasReturn:
-                            return hasReturn
+                globalobj.Text.Story.Text = jsonstr
+        currentlayer.Activate()
 
-                    #边线
-                    outlineColor = shapeObj.Outline.Color
-                    if outlineColor.Type != 0:
-                        hasReturn = self.getSpecificShapeColor('边框颜色',outlineColor,pageObj,groupObj,shapeObj)
-                        if hasReturn:
-                            return hasReturn
-
-
-    # 设置对象标准颜色
-    def setPageStandardColor(self,pageObj):
-        for layerObj in pageObj.Layers:
-            if layerObj.Shapes.Count>0:
-                hasReturn = self.specificGroupColor(pageObj,layerObj)
-                if hasReturn:
-                    return hasReturn
-
-
-    # 处理标准颜色
-    def standardizedColor(self,standardColor):
-        self.standardColor = standardColor
-        return self.setPageStandardColor(self.doc.Pages.Item(1))
-
+    # read dict from global info
+    def restoreDict(self):
+        currentlayer = self.doc.ActiveLayer
+        masterlayer = self.findMasterLayer('秒秒学全局参数')
+        if masterlayer is None:
+            return None
+        globalobj = masterlayer.FindShape('globalinfo', 6)      # cdrTextShape
+        if globalobj is None:
+            return None
+            #create paratextobj
+        currentlayer.Activate()
+        jsonstr = globalobj.Text.Story.Text
+        if jsonstr is None:
+            return None
+        if len(jsonstr) > 0:
+            thedict = json.loads(jsonstr)
+            return thedict
+        else:
+            return None
+        
