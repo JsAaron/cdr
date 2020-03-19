@@ -121,6 +121,8 @@ exportImageConfig = {
     # 或者全部all
     'Page':'all',
 
+    'mode':1,
+
     # 图像类型，指定要导出图片的颜色模式
     # 4 RGB  
     # 5 CMYK
@@ -139,7 +141,7 @@ exportImageConfig = {
 exportImageConfign_json = json.dumps(exportImageConfig,sort_keys=True,separators=(',',':'))
 
 
-cmdStr = ["D:\\\github\\dev-cdr\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
+cmdStr = ["D:\\\github\\cdr\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
           'export-image',exportImageConfign_json,exportImagePath]
 
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,

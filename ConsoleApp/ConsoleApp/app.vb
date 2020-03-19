@@ -246,22 +246,53 @@ Module App
         Dim currPage As Page = activeDoc.Pages.Item(pageIndex)
         currPage.Activate()
 
-        '如果是封面
-        If pageIndex = 1 Then
-            coverLayer = findMasterLayer(doc, "封面导出")
-            setExportImageStatus(coverLayer, True)
-            exportName = "cover"
-            Width = getSettingsValue("CoverWidth")
-            Height = getSettingsValue("CoverHeight")
-        ElseIf pageIndex = activeDoc.Pages.Count Then
-            '如果是封尾
-            footerLayer = findMasterLayer(doc, "封底导出")
-            setExportImageStatus(footerLayer, True)
-            exportName = "back"
-            Width = getSettingsValue("BackWidth")
-            Height = getSettingsValue("BackHeight")
-        Else
-            '中间页面
+
+        Dim mode = getSettingsValue("mode")
+
+        '分离模式，有首位
+        If mode = 1 Then
+
+            '如果是封面
+            If pageIndex = 1 Then
+                coverLayer = findMasterLayer(doc, "封面导出")
+                setExportImageStatus(coverLayer, True)
+                exportName = "cover"
+                Width = getSettingsValue("CoverWidth")
+                Height = getSettingsValue("CoverHeight")
+            ElseIf pageIndex = activeDoc.Pages.Count Then
+                '如果是封尾
+                footerLayer = findMasterLayer(doc, "封底导出")
+                setExportImageStatus(footerLayer, True)
+                exportName = "back"
+                Width = getSettingsValue("BackWidth")
+                Height = getSettingsValue("BackHeight")
+            Else
+                '中间页面
+                Dim v = pageIndex / 2
+                Dim s = 0
+                For i = 1 To Len(v)
+                    If Mid(v, i, 1) = "." Then
+                        s = s + 1
+                    End If
+                Next
+
+                If s = 1 Then
+                    Return False
+                End If
+
+                middleLayer = findMasterLayer(doc, "对页导出")
+                setExportImageStatus(middleLayer, True)
+                Width = getSettingsValue("MiddleWidth")
+                Height = getSettingsValue("MiddleHeight")
+                exportName = pageIndex.ToString() + "-" + (pageIndex + 1).ToString()
+            End If
+
+        End If
+
+
+        '合并模式
+        If mode = 2 Then
+            '全部页面
             Dim v = pageIndex / 2
             Dim s = 0
             For i = 1 To Len(v)
@@ -269,11 +300,9 @@ Module App
                     s = s + 1
                 End If
             Next
-
-            If s = 1 Then
+            If s = 0 Then
                 Return False
             End If
-
             middleLayer = findMasterLayer(doc, "对页导出")
             setExportImageStatus(middleLayer, True)
             Width = getSettingsValue("MiddleWidth")
@@ -281,9 +310,9 @@ Module App
             exportName = pageIndex.ToString() + "-" + (pageIndex + 1).ToString()
         End If
 
+
         Dim filePath = FileName + "\" + exportName + ".jpg"
 
-        Console.WriteLine(filePath, ImageType, Width, Height)
         Try
             Dim efilter As ExportFilter = activeDoc.ExportBitmap(filePath, 774, 1, ImageType, Width, Height, 0, 0, 0, True, True, False, False, 8)
 
@@ -301,15 +330,22 @@ Module App
         End Try
 
 
+        If mode = 1 Then
+            '复位
+            If pageIndex = 1 Then
+                setExportImageStatus(coverLayer, False)
+            ElseIf pageIndex = activeDoc.Pages.Count Then
+                setExportImageStatus(footerLayer, False)
+            Else
+                setExportImageStatus(middleLayer, False)
+            End If
+        End If
 
-        '复位
-        If pageIndex = 1 Then
-            setExportImageStatus(coverLayer, False)
-        ElseIf pageIndex = activeDoc.Pages.Count Then
-            setExportImageStatus(footerLayer, False)
-        Else
+
+        If mode = 2 Then
             setExportImageStatus(middleLayer, False)
         End If
+
 
     End Function
 

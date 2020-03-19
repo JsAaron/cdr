@@ -33,3 +33,15 @@ D:\github\dev-cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.CopyComp
 D:\github\dev-cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.exe
 D:\github\dev-cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.xml
 D:\github\dev-cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.pdb
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.exe.config
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.exe
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.pdb
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.xml
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\bin\Debug\Newtonsoft.Json.dll
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.Resources.resources
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.GenerateResource.cache
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.CoreCompileInputs.cache
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.vbproj.CopyComplete
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.exe
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.xml
+D:\github\cdr\cdr\ConsoleApp\ConsoleApp\obj\Debug\ConsoleApp.pdb
