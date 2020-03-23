@@ -311,6 +311,16 @@ Module App
         End If
 
 
+        '正常模式
+        If mode = 3 Then
+            middleLayer = findMasterLayer(doc, "对页导出")
+            setExportImageStatus(middleLayer, True)
+            Width = getSettingsValue("MiddleWidth")
+            Height = getSettingsValue("MiddleHeight")
+            exportName = pageIndex.ToString()
+        End If
+
+
         Dim filePath = FileName + "\" + exportName + ".jpg"
 
         Try
@@ -342,7 +352,7 @@ Module App
         End If
 
 
-        If mode = 2 Then
+        If mode = 2 Or mode = 3 Then
             setExportImageStatus(middleLayer, False)
         End If
 
