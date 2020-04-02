@@ -243,6 +243,14 @@ def testExportImage():
     cdrObj.exportBitmap('C:\\Users\\Administrator\\Desktop\\111\\test\\test.png',6)
     pass
 
+
+def testCopy():
+    cdrObj = CDR()
+    cdrObj1 = CDR("D:\\github\\cdr\\mmxai\\src\\templates\\brochures\\Backup_of_画册-医疗-竖-001.cdr")
+    cdrObj.acrossCopyLayer(cdrObj1)
+
+
+
 if __name__ == '__main__':
     # testSaveCDR()
     # testSaveCDR()
@@ -250,7 +258,7 @@ if __name__ == '__main__':
     # paletteTest1()
     # paletteTest2()
     # testSaveCDR()
-    testExportImage()
+    testCopy()
 
     
     

@@ -11,6 +11,7 @@ import time
 
 
 
+
 DEFAULTLINEHEIGHT = 5.5  # mm
 
 class CDR():
@@ -34,7 +35,7 @@ class CDR():
         self.pagewidth = self.doc.ActivePage.SizeWidth
         self.pageheight = self.doc.ActivePage.SizeHeight
         self.palette = self.doc.Palette
-        self._initDefalutLayer()
+        self.initDefalutLayer()
         # don't toogle to page 1 for continous design
         #self.togglePage(1)
         # adjust original point to top for double-page
@@ -43,7 +44,7 @@ class CDR():
 
 
     # 初始默认图层
-    def _initDefalutLayer(self):
+    def initDefalutLayer(self):
 
         # 母版
         hasMasterLayer = False
@@ -53,6 +54,8 @@ class CDR():
         if hasMasterLayer == False:
             self.doc.MasterPage.createlayer('秒秒学全局参数')
 
+        # don't check layer exist, it is too slow, create it when select
+        return
         # 页面
         pagesConfig = []
         for page in self.doc.Pages:
@@ -60,7 +63,8 @@ class CDR():
                 "秒秒学背景": True,
                 "秒秒学板块": True,
                 "秒秒学结构": True,
-                "秒秒学装饰": True
+                "秒秒学装饰": True,
+                "秒秒学全局参数": True
             }
 
             for curLayer in page.AllLayers:
@@ -99,7 +103,7 @@ class CDR():
             return obj
 
     # 移动形状到缓存
-    def _moveShapeToCache(self, layerObj, shapeObj):
+    def moveShapeToCache(self, layerObj, shapeObj):
         delGroupObj = self.createDeleteCache(layerObj)
         firstObj = delGroupObj.Shapes.Item(1)
         shapeObj.OrderFrontOf(firstObj)
@@ -107,9 +111,14 @@ class CDR():
 
     # =================================== 基础方法 ===================================
 
+    # 总页数
+    def getTotalPages(self):
+        return self.doc.Pages.Count
+
+
     # 公开创建标准目录层接口
     def createStdFolder(self):
-        return self._initDefalutLayer()
+        return self.initDefalutLayer()
 
 
     # 判断变量类型
@@ -304,6 +313,7 @@ class CDR():
                 for index in range(len(parentobj.Shapes)):
                     itemIndex = index + 1
                     item = parentobj.Shapes.Item(itemIndex)
+
                     if item.StaticID in shapeIDs:
                         groupIndex.append(itemIndex)
 
@@ -371,7 +381,7 @@ class CDR():
             # 新加入占位
             self.insertPlaceholder(layerObj).OrderFrontOf(shapeObj)
             self.insertPlaceholder(layerObj).OrderFrontOf(shapeObj)
-        self._moveShapeToCache(layerObj, shapeObj)
+        self.moveShapeToCache(layerObj, shapeObj)
         return groupObj
 
 
@@ -381,7 +391,7 @@ class CDR():
         if hasObj == None:
             return hasObj
         layerObj = groupObj.Layer
-        self._moveShapeToCache(layerObj, shapeObj)
+        self.moveShapeToCache(layerObj, shapeObj)
         if groupObj.Shapes.Count == 0:
             groupObj.Ungroup()
         return groupObj
@@ -657,7 +667,7 @@ class CDR():
     # style: text style of the paragraph
     # content: text string
     # the height of paragraph text should only one line, because we calc overflow, only enlarge, not shrink
-    def insertParaText(self, oribound, name='正文', content='', style='', palettename='深色文字', shape=None, columns = 0):
+    def insertParaText(self, oribound, name='正文', content='', style='', palettename='深色文字', shape=None, columns = 0, isbullet = False):
         # if the text already exist, just adjust it's bound
         theobj = shape
         newHeight = 0
@@ -670,16 +680,27 @@ class CDR():
             #    # now the height changes, we should totaly reassign the height
             #    newHeight = DEFAULTLINEHEIGHT
             self.moveObj(theobj, oribound)
+            needadjust = False
+            result = None
+            # xiaowy, modify columns first, then adjust textheight
+            if isbullet:
+                result = self.autoSetParaColumns(theobj, oribound[2] - oribound[0])
+            elif columns > 0:
+                result = self.setTextColumns(theobj, columns)
+            if result is not None:
+                needadjust = True
             # only width change exceed half characters, should we really change text width
             # 2.5 is in mm, and half characters
             if abs(theobj.SizeWidth - (oribound[2] - oribound[0])) > DEFAULTLINEHEIGHT/2 or newHeight > 0:
                 theobj.SizeWidth = oribound[2] - oribound[0]
+                needadjust = True
+                
+            if needadjust:
                 theobj.SizeHeight = DEFAULTLINEHEIGHT
                 self.adjustParaTextHeight(theobj)
-            # xiaowy
-            if columns > 0:
-                self.setTextColumns(theobj, columns)
             return theobj
+        # strip blank lines maybe in the end of document
+        content = content.strip()
         bound = self.convertCood(oribound)
         theobj = self.doc.ActiveLayer.CreateParagraphText(
             bound[0], -1 * bound[1], bound[2], -1 * bound[1] - 1, content, 0, -1)
@@ -694,9 +715,99 @@ class CDR():
         # xiaowy
         if columns > 0:
             self.setTextColumns(theobj, columns)
+        # if it is bullet, then set the bullet
+        if isbullet:
+            self.setTextBullets(theobj)
+            self.autoSetParaColumns(theobj, oribound[2] - oribound[0])
+            
         theobj.SizeHeight = DEFAULTLINEHEIGHT
         self.adjustParaTextHeight(theobj)
+        
         return theobj
+
+    def setTextBullets(self, textObj):
+        bulletslist = {}
+        story = textObj.Text.Story
+        storytext = story.Text
+        storysplit = storytext.split('\r')
+        if len(storysplit) <= 0:
+            return
+
+        for index, section in enumerate(storysplit):
+            if '\t' in section:
+                splits = section.split('\t')
+                prefix = splits[0]
+                theord = ord(prefix[0])
+                if theord > 61000:
+                    remain = ''
+                    if len(splits) > 0:
+                        remain = splits[1]
+                    storysplit[index] = remain
+                    bulletslist[index] = prefix
+                else:  # normal section with tab
+                    storysplit[index] = '\t'.join(splits)
+
+        endtext = '\r'.join(storysplit)
+        story.Text = endtext
+
+        paragraphs = story.paragraphs
+        thelen = len(paragraphs)
+        # for unkown reason, the last paragraph won't be set bullet, so it must be set at first
+        if (thelen-1) in bulletslist:
+            prefix = bulletslist[thelen-1]
+            lastpara = paragraphs[thelen-1]
+            lastpara.ApplyBulletEffect(prefix, None, lastpara.Size, -1)
+
+        for index, paragraph in enumerate(paragraphs):
+            if index in bulletslist:
+                prefix = bulletslist[index]
+                paragraph.ApplyBulletEffect(prefix, None, paragraph.Size, -1)
+       
+        pass
+
+
+    # automatically set columns according to its text width
+    # assume it is bullet, but short length paragraph is also suitable
+    def autoSetParaColumns(self, textObj, boundwidth):
+        story = textObj.Text.Story
+        storytext = story.Text
+        storysplit = storytext.split('\r')
+        storycount = len(storysplit)
+        if  storycount <= 0:
+            return None
+
+        maxparalength = 0
+        for index, section in enumerate(storysplit):
+            sectionlen = len(section.strip())
+            if sectionlen > maxparalength:
+                maxparalength = sectionlen
+        
+        if maxparalength == 0:
+            return None
+        
+        # cdr's charspacint is 0.0023 char width per 1 unit
+        charspacing = 1 + story.CharSpacing * 0.0023
+        onecharwidth = story.Size * 25.4 / 72 * charspacing
+        # assume column width is 2 chars, and bullet is 7.5cm long
+        totalwidth = onecharwidth * (maxparalength + 1.5) + 7.5
+        columns = int(boundwidth /totalwidth)
+        bestcolumn = columns
+        if columns > storycount:
+            bestcolumn = storycount
+        elif columns < 1:
+            return None
+        elif columns > 2:  # find most suitable columns
+            minremain = 0
+            for cols in range(2, columns + 1):
+                remain = storycount%cols / cols
+                if remain == 0:
+                    bestcolumn = cols
+                    minremain = 1
+                elif remain > minremain:
+                    minremain = remain
+                    bestcolumn = cols
+
+        return self.setTextColumns(textObj, bestcolumn)
 
     def setTextColumns(self, textObj, columns):
         '''
@@ -706,8 +817,11 @@ class CDR():
             columns:分栏的个数
         '''
         if columns == 0:
-            return
+            return None
         story = textObj.Text.Story
+        # if already correct column, no need to adjust it
+        if story.Columns == columns:
+            return None
         fontSize = story.Size
         columnSpace = 1.5 * fontSize * 25.4 / 72   # must convert to mm unit from pt
         columnWidth = (textObj.SizeWidth - (columns - 1) * columnSpace) // columns
@@ -725,7 +839,7 @@ class CDR():
     # style
     # palettename 调色板中的颜色名字
     # name 节点名字
-    def modifyParaText(self, shapeObj, content='', oribound=[], style=None, palettename=None, name='', languageid = None, scale=False):
+    def modifyParaText(self, shapeObj, content='', oribound=[], style=None, palettename=None, name='', languageid = None, scale=False, tabchars=0, isfixed=False):
       
         shapeObj = self.transformObjs(shapeObj)
         if shapeObj == None or content == '':
@@ -735,6 +849,7 @@ class CDR():
         if shapeObj.Type != 6:
             return
 
+        thetext = shapeObj.Text.Story.Text
         if shapeObj.Text.Story.Text == content:
             return
 
@@ -784,8 +899,35 @@ class CDR():
             shapeObj.TOPY = oritop
         if len(oribound):
             self.moveObj(shapeObj, oribound)
+            self.sizeObj(shapeObj, oribound)
+        if tabchars > 0:
+            self.addTabsForPara(shapeObj, tabchars)
+        if isfixed:
+            shapeObj.Text.FitTextToFrame()
+        else:
             self.adjustParaTextHeight(shapeObj)
 
+    # add tabs for text object. tab pos is in number of chars
+    def addTabsForPara(self, shapeObj, tabchars):
+        # if not text object
+        if shapeObj.Type != 6:
+            return
+        story = shapeObj.Text.Story
+        tabs = story.tabs
+        tabs.Clear()
+        tabpos = tabchars * story.Size * (25.4 / 72) * (1 + story.CharSpacing * 0.0023)
+        tabpos2 = (tabchars + 1) * story.Size * (25.4 / 72) * (1 + story.CharSpacing * 0.0023)
+        tabs.Add(tabpos)
+        tabs.Add(tabpos2)
+        # set hang indent
+        story.LeftIndent = tabpos
+        story.FirstLineIndent = 0
+
+    
+    # modify text with structure
+    def modifyStructureText(self, shapeObj, content='', oribound=[], style=None, palettename=None, name='', languageid = None, scale=False):
+        pass
+    
     # 修改文本对象的文字颜色，仅修改颜色，其他不动
     def modifyTextColor(self, shapeObj, palettename=None):
         if shapeObj == None:
@@ -837,6 +979,10 @@ class CDR():
     # insert background rect
     # default is no fill color
     def insertRectangle(self, oribound, name='正文背景', round=0, palettename=None, noborder=True, shape=None):
+        if oribound[2] == oribound[0]:
+            oribound[2] = oribound[0] + 100
+        if oribound[3] == oribound[1]:
+            oribound[3] = oribound[1] + 100
         theobj = shape
         if theobj != None:
             # adjust it's bound
@@ -1345,15 +1491,6 @@ class CDR():
         return self.app.PaletteManager.defaultpalette
 
 
-
-    def test(self):
-        print(self.app.PaletteManager.OpenPalettes.Item(1))
-        # print(self.app.PaletteManager.OpenPalettes.Item(2).Name)
-        # print(self.app.PaletteManager.OpenPalettes.Item(3).Name)
-        print(self.app.PaletteManager.OpenPalettes.Item(4).Name)
-        print(self.app.PaletteManager.OpenPalettes.Item(5).Name)
-        print(self.app.PaletteManager.OpenPalettes.Item(6).Name)
-
     #转化对象
     def transformPaletteObjs(self, shapeObj):
         if self.getType(shapeObj) == 'str':
@@ -1540,7 +1677,7 @@ class CDR():
 
     # 判断是不是右页开始的对页
     def isFacing(self):
-        if self.doc.FacingPages and self.doc.FirstPageOnRightSide:
+        if self.doc.FacingPages:
             return True
         else:
             return False
@@ -1717,11 +1854,17 @@ class CDR():
 
 
     # vb处理导出图片
-    def vbExportBitmap(self,fileName,page):
+    def vbExportBitmap(self,fileName,page,mode=3):
         config = {
             # 指定页面,
             # 或者全部all
             'Page':page,
+
+            # 图片生成模式,
+            # 1 有cover back
+            # 2 1-2,2-3,4-5
+            # 3 1.jpg ,2.jpg
+            'mode':mode,
 
             # 图像类型，指定要导出图片的颜色模式
             # 4 RGB  
@@ -1752,8 +1895,8 @@ class CDR():
 
     # 导出所有页面图片
     # fileName 文件路径
-    def exportAllBitmap(self,fileName):
-        self.vbExportBitmap(fileName,'all')
+    def exportAllBitmap(self,fileName,mode):
+        self.vbExportBitmap(fileName,'all',mode)
         return
 
     # write dict to global layer to store the info of internal info
@@ -1775,6 +1918,7 @@ class CDR():
                 globalobj.Text.Story.Text = jsonstr
         currentlayer.Activate()
 
+
     # read dict from global info
     def restoreDict(self):
         currentlayer = self.doc.ActiveLayer
@@ -1795,3 +1939,187 @@ class CDR():
         else:
             return None
         
+
+        
+    # ===================== 设置和读取标准颜色 =====================
+
+    # 比对颜色
+    def asscessTextColor(self,colorObj,value):
+        try:
+            # 如果颜色名不一致
+            name = colorObj.name
+            findName = self.standardColor[value]
+            if findName != name:
+                # 名称不一致，重写
+                colorObj.name = name
+            return True
+        except:
+            # 属性不存在
+            return False
+
+
+    # 获取文本颜色
+    def getCMYKColor(self,colorObj):
+        cmyklist = self.getColorValue(colorObj,'CMYK')
+        return '_'.join(str(i) for i in cmyklist)
+
+
+    # 返回对象
+    def makeSpecificColor(self,mark,pageObj,layerObj,shapeObj):
+        return {
+            'mark':mark,
+            'shapeObj':shapeObj,
+            "pageIndex":pageObj.Index,
+            "layerName":layerObj.Name,
+            "shapeName":shapeObj.Name
+        }
+
+
+    def getSpecificShapeColor(self,name,colorObj,pageObj,layerObj,shapeObj):
+        colorValue = self.getCMYKColor(colorObj)
+        uniformity = self.asscessTextColor(colorObj,colorValue)
+        if uniformity == False:
+            return self.makeSpecificColor(name,pageObj,layerObj,shapeObj)
+
+
+    def specificGroupColor(self, pageObj,groupObj):
+        for shapeObj in groupObj.Shapes:
+            shapeType = shapeObj.Type
+            if shapeType == 7:
+               hasReturn =  self.specificGroupColor(pageObj,shapeObj)
+               if hasReturn:
+                   return hasReturn
+            else:
+                # 文本框
+                if shapeType == 6:
+                    textColorObj = shapeObj.Text.Story.fill.UniformColor
+                    hasReturn = self.getSpecificShapeColor('文字颜色',textColorObj,pageObj,groupObj,shapeObj)
+                    if hasReturn:
+                        return hasReturn
+                else:
+                    # 填充色
+                    uniformColor = shapeObj.fill.UniformColor
+                    if uniformColor.Type != 0:
+                        hasReturn = self.getSpecificShapeColor('填充颜色',uniformColor,pageObj,groupObj,shapeObj)
+                        if hasReturn:
+                            return hasReturn
+
+                    #边线
+                    outlineColor = shapeObj.Outline.Color
+                    if outlineColor.Type != 0:
+                        hasReturn = self.getSpecificShapeColor('边框颜色',outlineColor,pageObj,groupObj,shapeObj)
+                        if hasReturn:
+                            return hasReturn
+
+
+    # 设置对象标准颜色
+    def setPageStandardColor(self,pageObj):
+        for layerObj in pageObj.Layers:
+            if layerObj.Shapes.Count>0:
+                hasReturn = self.specificGroupColor(pageObj,layerObj)
+                if hasReturn:
+                    return hasReturn
+
+
+    # 处理标准颜色
+    def standardizedColor(self,standardColor):
+        self.standardColor = standardColor
+        for page in self.doc.Pages:
+            hasReturn = self.setPageStandardColor(page)
+            if hasReturn:
+                return hasReturn
+
+    # add new blank pages with the document setting
+    def addNewPages(self, pagecount):
+        pages = self.doc.Pages
+        count = len(pages)
+        if count < pagecount:
+            numadd = pagecount - count
+            self.doc.AddPages(numadd)
+            self.doc.Save()
+        pass
+
+    # create page layers if not exist, need active page first
+    def createDefaultLayers(self):
+        alllayersname = []
+        alllayers = self.doc.ActivePage.Layers
+        if len(alllayers) > 0:
+            for layer in alllayers:
+                alllayersname.append(layer.Name)
+        layerNames = {
+                "秒秒学背景": True,
+                "秒秒学板块": True,
+                "秒秒学结构": True,
+                "秒秒学装饰": True,
+                "秒秒学全局参数": True
+            }
+        for layername in layerNames:
+            if not layername in alllayersname:
+                self.doc.ActivePage.CreateLayer(layername)
+    
+    # functions to deal with table
+    #region
+    def insertTable(self, oribound, name='表格', style = None, palettename=None, noborder=True, shape=None):
+        theobj = shape
+        if theobj != None:
+            # adjust it's bound
+            self.moveObj(theobj, oribound)
+            self.sizeObj(theobj, oribound)
+            return theobj
+
+        bound = self.convertCood(oribound)
+        
+        pass
+
+    #endregion
+
+
+    # ============= 跨域复制层级 ====================
+
+    # 找到最大数量的页面层级
+    def findMaxLayer(self,cdrObj,pageIndex):
+        page = cdrObj.doc.Pages.Item(pageIndex)
+        maxLayer = None
+        maxCount = 0
+        for layer in page.AllLayers:
+            masterLayer = cdrObj.findMasterLayer(layer.name)
+            if masterLayer is not None:
+                pass
+            else:
+                if maxCount == 0:
+                    maxCount = layer.Shapes.count
+                    maxLayer = layer
+    
+                if layer.Shapes.count > maxCount:
+                    maxCount = layer.Shapes.count
+                    maxLayer = layer
+        return maxLayer
+
+
+    # 复制目标中的形状对象到layer中
+    def copyShapeToLayer(self,targetLayer,srcLayer):
+        for shape in srcLayer.shapes:
+            shape.CopyToLayer(targetLayer)
+
+
+    # 复制指定页面的最大层级
+    # srcLayer  目标层级
+    # pageIndex 页面
+    def copyPageLayer(self,srcLayer,pageIndex):
+        self.doc.Activate()
+        targetPageObj = self.doc.Pages.Item(pageIndex)
+        targetPageObj.Activate()
+        targetLayer = self.findLayerByName(srcLayer.Name)
+        if targetLayer == None:
+            pass
+        else:
+            # 如果找到对应的layer包含容器
+            self.copyShapeToLayer(targetLayer,srcLayer)
+            pass    
+        
+
+    # 跨页复制模板功能，复制每个页面最大的层
+    # targetPath 目标cdr对象cdrObj
+    def acrossCopyLayer(self, cdrObj):
+        srcLayer = self.findMaxLayer(cdrObj,3)
+        self.copyPageLayer(srcLayer,3)
