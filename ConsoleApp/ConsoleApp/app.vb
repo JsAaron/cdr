@@ -361,6 +361,60 @@ Module App
 
 
 
+    '插入图片
+    Function insertImage(doc)
+        Dim activeDoc As Document = doc
+        Dim FileName = getSettingsValue("FileName")
+        Dim rootGroupName = getSettingsValue("rootGroupName")
+        Dim parentGroupName = getSettingsValue("parentGroupName")
+        Dim groupName = getSettingsValue("groupName")
+        Dim imageName = getSettingsValue("imageName")
+
+        Dim activeLayer = activeDoc.ActiveLayer
+        Dim rootShape As Shape = activeLayer.FindShape(rootGroupName)
+        Dim groupShape = rootShape.Shapes.FindShapes(groupName)
+
+
+        '保证找到的对象一定是目标
+        For m = 1 To groupShape.Count
+            Dim shape = groupShape.Item(m)
+            '确保一致性
+            If shape.ParentGroup.Name = parentGroupName Then
+                '修改图片必须是显示状态才可以
+                Dim fixVisible
+                If activeLayer.Visible = False Then
+                    fixVisible = True
+                    activeLayer.Visible = True
+                End If
+
+                Try
+                    activeLayer.Import(FileName, 0)
+                    '如果修改了图片状态
+                    If fixVisible = True Then
+                        activeLayer.Visible = False
+                    End If
+
+                    '找到图片
+                    For k = 1 To doc.Selection.Shapes.Count
+                        Dim item = doc.Selection.Shapes.Item(k)
+                        If imageName = item.Name Then
+                            item.AddToPowerClip(shape, -1)
+                        End If
+                    Next k
+
+                Catch ex As Exception
+
+                End Try
+            End If
+        Next m
+
+
+
+
+
+    End Function
+
+
     '===================== 建立链接 =====================
 
 
@@ -399,6 +453,10 @@ Module App
                 Exit Sub
             End If
 
+            '插入图片
+            If Param.cmdCommand = "insert-image" Then
+                insertImage(doc)
+            End If
 
             '导出图片
             If Param.cmdCommand = "export-image" Then
