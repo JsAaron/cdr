@@ -430,7 +430,9 @@ Module App
                         Dim theimage = doc.Selection.Shapes.Item(k)
                         If imageName = theimage.Name Then
                             If InStr(groupName, "图标") > 0 Then
-                                containSize(theimage, shape.SizeWidth, shape.SizeHeight)
+                                Dim iconWidth = getSettingsValue("iconWidth")
+                                Dim iconHeight = getSettingsValue("iconHeight")
+                                containSize(theimage, iconWidth, iconHeight)
                             Else
                                 coverSize(theimage, shape.SizeWidth, shape.SizeHeight)
                             End If
