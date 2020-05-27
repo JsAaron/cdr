@@ -361,18 +361,49 @@ Module App
 
 
 
+    '================== 插入图片处理 =====================
+
+    Function coverSize(obj, tgwidth, tgheight)
+        Dim wfactor = tgwidth / obj.SizeWidth
+        Dim hfactor = tgheight / obj.SizeHeight
+        Dim factor = hfactor
+        If wfactor > hfactor Then
+            factor = wfactor
+        End If
+        Dim newwidth = factor * obj.SizeWidth
+        Dim newheight = factor * obj.SizeHeight
+        obj.SizeWidth = newwidth
+        obj.SizeHeight = newheight
+    End Function
+
+
+    Function containSize(obj, tgwidth, tgheight)
+        Dim wfactor = tgwidth / obj.SizeWidth
+        Dim hfactor = tgheight / obj.SizeHeight
+        Dim factor = hfactor
+        If wfactor < hfactor Then
+            factor = wfactor
+        End If
+        Dim newwidth = factor * obj.SizeWidth
+        Dim newheight = factor * obj.SizeHeight
+        obj.SizeWidth = newwidth
+        obj.SizeHeight = newheight
+    End Function
+
+
     '插入图片
     Function insertImage(doc)
+
         Dim activeDoc As Document = doc
         Dim FileName = getSettingsValue("FileName")
-        Dim rootGroupName = getSettingsValue("rootGroupName")
         Dim parentGroupName = getSettingsValue("parentGroupName")
         Dim groupName = getSettingsValue("groupName")
         Dim imageName = getSettingsValue("imageName")
+        Dim layerName = getSettingsValue("layerName")
 
-        Dim activeLayer = activeDoc.ActiveLayer
-        Dim rootShape As Shape = activeLayer.FindShape(rootGroupName)
-        Dim groupShape = rootShape.Shapes.FindShapes(groupName)
+
+        Dim activeLayer = activeDoc.ActivePage.AllLayers.Find(layerName)
+        Dim groupShape = activeLayer.Shapes.FindShapes(groupName)
 
 
         '保证找到的对象一定是目标
@@ -396,9 +427,14 @@ Module App
 
                     '找到图片
                     For k = 1 To doc.Selection.Shapes.Count
-                        Dim item = doc.Selection.Shapes.Item(k)
-                        If imageName = item.Name Then
-                            item.AddToPowerClip(shape, -1)
+                        Dim theimage = doc.Selection.Shapes.Item(k)
+                        If imageName = theimage.Name Then
+                            If InStr(groupName, "图标") > 0 Then
+                                containSize(theimage, shape.SizeWidth, shape.SizeHeight)
+                            Else
+                                coverSize(theimage, shape.SizeWidth, shape.SizeHeight)
+                            End If
+                            theimage.AddToPowerClip(shape, -1)
                         End If
                     Next k
 
@@ -539,6 +575,7 @@ Module App
             app.Visible = True
             globalData.steps = "连接CorelDRAW成功"
             openLink(app)
+
         End If
 
         'Console.WriteLine(globalData.retrunData())
