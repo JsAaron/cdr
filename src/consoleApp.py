@@ -114,12 +114,12 @@ person_json = json.dumps(printSettings,sort_keys=True,separators=(',',':'))
 path_json= "{'Save':'" + urllib.parse.quote(savePath) + "','Load':'" + urllib.parse.quote(savePath) + "'}"
 
 
-
-exportImagePath= "{'FileName':'" + urllib.parse.quote('C:\\Users\\Administrator\\Desktop\\111\\test') + "'}"
+# 导入图片
+exportImagePath= "{'FileName':'" + urllib.parse.quote('E:\\360data\\重要数据\\桌面\\test\\test.jpg') + "'}"
 exportImageConfig = {
     # 指定页面,
     # 或者全部all
-    'Page':'all',
+    'Page':'3',
 
     'mode':1,
 
@@ -141,11 +141,22 @@ exportImageConfig = {
 exportImageConfign_json = json.dumps(exportImageConfig,sort_keys=True,separators=(',',':'))
 
 
-cmdStr = ["D:\\\github\\cdr\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
-          'export-image',exportImageConfign_json,exportImagePath]
 
+# 插入图片
+insertImagePath="{'FileName':'" + urllib.parse.quote('E:\\360data\\重要数据\\桌面\\test\\test.jpg') + "'}"
+insertImageConfig = {
+    'layerName':'秒秒学板块',
+    'parentGroupName':'缩放',
+    'groupName':'图片',
+    'imageName':'test.jpg'
+}
+
+insertImageConfign_json = json.dumps(insertImageConfig,sort_keys=True,separators=(',',':'))
+cmdStr = ["D:\\\github\\cdr\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
+          'insert-image',insertImageConfign_json,insertImagePath]
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+
 for line in child.stdout.readlines():
     output = line.decode('UTF-8')
     print(output)

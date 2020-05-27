@@ -2077,7 +2077,7 @@ class CDR():
     # ============= 跨域复制层级 ====================
 
     # 找到最大数量的页面层级
-    def findMaxLayer(self,cdrObj,pageIndex):
+    def _findMaxLayer(self,cdrObj,pageIndex):
         page = cdrObj.doc.Pages.Item(pageIndex)
         maxLayer = None
         maxCount = 0
@@ -2097,15 +2097,16 @@ class CDR():
 
 
     # 复制目标中的形状对象到layer中
-    def copyShapeToLayer(self,targetLayer,srcLayer):
+    def _copyShapeToLayer(self,targetLayer,srcLayer):
         for shape in srcLayer.shapes:
-            shape.CopyToLayer(targetLayer)
+            shape.copy()
+            targetLayer.Paste()
 
 
     # 复制指定页面的最大层级
     # srcLayer  目标层级
     # pageIndex 页面
-    def copyPageLayer(self,srcLayer,pageIndex):
+    def _copyPageLayer(self,srcLayer,pageIndex):
         self.doc.Activate()
         targetPageObj = self.doc.Pages.Item(pageIndex)
         targetPageObj.Activate()
@@ -2114,12 +2115,31 @@ class CDR():
             pass
         else:
             # 如果找到对应的layer包含容器
-            self.copyShapeToLayer(targetLayer,srcLayer)
+            self._copyShapeToLayer(targetLayer,srcLayer)
             pass    
         
 
+    def _asscessPage(self,pageObj,cdrObj):
+        try:
+            self.doc.Pages.Item(pageObj.Index)
+        except :
+            self.doc.AddPages(1)
+        pass
+        srcLayer = self._findMaxLayer(cdrObj,pageObj.Index)
+        self._copyPageLayer(srcLayer,pageObj.Index)  
+
+
     # 跨页复制模板功能，复制每个页面最大的层
     # targetPath 目标cdr对象cdrObj
-    def acrossCopyLayer(self, cdrObj):
-        srcLayer = self.findMaxLayer(cdrObj,3)
-        self.copyPageLayer(srcLayer,3)
+    # pageIndex 指定复制的页面,为空是全部页面
+    def acrossCopyToLayer(self, cdrObj,pageIndex = ''):
+        if cdrObj == None:
+            return
+
+        if pageIndex>0:
+            pageObj = cdrObj.doc.Pages.Item(pageIndex)
+            self._asscessPage(pageObj,cdrObj)
+        else:
+            for pageObj in cdrObj.doc.Pages:
+                self._asscessPage(pageObj,cdrObj)
+                

@@ -245,9 +245,9 @@ def testExportImage():
 
 
 def testCopy():
-    cdrObj = CDR()
+    cdrObj = CDR("D:\\github\\cdr\\mmxai\\src\\templates\\brochures\\画册-医疗-竖-001.cdr")
     cdrObj1 = CDR("D:\\github\\cdr\\mmxai\\src\\templates\\brochures\\Backup_of_画册-医疗-竖-001.cdr")
-    cdrObj.acrossCopyLayer(cdrObj1)
+    cdrObj.acrossCopyToLayer(cdrObj1,6)
 
 
 
