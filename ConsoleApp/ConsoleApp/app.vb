@@ -391,63 +391,86 @@ Module App
     End Function
 
 
+    '设置图片对象尺寸
+    Function setImageShapeSize(theimage, Shape, groupName)
+        If InStr(groupName, "图标") > 0 Then
+            Dim iconWidth = getSettingsValue("iconWidth")
+            Dim iconHeight = getSettingsValue("iconHeight")
+            containSize(theimage, iconWidth, iconHeight)
+        Else
+            coverSize(theimage, Shape.SizeWidth, Shape.SizeHeight)
+        End If
+    End Function
+
+
+    '找到插入的图片对象
+    Function findImortImage(doc, imageName)
+        For k = 1 To doc.Selection.Shapes.Count
+            Dim theimage = doc.Selection.Shapes.Item(k)
+            If imageName = theimage.Name Then
+                Return theimage
+            End If
+        Next k
+    End Function
+
+
     '插入图片
     Function insertImage(doc)
 
         Dim activeDoc As Document = doc
         Dim FileName = getSettingsValue("FileName")
-        Dim parentGroupName = getSettingsValue("parentGroupName")
-        Dim groupName = getSettingsValue("groupName")
+        Dim parentName = getSettingsValue("parentName")
+        Dim shapeName = getSettingsValue("shapeName")
         Dim imageName = getSettingsValue("imageName")
         Dim layerName = getSettingsValue("layerName")
-
+        Dim StaticID = getSettingsValue("StaticID")
 
         Dim activeLayer = activeDoc.ActivePage.AllLayers.Find(layerName)
-        Dim groupShape = activeLayer.Shapes.FindShapes(groupName)
 
+        '修改图片必须是显示状态才可以
+        Dim fixVisible
+        If activeLayer.Visible = False Then
+            fixVisible = True
+            activeLayer.Visible = True
+        End If
 
-        '保证找到的对象一定是目标
-        For m = 1 To groupShape.Count
-            Dim shape = groupShape.Item(m)
-            '确保一致性
-            If shape.ParentGroup.Name = parentGroupName Then
-                '修改图片必须是显示状态才可以
-                Dim fixVisible
-                If activeLayer.Visible = False Then
-                    fixVisible = True
-                    activeLayer.Visible = True
-                End If
-
-                Try
+        '没有包含容器
+        If layerName = parentName Then
+            Dim shapes = activeLayer.FindShapes(shapeName)
+            For i = 1 To shapes.Count
+                Dim shape = shapes.Item(i)
+                If shape.StaticID = StaticID Then
                     activeLayer.Import(FileName, 0)
-                    '如果修改了图片状态
-                    If fixVisible = True Then
-                        activeLayer.Visible = False
+                    Dim theimage = findImortImage(doc, imageName)
+                    If TypeName(theimage) IsNot "Nothing" Then
+                        setImageShapeSize(theimage, shape, shapeName)
+                        theimage.AddToPowerClip(shape, -1)
                     End If
-
-                    '找到图片
-                    For k = 1 To doc.Selection.Shapes.Count
-                        Dim theimage = doc.Selection.Shapes.Item(k)
-                        If imageName = theimage.Name Then
-                            If InStr(groupName, "图标") > 0 Then
-                                Dim iconWidth = getSettingsValue("iconWidth")
-                                Dim iconHeight = getSettingsValue("iconHeight")
-                                containSize(theimage, iconWidth, iconHeight)
-                            Else
-                                coverSize(theimage, shape.SizeWidth, shape.SizeHeight)
-                            End If
-                            theimage.AddToPowerClip(shape, -1)
-                        End If
-                    Next k
-
-                Catch ex As Exception
-
-                End Try
-            End If
-        Next m
+                End If
+            Next i
+        Else
+            '中间图
+            '保证找到的对象一定是目标
+            Dim shapeGroup = activeLayer.Shapes.FindShapes(shapeName)
+            For m = 1 To shapeGroup.Count
+                Dim shape = shapeGroup.Item(m)
+                If shape.StaticID = StaticID Then
+                    activeLayer.Import(FileName, 0)
+                    Dim theimage = findImortImage(doc, imageName)
+                    If TypeName(theimage) IsNot "Nothing" Then
+                        setImageShapeSize(theimage, shape, shapeName)
+                        theimage.AddToPowerClip(shape, -1)
+                    End If
+                End If
+            Next m
+        End If
 
 
 
+        '如果修改了图片状态
+        If fixVisible = True Then
+            activeLayer.Visible = False
+        End If
 
 
     End Function
