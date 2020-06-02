@@ -65,95 +65,95 @@ data11 = "{'path':'C%3A%5CUsers%5CAdministrator%5CDesktop%5C111%5C4.cdr'}"
 
 printSettings = {
 
-    #副本
-    "Collate":True,
+    # 副本
+    "Collate": True,
 
     # 文件名
-    "FileName":"test.prs",
+    "FileName": "test.prs",
 
     # 份数
-    'Copies':100, 
+    'Copies': 100,
 
-    # 打印的只是选中的图形而不是整个页面，置为 2 
+    # 打印的只是选中的图形而不是整个页面，置为 2
     # 1 当前页面
     # 0 文档
     # 3 指定页面
-    'PrintRange':0,
+    'PrintRange': 0,
 
     # 设置页面范围，PrintRange设置为3才生效
     # 'PageRange':'1, 2-4',
 
-    'PageSet':1,
+    'PageSet': 1,
 
     # 设置打印纸张尺寸与方向
-    'SetPaperSize':[9, 1],
+    'SetPaperSize': [9, 1],
     # 预设的打印机纸张尺寸
-    'PaperSize':9,
+    'PaperSize': 9,
     # 打印的纸张方向
-    'PaperOrientation':1,
+    'PaperOrientation': 1,
 
     # 打印到文件
-    'PrintToFile':False,
+    'PrintToFile': False,
 
-    #选择打印机
-    'SelectPrinter':'Fax',
+    # 选择打印机
+    'SelectPrinter': 'Fax',
 
-     # 打开设置界面
-    'ShowDialog':False,
+    # 打开设置界面
+    'ShowDialog': False,
 
-    #将打印设置重置为默认值
-    'Reset':False,
+    # 将打印设置重置为默认值
+    'Reset': False,
 
-    #指定自定义打印机的纸张尺寸
+    # 指定自定义打印机的纸张尺寸
     # 'SetCustomPaperSize':[200,300,1]
 }
 
 # 方法，保存打印配置文件到指定路径
 savePath = 'C:\\Users\\Administrator\\Desktop\\111\\test2.prs'
-person_json = json.dumps(printSettings,sort_keys=True,separators=(',',':'))
-path_json= "{'Save':'" + urllib.parse.quote(savePath) + "','Load':'" + urllib.parse.quote(savePath) + "'}"
+person_json = json.dumps(printSettings, sort_keys=True, separators=(',', ':'))
+path_json = "{'Save':'" + urllib.parse.quote(
+    savePath) + "','Load':'" + urllib.parse.quote(savePath) + "'}"
 
 
 # 导入图片
-exportImagePath= "{'FileName':'" + urllib.parse.quote('E:\\360data\\重要数据\\桌面\\test\\test.jpg') + "'}"
+exportImagePath = "{'FileName':'" + \
+    urllib.parse.quote('E:\\360data\\重要数据\\桌面\\test\\test.jpg') + "'}"
 exportImageConfig = {
     # 指定页面,
     # 或者全部all
-    'Page':'3',
+    'Page': '3',
 
-    'mode':1,
+    'mode': 1,
 
     # 图像类型，指定要导出图片的颜色模式
-    # 4 RGB  
+    # 4 RGB
     # 5 CMYK
-    'ImageType':4,
-    
-    'CoverWidth':0,
-    'CoverHeight':0,
+    'ImageType': 4,
 
-    'BackWidth':0,
-    'BackHeight':0,
+    'CoverWidth': 0,
+    'CoverHeight': 0,
 
-    'MiddleWidth':0,
-    'MiddleHeight':0
+    'BackWidth': 0,
+    'BackHeight': 0,
+
+    'MiddleWidth': 0,
+    'MiddleHeight': 0
 }
 
-exportImageConfign_json = json.dumps(exportImageConfig,sort_keys=True,separators=(',',':'))
-
+exportImageConfign_json = json.dumps(
+    exportImageConfig, sort_keys=True, separators=(',', ':'))
 
 
 # 插入图片
-insertImagePath="{'FileName':'" + urllib.parse.quote('E:\\360data\\重要数据\\桌面\\test\\test.jpg') + "'}"
-insertImageConfig = {
-    'layerName':'秒秒学板块',
-    'parentGroupName':'缩放',
-    'groupName':'图片',
-    'imageName':'test.jpg'
-}
+insertImagePath = "{'FileName':'" + \
+    urllib.parse.quote('E:\\360data\\重要数据\\桌面\\test\\test.jpg') + "'}"
 
-insertImageConfign_json = json.dumps(insertImageConfig,sort_keys=True,separators=(',',':'))
+insertImageConfig = {'layerName': '秒秒学背景', 'parentName': '秒秒学背景', 'shapeName': '页1-指定背景图片0', 'imageName': 'test.jpg', 'iconWidth': 285.0, 'iconHeight': 210.0, 'StaticID': 2199}
+
+insertImageConfign_json = json.dumps(
+    insertImageConfig, sort_keys=True, separators=(',', ':'))
 cmdStr = ["D:\\\github\\cdr\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
-          'insert-image',insertImageConfign_json,insertImagePath]
+          'insert-image', insertImageConfign_json, insertImagePath]
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 
