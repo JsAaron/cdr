@@ -1,4 +1,7 @@
 from cdr import CDR
+from PIL import Image,ImageDraw,ImageFont
+from fontTools.ttLib import TTFont
+from fontTools.ttLib.tables._c_m_a_p import CmapSubtable
 
 # 打开文档
 def open():
@@ -249,7 +252,37 @@ def testCopy():
     cdrObj1 = CDR("D:\\github\\cdr\\mmxai\\src\\templates\\brochures\\Backup_of_画册-医疗-竖-001.cdr")
     cdrObj.acrossCopyToLayer(cdrObj1,6)
 
+def getTextWidth(text,pointSize):
+    font = TTFont('‪C:\simsun.ttf')
+    cmap = font['cmap']
+    t = cmap.getcmap(3,1).cmap
+    s = font.getGlyphSet()
+    units_per_em = font['head'].unitsPerEm
 
+    total = 0
+    for c in text:
+        if ord(c) in t and t[ord(c)] in s:
+            total += s[t[ord(c)]].width
+        else:
+            total += s['.notdef'].width
+    total = total*float(pointSize)/units_per_em;
+    return total
+
+def testFont():
+    # font = TTFont('‪simsun.ttf')
+    cdrObj = CDR()
+    for k in cdrObj.app.FontList:
+      print(k)
+    # print(cdrObj.doc.ActiveShape.Text.Story.font)
+    # cdrObj.doc.ActiveShape.Text.Story.charspacing = 0
+    # a = cdrObj.doc.ActiveShape.SizeWidth
+    # print(a)
+    # cdrObj.doc.ActiveShape.Text.Story.charspacing = 100
+    # b = cdrObj.doc.ActiveShape.SizeWidth
+    # print(b)
+    # print((b-a)/10)
+    # width = getTextWidth('的',10)
+    # print(width)
 
 if __name__ == '__main__':
     # testSaveCDR()
@@ -258,7 +291,7 @@ if __name__ == '__main__':
     # paletteTest1()
     # paletteTest2()
     # testSaveCDR()
-    testCopy()
+    testFont()
 
     
     

@@ -115,15 +115,16 @@ path_json = "{'Save':'" + urllib.parse.quote(
     savePath) + "','Load':'" + urllib.parse.quote(savePath) + "'}"
 
 
-# 导入图片
+# ======================== 导出图 ==========================
+
 exportImagePath = "{'FileName':'" + \
-    urllib.parse.quote('E:\\360data\\重要数据\\桌面\\test\\test.jpg') + "'}"
+urllib.parse.quote('E:\\360data\\重要数据\\桌面\\test\\易拉宝-演示\\out') + "'}"
 exportImageConfig = {
     # 指定页面,
     # 或者全部all
-    'Page': '3',
+    'Page': 'all',
 
-    'mode': 1,
+    'mode': 3,
 
     # 图像类型，指定要导出图片的颜色模式
     # 4 RGB
@@ -140,23 +141,32 @@ exportImageConfig = {
     'MiddleHeight': 0
 }
 
-exportImageConfign_json = json.dumps(
-    exportImageConfig, sort_keys=True, separators=(',', ':'))
+exportImageConfign_json = json.dumps(exportImageConfig, sort_keys=True, separators=(',', ':'))
 
-
-# 插入图片
-insertImagePath = "{'FileName':'" + \
-    urllib.parse.quote('E:\\360data\\重要数据\\桌面\\test\\test.jpg') + "'}"
-
-insertImageConfig = {'layerName': '秒秒学背景', 'parentName': '秒秒学背景', 'shapeName': '页1-指定背景图片0', 'imageName': 'test.jpg', 'iconWidth': 285.0, 'iconHeight': 210.0, 'StaticID': 2199}
-
-insertImageConfign_json = json.dumps(
-    insertImageConfig, sort_keys=True, separators=(',', ':'))
-cmdStr = ["D:\\\github\\cdr\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
-          'insert-image', insertImageConfign_json, insertImagePath]
+cmdStr = [r"D:\github\cdr\vb-cdr\ConsoleApp\ConsoleApp\bin\Debug\ConsoleApp.exe",'export-image', exportImageConfign_json, exportImagePath]
 child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 
 for line in child.stdout.readlines():
     output = line.decode('UTF-8')
     print(output)
+
+
+
+
+# 插入图片
+# insertImagePath = "{'FileName':'" + \\
+#     urllib.parse.quote('E:\\360data\\重要数据\\桌面\\test\\test.jpg') + "'}"
+
+# insertImageConfig = {'layerName': '秒秒学背景', 'parentName': '秒秒学背景', 'shapeName': '页1-指定背景图片0', 'imageName': 'test.jpg', 'iconWidth': 285.0, 'iconHeight': 210.0, 'StaticID': 2199}
+
+# insertImageConfign_json = json.dumps(
+#     insertImageConfig, sort_keys=True, separators=(',', ':'))
+# cmdStr = ["D:\\\github\\cdr\\cdr\\ConsoleApp\\ConsoleApp\\bin\\Debug\\ConsoleApp.exe",
+#           'insert-image', insertImageConfign_json, insertImagePath]
+# child = subprocess.Popen(cmdStr, shell=True, stdout=subprocess.PIPE,
+#                          stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+
+# for line in child.stdout.readlines():
+#     output = line.decode('UTF-8')
+#     print(output)
