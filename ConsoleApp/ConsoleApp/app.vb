@@ -5,9 +5,11 @@ Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
 
+
 Module App
 
     Dim lineCount = 2
+    Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
 
     '===================== 导入 =====================
@@ -321,6 +323,7 @@ Module App
             exportName = pageIndex.ToString()
         End If
 
+
         '独立模式，单独生成指定的图片名
         If mode = 4 Then
             If keepCanvas Then
@@ -370,7 +373,6 @@ Module App
         If keepCanvas Then
             setExportImageStatus(middleLayer, False)
         End If
-
 
     End Function
 
@@ -428,6 +430,45 @@ Module App
         Next k
     End Function
 
+    '删除占位符
+    Function deleteImageShape(Shape)
+        Dim clipShapes = Shape.PowerClip.Shapes
+        For n = 1 To clipShapes.Count
+            Dim clipSshape = clipShapes.Item(n)
+            If clipSshape.Name = "delete" Then
+                clipSshape.Delete()
+            End If
+        Next n
+    End Function
+
+
+    '处理图片
+    Function prcessImage(theimage, Shape, shapeName)
+        setImageShapeSize(theimage, Shape, shapeName)
+        theimage.AddToPowerClip(Shape, -1)
+        deleteImageShape(Shape)
+    End Function
+
+    '处理图片，'
+    '最大查找3次
+    Dim findImageCount = 3
+    Function refImage(doc, imageName, Shape, shapeName)
+
+        If findImageCount = 0 Then
+            Exit Function
+        End If
+
+        Dim theimage = findImortImage(doc, imageName)
+        If TypeName(theimage) IsNot "Nothing" Then
+            prcessImage(theimage, Shape, shapeName)
+            Exit Function
+        Else
+            '如果没有找到图片，休眠后开始循环查找
+            Sleep(500)
+            findImageCount = findImageCount - 1
+            refImage(doc, imageName, Shape, shapeName)
+        End If
+    End Function
 
     '插入图片
     Function insertImage(doc)
@@ -456,11 +497,7 @@ Module App
                 Dim shape = shapes.Item(i)
                 If shape.StaticID = StaticID Then
                     activeLayer.Import(FileName, 0)
-                    Dim theimage = findImortImage(doc, imageName)
-                    If TypeName(theimage) IsNot "Nothing" Then
-                        setImageShapeSize(theimage, shape, shapeName)
-                        theimage.AddToPowerClip(shape, -1)
-                    End If
+                    refImage(doc, imageName, shape, shapeName)
                 End If
             Next i
         Else
@@ -471,15 +508,10 @@ Module App
                 Dim shape = shapeGroup.Item(m)
                 If shape.StaticID = StaticID Then
                     activeLayer.Import(FileName, 0)
-                    Dim theimage = findImortImage(doc, imageName)
-                    If TypeName(theimage) IsNot "Nothing" Then
-                        setImageShapeSize(theimage, shape, shapeName)
-                        theimage.AddToPowerClip(shape, -1)
-                    End If
+                    refImage(doc, imageName, shape, shapeName)
                 End If
             Next m
         End If
-
 
 
         '如果修改了图片状态
