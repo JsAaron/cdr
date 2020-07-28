@@ -5,11 +5,9 @@ Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
 
-
 Module App
 
     Dim lineCount = 2
-    Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
 
     '===================== 导入 =====================
@@ -236,6 +234,7 @@ Module App
 
         Dim FileName = getSettingsValue("FileName")
         Dim ImageType = getSettingsValue("ImageType")
+        Dim keepCanvas = getSettingsValue("keepCanvas")
 
         Dim Width
         Dim Height
@@ -322,6 +321,16 @@ Module App
             exportName = pageIndex.ToString()
         End If
 
+        '独立模式，单独生成指定的图片名
+        If mode = 4 Then
+            If keepCanvas Then
+                middleLayer = findMasterLayer(doc, "对页导出")
+                setExportImageStatus(middleLayer, True)
+            End If
+            Width = getSettingsValue("MiddleWidth")
+            Height = getSettingsValue("MiddleHeight")
+            exportName = getSettingsValue("ImageName")
+        End If
 
         Dim filePath = FileName + "\" + exportName + ".jpg"
 
@@ -329,7 +338,7 @@ Module App
             Dim efilter As ExportFilter = activeDoc.ExportBitmap(filePath, 774, 1, ImageType, Width, Height, 0, 0, 0, True, True, False, False, 8)
 
             '压缩
-            efilter.Compression = 80
+            'efilter.Compression = 80
             efilter.Optimized = True
             'efilter.Overwrite = True
             '平滑
@@ -355,6 +364,10 @@ Module App
 
 
         If mode = 2 Or mode = 3 Then
+            setExportImageStatus(middleLayer, False)
+        End If
+
+        If keepCanvas Then
             setExportImageStatus(middleLayer, False)
         End If
 
@@ -415,45 +428,6 @@ Module App
         Next k
     End Function
 
-    '删除占位符
-    Function deleteImageShape(Shape)
-        Dim clipShapes = Shape.PowerClip.Shapes
-        For n = 1 To clipShapes.Count
-            Dim clipSshape = clipShapes.Item(n)
-            If clipSshape.Name = "delete" Then
-                clipSshape.Delete()
-            End If
-        Next n
-    End Function
-
-
-    '处理图片
-    Function prcessImage(theimage, Shape, shapeName)
-        setImageShapeSize(theimage, Shape, shapeName)
-        theimage.AddToPowerClip(Shape, -1)
-        deleteImageShape(Shape)
-    End Function
-
-    '处理图片，'
-    '最大查找3次
-    Dim findImageCount = 3
-    Function refImage(doc, imageName, Shape, shapeName)
-
-        If findImageCount = 0 Then
-            Exit Function
-        End If
-
-        Dim theimage = findImortImage(doc, imageName)
-        If TypeName(theimage) IsNot "Nothing" Then
-            prcessImage(theimage, Shape, shapeName)
-            Exit Function
-        Else
-            '如果没有找到图片，休眠后开始循环查找
-            Sleep(500)
-            findImageCount = findImageCount - 1
-            refImage(doc, imageName, Shape, shapeName)
-        End If
-    End Function
 
     '插入图片
     Function insertImage(doc)
@@ -482,7 +456,11 @@ Module App
                 Dim shape = shapes.Item(i)
                 If shape.StaticID = StaticID Then
                     activeLayer.Import(FileName, 0)
-                    refImage(doc, imageName, shape, shapeName)
+                    Dim theimage = findImortImage(doc, imageName)
+                    If TypeName(theimage) IsNot "Nothing" Then
+                        setImageShapeSize(theimage, shape, shapeName)
+                        theimage.AddToPowerClip(shape, -1)
+                    End If
                 End If
             Next i
         Else
@@ -493,10 +471,15 @@ Module App
                 Dim shape = shapeGroup.Item(m)
                 If shape.StaticID = StaticID Then
                     activeLayer.Import(FileName, 0)
-                    refImage(doc, imageName, shape, shapeName)
+                    Dim theimage = findImortImage(doc, imageName)
+                    If TypeName(theimage) IsNot "Nothing" Then
+                        setImageShapeSize(theimage, shape, shapeName)
+                        theimage.AddToPowerClip(shape, -1)
+                    End If
                 End If
             Next m
         End If
+
 
 
         '如果修改了图片状态
