@@ -380,17 +380,65 @@ Module App
 
     '================== 插入图片处理 =====================
 
-    Function coverSize(obj, tgwidth, tgheight)
-        Dim wfactor = tgwidth / obj.SizeWidth
-        Dim hfactor = tgheight / obj.SizeHeight
-        Dim factor = hfactor
-        If wfactor > hfactor Then
-            factor = wfactor
+    '等比缩小
+    Function equalDecrease(theimage, imgWidth, imgHeight, tgwidth, tgheight, ratio)
+        If imgWidth < tgwidth And imgHeight < tgheight Then
+            theimage.SizeWidth = imgWidth
+            theimage.SizeHeight = imgHeight
+            Return True
         End If
-        Dim newwidth = factor * obj.SizeWidth
-        Dim newheight = factor * obj.SizeHeight
-        obj.SizeWidth = newwidth
-        obj.SizeHeight = newheight
+        ratio = ratio - 0.001
+        imgWidth = imgWidth * ratio
+        imgHeight = imgHeight * ratio
+        equalDecrease(theimage, imgWidth, imgHeight, tgwidth, tgheight, ratio)
+    End Function
+
+
+    '等比放大
+    Function equalZoom(theimage, imgWidth, imgHeight, tgwidth, tgheight, ratio)
+        If imgWidth >= tgwidth Or imgHeight >= tgheight Then
+            theimage.SizeWidth = imgWidth
+            theimage.SizeHeight = imgHeight
+            Return True
+        End If
+        ratio = ratio + 0.001
+        imgWidth = imgWidth * ratio
+        imgHeight = imgHeight * ratio
+        equalZoom(theimage, imgWidth, imgHeight, tgwidth, tgheight, ratio)
+    End Function
+
+
+    '图片尺寸
+    Function coverSize(theimage, tgwidth, tgheight)
+
+        Dim imgWidth = theimage.SizeWidth
+        Dim imgHeight = theimage.SizeHeight
+
+        '图片正方形
+        If imgWidth = imgHeight Then
+            '尺寸是最小边就行了
+            If tgwidth > tgheight Or tgwidth = tgheight Then
+                theimage.SizeWidth = tgheight
+                theimage.SizeHeight = tgheight
+                Return True
+            End If
+            If tgwidth < tgheight Then
+                theimage.SizeWidth = tgwidth
+                theimage.SizeHeight = tgwidth
+                Return True
+            End If
+        End If
+
+        '等比缩小
+        If imgWidth > tgwidth Or imgHeight > tgheight Then
+            Return equalDecrease(theimage, imgWidth, imgHeight, tgwidth, tgheight, 1)
+        End If
+
+        '等比放大
+        If imgWidth < tgwidth Or imgHeight < tgheight Then
+            Return equalZoom(theimage, imgWidth, imgHeight, tgwidth, tgheight, 1)
+        End If
+
     End Function
 
 
@@ -624,6 +672,7 @@ Module App
 
 
     Sub Main()
+
 
         Console.OutputEncoding = Encoding.UTF8
 

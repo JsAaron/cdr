@@ -100,6 +100,7 @@ Module Param
         ElseIf cmdCommand = "insert-image" Then
             '插入图片
             cmdExportSettings = JsonConvert.DeserializeObject(decodePath(args(1)))
+
             '有路径的方法
             If count = 3 Then
                 tempData = JsonConvert.DeserializeObject(args(2))
