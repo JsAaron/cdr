@@ -465,7 +465,23 @@ Module App
             Dim iconHeight = getSettingsValue("iconHeight")
             containSize(theimage, iconWidth, iconHeight)
         Else
-            coverSize(theimage, Shape.SizeWidth, Shape.SizeHeight)
+            Dim SizeWidth = Shape.SizeWidth
+            Dim SizeHeight = Shape.SizeHeight
+
+            '如果有指定X坐标
+            Dim coordX = getSettingsValue("LeftX")
+            If Len(coordX) > 0 Then
+                Dim w = Shape.LeftX + Shape.SizeWidth
+                Dim h = Shape.TopY - Shape.SizeHeight
+                If coordX > Shape.LeftX And coordX < w Then
+                    Dim diffX = coordX - Shape.LeftX
+                    SizeWidth = Shape.SizeWidth - diffX
+                End If
+            End If
+
+            Dim coordY = getSettingsValue("TopY")            If Len(coordY) > 0 Then                Dim diffY = Shape.TopY - coordY                SizeHeight = Shape.SizeHeight - diffY            End If
+
+            coverSize(theimage, SizeWidth, SizeHeight)
         End If
     End Function
 
@@ -496,13 +512,33 @@ Module App
     Function prcessImage(theimage, Shape, shapeName)
         setImageShapeSize(theimage, Shape, shapeName)
         theimage.AddToPowerClip(Shape, -1)
+        '对齐
+        Dim coordX = getSettingsValue("LeftX")
+        If Len(coordX) > 0 Then
+            Dim w = Shape.LeftX + Shape.SizeWidth
+            Dim h = Shape.TopY - Shape.SizeHeight
+            If coordX > Shape.LeftX And coordX < w Then
+                Dim diffX = coordX - Shape.LeftX
+                Dim SizeWidth = Shape.SizeWidth - diffX
+                theimage.CenterX = coordX + (SizeWidth / 2)
+            End If
+        End If
+
+        Dim coordY = getSettingsValue("TopY")
+        If Len(coordY) > 0 Then
+            Dim diffY = Shape.TopY - coordY
+            Dim SizeHeight = Shape.SizeHeight - diffY
+            theimage.CenterY = coordY - (SizeHeight / 2)
+        End If
+
+
         deleteImageShape(Shape)
     End Function
 
     '处理图片，'
     '最大查找3次
     Dim findImageCount = 3
-    Function refImage(doc, imageName, Shape, shapeName)
+    Function refImage(doc, imageName, Shape, shapeName, rotationAngle)
 
         If findImageCount = 0 Then
             Exit Function
@@ -510,13 +546,17 @@ Module App
 
         Dim theimage = findImortImage(doc, imageName)
         If TypeName(theimage) IsNot "Nothing" Then
+            '设置旋转角度
+            If rotationAngle > 0 Then
+                theimage.RotationAngle = rotationAngle
+            End If
             prcessImage(theimage, Shape, shapeName)
             Exit Function
         Else
             '如果没有找到图片，休眠后开始循环查找
             Sleep(500)
             findImageCount = findImageCount - 1
-            refImage(doc, imageName, Shape, shapeName)
+            refImage(doc, imageName, Shape, shapeName, rotationAngle)
         End If
     End Function
 
@@ -530,6 +570,7 @@ Module App
         Dim imageName = getSettingsValue("imageName")
         Dim layerName = getSettingsValue("layerName")
         Dim StaticID = getSettingsValue("StaticID")
+        Dim rotationAngle = getSettingsValue("RotationAngle")
 
         Dim activeLayer = activeDoc.ActivePage.AllLayers.Find(layerName)
 
@@ -547,7 +588,7 @@ Module App
                 Dim shape = shapes.Item(i)
                 If shape.StaticID = StaticID Then
                     activeLayer.Import(FileName, 0)
-                    refImage(doc, imageName, shape, shapeName)
+                    refImage(doc, imageName, shape, shapeName, rotationAngle)
                 End If
             Next i
         Else
@@ -558,7 +599,7 @@ Module App
                 Dim shape = shapeGroup.Item(m)
                 If shape.StaticID = StaticID Then
                     activeLayer.Import(FileName, 0)
-                    refImage(doc, imageName, shape, shapeName)
+                    refImage(doc, imageName, shape, shapeName, rotationAngle)
                 End If
             Next m
         End If
