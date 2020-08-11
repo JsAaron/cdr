@@ -382,29 +382,31 @@ Module App
 
     '等比缩小
     Function equalDecrease(theimage, imgWidth, imgHeight, tgwidth, tgheight, ratio)
-        If imgWidth < tgwidth And imgHeight < tgheight Then
-            theimage.SizeWidth = imgWidth
-            theimage.SizeHeight = imgHeight
-            Return True
-        End If
-        ratio = ratio - 0.001
-        imgWidth = imgWidth * ratio
-        imgHeight = imgHeight * ratio
-        equalDecrease(theimage, imgWidth, imgHeight, tgwidth, tgheight, ratio)
+        For k = 1 To 1000
+            Dim value = ratio - (k / 1000)
+            imgWidth = imgWidth * value
+            imgHeight = imgHeight * value
+            If imgWidth < tgwidth And imgHeight < tgheight Then
+                theimage.SizeWidth = imgWidth
+                theimage.SizeHeight = imgHeight
+                Return True
+            End If
+        Next k
     End Function
 
 
     '等比放大
     Function equalZoom(theimage, imgWidth, imgHeight, tgwidth, tgheight, ratio)
-        If imgWidth >= tgwidth Or imgHeight >= tgheight Then
-            theimage.SizeWidth = imgWidth
-            theimage.SizeHeight = imgHeight
-            Return True
-        End If
-        ratio = ratio + 0.001
-        imgWidth = imgWidth * ratio
-        imgHeight = imgHeight * ratio
-        equalZoom(theimage, imgWidth, imgHeight, tgwidth, tgheight, ratio)
+        For k = 1 To 1000
+            Dim value = ratio + (k / 1000)
+            imgWidth = imgWidth * value
+            imgHeight = imgHeight * value
+            If imgWidth >= tgwidth Or imgHeight >= tgheight Then
+                theimage.SizeWidth = imgWidth
+                theimage.SizeHeight = imgHeight
+                Return True
+            End If
+        Next k
     End Function
 
 
@@ -429,14 +431,14 @@ Module App
             End If
         End If
 
-        '等比缩小
-        If imgWidth > tgwidth Or imgHeight > tgheight Then
-            Return equalDecrease(theimage, imgWidth, imgHeight, tgwidth, tgheight, 1)
+        '宽高都没有溢出，等比放大
+        If imgWidth < tgwidth And imgHeight < tgheight Then
+            Return equalZoom(theimage, imgWidth, imgHeight, tgwidth, tgheight, 1)
         End If
 
-        '等比放大
-        If imgWidth < tgwidth Or imgHeight < tgheight Then
-            Return equalZoom(theimage, imgWidth, imgHeight, tgwidth, tgheight, 1)
+        '如果宽/高溢出,缩小
+        If imgWidth > tgwidth Or imgHeight > tgheight Then
+            Return equalDecrease(theimage, imgWidth, imgHeight, tgwidth, tgheight, 1)
         End If
 
     End Function
