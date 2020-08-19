@@ -207,13 +207,16 @@ Module App
                 Return curLayer
             End If
         Next k
+        Return False
     End Function
 
 
     '设置状态
     Function setExportImageStatus(layer, status)
-        layer.Visible = status
-        layer.Printable = status
+        If TypeName(layer) = "Layer" Then
+            layer.Visible = status
+            layer.Printable = status
+        End If
     End Function
 
 
@@ -240,9 +243,9 @@ Module App
 
         Dim Width
         Dim Height
-        Dim coverLayer As Layer
-        Dim footerLayer As Layer
-        Dim middleLayer As Layer
+        Dim coverLayer
+        Dim footerLayer
+        Dim middleLayer
         Dim exportName As String
 
         '激活当前到导出页面
@@ -479,7 +482,11 @@ Module App
                 End If
             End If
 
-            Dim coordY = getSettingsValue("TopY")            If Len(coordY) > 0 Then                Dim diffY = Shape.TopY - coordY                SizeHeight = Shape.SizeHeight - diffY            End If
+            Dim coordY = getSettingsValue("TopY")
+            If Len(coordY) > 0 Then
+                Dim diffY = Shape.TopY - coordY
+                SizeHeight = Shape.SizeHeight - diffY
+            End If
 
             coverSize(theimage, SizeWidth, SizeHeight)
         End If
