@@ -338,7 +338,9 @@ Module App
             exportName = getSettingsValue("ImageName")
         End If
 
-        Dim filePath = FileName + "\" + exportName + ".jpg"
+        Dim exportPostfix = getSettingsValue("exportPostfix")
+        Dim exportType = getSettingsValue("exportType")
+        Dim filePath = FileName + "\" + exportName + exportPostfix
 
         Try
 
@@ -346,7 +348,7 @@ Module App
             structOpts.Overwrite = True
             structOpts.SizeX = Width
             structOpts.SizeY = Height
-            activeDoc.Export(filePath, 774, 1, structOpts)
+            activeDoc.Export(filePath, exportType, 1, structOpts)
             'Dim efilter As ExportFilter = activeDoc.ExportBitmap(filePath, 774, 1, ImageType, Width, Height, 0, 0, 0, True, True, False, False, 8)
         Catch ex As Exception
 
