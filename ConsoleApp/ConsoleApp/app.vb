@@ -341,17 +341,13 @@ Module App
         Dim filePath = FileName + "\" + exportName + ".jpg"
 
         Try
-            Dim efilter As ExportFilter = activeDoc.ExportBitmap(filePath, 774, 1, ImageType, Width, Height, 0, 0, 0, True, True, False, False, 8)
 
-            '压缩
-            'efilter.Compression = 80
-            efilter.Optimized = True
-            'efilter.Overwrite = True
-            '平滑
-            efilter.Smoothing = 50
-            efilter.SubFormat = 1
-            efilter.Progressive = False
-            efilter.Finish()
+            Dim structOpts As StructExportOptions = New StructExportOptions
+            structOpts.Overwrite = True
+            structOpts.SizeX = Width
+            structOpts.SizeY = Height
+            activeDoc.Export(filePath, 774, 1, structOpts)
+            'Dim efilter As ExportFilter = activeDoc.ExportBitmap(filePath, 774, 1, ImageType, Width, Height, 0, 0, 0, True, True, False, False, 8)
         Catch ex As Exception
 
         End Try
