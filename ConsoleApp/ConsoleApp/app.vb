@@ -659,6 +659,14 @@ Module App
                 Exit Sub
             End If
 
+
+            '保存文档
+            If Param.cmdCommand = "SaveAsCopy" Then
+                doc.SaveAsCopy(Param.cmdSavePath)
+                Exit Sub
+            End If
+
+
             '插入图片
             If Param.cmdCommand = "insert-image" Then
                 insertImage(doc)

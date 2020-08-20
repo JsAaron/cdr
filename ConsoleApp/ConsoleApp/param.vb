@@ -12,6 +12,8 @@ Module Param
 
     Private tempData
 
+    Public cmdSavePath As String
+
     '打印数据
     Public cmdPrintSettings
 
@@ -106,6 +108,10 @@ Module Param
                 tempData = JsonConvert.DeserializeObject(args(2))
                 cmdExportSettings("FileName") = decodePath(tempData("FileName"))
             End If
+        ElseIf cmdCommand = "SaveAsCopy" Then
+            '保存文档
+            tempData = JsonConvert.DeserializeObject(args(1))
+            cmdSavePath = decodePath(tempData("FileName"))
         End If
 
         ' Console.WriteLine(cmdExternalData)
