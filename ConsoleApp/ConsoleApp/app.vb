@@ -358,21 +358,21 @@ Module App
         If mode = 1 Then
             '复位
             If pageIndex = 1 Then
-                setExportImageStatus(coverLayer, False)
+                'setExportImageStatus(coverLayer, False)
             ElseIf pageIndex = activeDoc.Pages.Count Then
                 setExportImageStatus(footerLayer, False)
             Else
-                setExportImageStatus(middleLayer, False)
+                ' setExportImageStatus(middleLayer, False)
             End If
         End If
 
 
         If mode = 2 Or mode = 3 Then
-            setExportImageStatus(middleLayer, False)
+            ' setExportImageStatus(middleLayer, False)
         End If
 
         If keepCanvas Then
-            setExportImageStatus(middleLayer, False)
+            'setExportImageStatus(middleLayer, False)
         End If
 
     End Function
@@ -513,10 +513,12 @@ Module App
     End Function
 
 
-    '处理图片
-    Function prcessImage(theimage, Shape, shapeName)
+    '自适应处理图片
+    Function adaptiveImage(theimage, Shape, shapeName)
+
         setImageShapeSize(theimage, Shape, shapeName)
         theimage.AddToPowerClip(Shape, -1)
+
         '对齐
         Dim coordX = getSettingsValue("LeftX")
         If Len(coordX) > 0 Then
@@ -540,6 +542,46 @@ Module App
         deleteImageShape(Shape)
     End Function
 
+
+
+    '=============== 裁剪图片 ==========================
+
+
+    Function covertClipSize(obj, tgwidth, tgheight)
+        Dim wfactor = tgwidth / obj.SizeWidth
+        Dim hfactor = tgheight / obj.SizeHeight
+        Dim factor = hfactor
+        If wfactor > hfactor Then
+            factor = wfactor
+        End If
+        Dim newwidth = factor * obj.SizeWidth
+        Dim newheight = factor * obj.SizeHeight
+        obj.SizeWidth = newwidth
+        obj.SizeHeight = newheight
+    End Function
+
+
+    '设置图片对象尺寸
+    Function setClipImageShapeSize(theimage, Shape, groupName)
+        If InStr(groupName, "图标") > 0 Then
+            Dim iconWidth = getSettingsValue("iconWidth")
+            Dim iconHeight = getSettingsValue("iconHeight")
+            containSize(theimage, iconWidth, iconHeight)
+        Else
+            covertClipSize(theimage, Shape.SizeWidth, Shape.SizeHeight)
+        End If
+    End Function
+
+
+    '裁剪图片
+    Function clipImage(theimage, Shape, shapeName)
+        setClipImageShapeSize(theimage, Shape, shapeName)
+        theimage.AddToPowerClip(Shape, -1)
+        deleteImageShape(Shape)
+    End Function
+
+
+
     '处理图片，'
     '最大查找3次
     Dim findImageCount = 3
@@ -555,7 +597,15 @@ Module App
             If rotationAngle > 0 Then
                 theimage.RotationAngle = rotationAngle
             End If
-            prcessImage(theimage, Shape, shapeName)
+            Dim mode = getSettingsValue("mode")
+            '缩放模式
+            If mode = 1 Then
+                adaptiveImage(theimage, Shape, shapeName)
+            End If
+            '裁剪模式
+            If mode = 2 Then
+                clipImage(theimage, Shape, shapeName)
+            End If
             Exit Function
         Else
             '如果没有找到图片，休眠后开始循环查找
